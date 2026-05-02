@@ -1,0 +1,17 @@
+defaults:
+  - ../base.yaml
+
+experiment:
+  name: b2_refactoring_ft
+  method: fine_tuning
+  domain: refactoring
+
+data:
+  train_file: data/processed/refactoring/train.jsonl
+  val_file: data/processed/refactoring/val.jsonl
+  test_file: data/processed/refactoring/test.jsonl
+
+output:
+  adapter_dir: artifacts/adapters/b2_refactoring_ft
+  checkpoint_dir: artifacts/checkpoints/b2_refactoring_ft
+  result_dir: results/b2_refactoring_ft

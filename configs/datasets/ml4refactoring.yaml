@@ -1,0 +1,29 @@
+dataset:
+  name: ml4refactoring
+  source: zenodo
+  language: java
+  purpose: large_refactoring_training_dataset
+
+paths:
+  raw_zip: C:/datasets/ml4refactoring/all.zip
+  raw_extract_dir: C:/datasets/ml4refactoring/all
+  metrics_sql: data/raw/ml4refactoring/refactoring50/refactoring50.sql
+  projects_sample: data/raw/ml4refactoring/projects-sample.xlsx
+
+output:
+  processed_dir: data/processed/refactoring_ml4ref
+
+processing:
+  max_examples:
+    train: 4000
+    val: 500
+    test: 500
+  seed: 42
+  max_input_chars: 12000
+  max_output_chars: 12000
+
+notes:
+  - all.zip is large and should preferably be stored outside OneDrive.
+  - refactoring50.sql contains structural metrics, not direct before/after code pairs.
+  - all.zip is expected to contain source code before and after refactoring.
+  - processing logic will be implemented after inspecting the extracted all.zip structure.

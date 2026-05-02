@@ -1,0 +1,22 @@
+experiment:
+  name: "b1_shared"
+  description: "Shared fine-tuning on testing + refactoring tasks"
+  model_config: "configs/models/qwen25_coder_7b_hf.yaml"
+  lora_config: "configs/finetuning/lora_config.yaml"
+
+dataset:
+  train_file: "data/processed/combined/train.jsonl"
+  val_file: "data/processed/combined/val.jsonl"
+  test_file: "data/processed/combined/test.jsonl"
+
+output:
+  output_dir: "experiments/b1_shared/checkpoints"
+  logging_dir: "experiments/b1_shared/logs"
+  results_dir: "experiments/b1_shared/results"
+
+run:
+  dry_run: true
+  max_train_samples: 50
+  max_val_samples: 20
+  max_steps: 5
+  seed: 42

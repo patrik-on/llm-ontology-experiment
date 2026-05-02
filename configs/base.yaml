@@ -1,0 +1,33 @@
+model:
+  base_model: codellama/CodeLlama-7b-Instruct-hf
+  max_seq_length: 2048
+
+lora:
+  r: 16
+  alpha: 32
+  dropout: 0.05
+  target_modules:
+    - q_proj
+    - k_proj
+    - v_proj
+    - o_proj
+
+quantization:
+  load_in_4bit: true
+
+training:
+  epochs: 3
+  batch_size: 4
+  gradient_accumulation_steps: 4
+  learning_rate: 0.0002
+  scheduler: cosine
+  warmup_ratio: 0.03
+  early_stopping: true
+  seed: 42
+
+paths:
+  raw_refactoring_dir: data/raw/marv
+  raw_testing_dir: data/raw/methods2test
+  processed_dir: data/processed
+  artifacts_dir: artifacts
+  results_dir: results

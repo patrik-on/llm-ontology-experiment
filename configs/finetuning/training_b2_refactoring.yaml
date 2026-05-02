@@ -1,0 +1,22 @@
+experiment:
+  name: "b2_refactoring"
+  description: "Fine-tuning on refactoring tasks only"
+  model_config: "configs/models/qwen25_coder_7b_hf.yaml"
+  lora_config: "configs/finetuning/lora_config.yaml"
+
+dataset:
+  train_file: "data/processed/refactoring/train.jsonl"
+  val_file: "data/processed/refactoring/val.jsonl"
+  test_file: "data/processed/refactoring/test.jsonl"
+
+output:
+  output_dir: "experiments/b2_refactoring/checkpoints"
+  logging_dir: "experiments/b2_refactoring/logs"
+  results_dir: "experiments/b2_refactoring/results"
+
+run:
+  dry_run: true
+  max_train_samples: 50
+  max_val_samples: 20
+  max_steps: 5
+  seed: 42

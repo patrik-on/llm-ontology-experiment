@@ -1,0 +1,5 @@
+# Reserved for future RAG experiments. The current phase intentionally does not
+# implement retrieval, embeddings, vector databases, or Graph RAG.
+experiment:
+  method: rag
+  enabled: false
