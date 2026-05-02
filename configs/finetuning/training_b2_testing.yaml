@@ -1,0 +1,22 @@
+experiment:
+  name: "b2_testing"
+  description: "Fine-tuning on JUnit test generation tasks only"
+  model_config: "configs/models/qwen25_coder_7b_hf.yaml"
+  lora_config: "configs/finetuning/lora_config.yaml"
+
+dataset:
+  train_file: "data/processed/testing/train.jsonl"
+  val_file: "data/processed/testing/val.jsonl"
+  test_file: "data/processed/testing/test.jsonl"
+
+output:
+  output_dir: "experiments/b2_testing/checkpoints"
+  logging_dir: "experiments/b2_testing/logs"
+  results_dir: "experiments/b2_testing/results"
+
+run:
+  dry_run: true
+  max_train_samples: 50
+  max_val_samples: 20
+  max_steps: 5
+  seed: 42

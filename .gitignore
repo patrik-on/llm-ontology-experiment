@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.env
+
+# Model weights
+*.safetensors
+*.bin
+*.pt
+*.gguf
+
+# External local models
+# Model files live outside this repository, for example under C:/models/.
+models/
+C:/models/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Raw and processed data
+data/raw/**
+data/processed/**
+data/external/**
+!data/raw/
+!data/raw/**/
+!data/processed/
+!data/processed/**/
+!data/external/
+!data/external/**/
+!data/**/.gitkeep
+
+# ML4Refactoring large raw data
+data/raw/ml4refactoring/all/
+data/raw/ml4refactoring/all.zip
+data/processed/refactoring_ml4ref/
+!data/processed/refactoring_ml4ref/
+!data/processed/refactoring_ml4ref/.gitkeep
+
+# Large external datasets outside repository are referenced via configs only
+
+# Large artifacts
+artifacts/**
+!artifacts/
+!artifacts/**/
+!artifacts/**/.gitkeep
+
+# Experiment artifacts
+experiments/**/checkpoints/
+experiments/**/logs/
+wandb/
+
+# Logs
+*.log
+runs/
+
+# Results - keep only selected small reports if needed
+results/**/logs/
+results/**/tmp/
+results/**/checkpoints/
+!results/
+!results/**/
+!results/**/.gitkeep
+
+# IDE
+.vscode/
+.idea/

@@ -1,0 +1,21 @@
+experiment:
+  name: "c0_ollama_qwen25_coder_baseline"
+  description: "C0 baseline inference using Ollama qwen2.5-coder:7b"
+
+model:
+  config: "configs/models/qwen25_coder_7b_ollama.yaml"
+
+datasets:
+  refactoring_test: "data/processed/refactoring/test.jsonl"
+  testing_test: "data/processed/testing/test.jsonl"
+  combined_test: "data/processed/combined/test.jsonl"
+
+output:
+  results_dir: "experiments/c0_ollama_baseline/results"
+  predictions_file: "experiments/c0_ollama_baseline/results/predictions.jsonl"
+
+generation:
+  temperature: 0.2
+  top_p: 0.9
+  max_tokens: 1024
+  limit_per_dataset: 20

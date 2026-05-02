@@ -1,0 +1,17 @@
+defaults:
+  - ../base.yaml
+
+experiment:
+  name: b2_testing_ft
+  method: fine_tuning
+  domain: testing
+
+data:
+  train_file: data/processed/testing/train.jsonl
+  val_file: data/processed/testing/val.jsonl
+  test_file: data/processed/testing/test.jsonl
+
+output:
+  adapter_dir: artifacts/adapters/b2_testing_ft
+  checkpoint_dir: artifacts/checkpoints/b2_testing_ft
+  result_dir: results/b2_testing_ft
