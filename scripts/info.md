@@ -1,12 +1,20 @@
 # scripts
 
-Spustiteľné CLI skripty projektu.
+CLI vstupy projektu.
 
-Najdôležitejšie skupiny:
+Tento priečinok má obsahovať najmä tenké wrappery, nie hlavnú implementačnú logiku. Knižničný kód je v `src/llm_ontology/`.
 
-- príprava dát: `prepare_*.py`, `inspect_*.py`,
-- fine-tuning: `train_finetuning.py`, `check_finetuning_ready.py`, `check_transformers_compat.py`,
-- baseline inference: `run_ollama_baseline.py`,
-- evaluation: `run_inference_eval.py`, `compute_eval_metrics.py`, `build_eval_report.py`, `run_full_evaluation.py`, `smoke_eval_metrics.py`.
+Tematické priečinky:
 
-`run_full_evaluation.py` spúšťa každý model v samostatnom procese, aby sa uvoľnila GPU pamäť medzi modelmi.
+- `data/`: príprava a kontrola datasetov,
+- `training/`: fine-tuning a kontroly tréningového setupu,
+- `inference/`: baseline/generic inference príkazy,
+- `evaluation/`: inference evaluation, metriky, reporty a smoke testy.
+
+Presunutá logika:
+
+- `src/llm_ontology/training/`: QLoRA training engine a kontroly,
+- `src/llm_ontology/evaluation/`: HF baseline/LoRA evaluation, metriky a reporty,
+- `src/llm_ontology/inference/`: Ollama baseline a inference helpery,
+- `src/llm_ontology/data/`: dataset pipeline a finálne B1/B2 dataset mixy.
+

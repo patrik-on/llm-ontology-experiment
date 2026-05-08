@@ -1,12 +1,8 @@
 from __future__ import annotations
 
 import argparse
-import sys
 from pathlib import Path
 from typing import Any
-
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
 
 from llm_ontology.core.config import read_yaml
 from llm_ontology.finetuning.dataset_loader import load_jsonl, validate_example
@@ -17,7 +13,7 @@ DEFAULT_TRAINING_CONFIGS = (
     Path("configs/finetuning/training_b2_refactoring.yaml"),
     Path("configs/finetuning/training_b1_shared.yaml"),
 )
-TRAINING_SCRIPT = Path("scripts/train_finetuning.py")
+TRAINING_SCRIPT = Path("scripts/training/train_finetuning.py")
 
 
 def ok(message: str) -> None:
@@ -141,7 +137,7 @@ def main() -> None:
         config_paths = (Path(args.config),)
     else:
         print("[INFO] No --config provided. Checking default Windows configs.")
-        print("[INFO] For WSL, prefer: python scripts/check_finetuning_ready.py --config configs/finetuning/<experiment>_wsl.yaml")
+        print("[INFO] For WSL, prefer: python scripts/training/check_finetuning_ready.py --config configs/finetuning/<experiment>_wsl.yaml")
         config_paths = DEFAULT_TRAINING_CONFIGS
 
     for config_path in config_paths:

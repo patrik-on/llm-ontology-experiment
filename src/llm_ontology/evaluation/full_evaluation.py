@@ -3,10 +3,6 @@ from __future__ import annotations
 import argparse
 import subprocess
 import sys
-from pathlib import Path
-
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
 
 from llm_ontology.core.config import read_yaml
 
@@ -63,7 +59,7 @@ def main() -> None:
                 print(f"Running task={task}, model={current_model_name}")
                 cmd = [
                     sys.executable,
-                    "scripts/run_inference_eval.py",
+                    "scripts/evaluation/run_inference_eval.py",
                     "--task",
                     task,
                     "--models-config",
@@ -81,10 +77,10 @@ def main() -> None:
                     cmd.append("--overwrite")
                 run(cmd, continue_on_error=args.continue_on_error)
         if not args.skip_metrics:
-            run([sys.executable, "scripts/compute_eval_metrics.py", "--task", task, "--predictions-dir", pred_dir, "--output-dir", metrics_dir])
+            run([sys.executable, "scripts/evaluation/compute_eval_metrics.py", "--task", task, "--predictions-dir", pred_dir, "--output-dir", metrics_dir])
 
     if not args.skip_report:
-        run([sys.executable, "scripts/build_eval_report.py", "--output-root", args.output_root])
+        run([sys.executable, "scripts/evaluation/build_eval_report.py", "--output-root", args.output_root])
 
 
 if __name__ == "__main__":

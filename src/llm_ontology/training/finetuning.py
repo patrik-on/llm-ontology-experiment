@@ -1,16 +1,11 @@
 from __future__ import annotations
 
-import argparse
 import json
 import logging
 import shutil
-import sys
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
 
 from llm_ontology.core.config import read_yaml
 from llm_ontology.finetuning.dataset_loader import load_instruction_dataset
@@ -482,20 +477,3 @@ def run_training(config_path: str | Path, resume_from_checkpoint: str | None = N
             final_adapter_valid=False,
         )
         raise
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Run LoRA/QLoRA fine-tuning from a YAML config.")
-    parser.add_argument("--config", required=True)
-    parser.add_argument(
-        "--resume_from_checkpoint",
-        type=str,
-        default=None,
-        help="Optional path to a Trainer checkpoint directory to resume training from.",
-    )
-    args = parser.parse_args()
-    run_training(args.config, resume_from_checkpoint=args.resume_from_checkpoint)
-
-
-if __name__ == "__main__":
-    main()

@@ -3,12 +3,8 @@ from __future__ import annotations
 import argparse
 import gc
 import json
-import sys
 from pathlib import Path
 from typing import Any
-
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
 
 from llm_ontology.core.config import read_yaml
 from llm_ontology.evaluation.prediction_io import pick_first, read_jsonl, write_jsonl

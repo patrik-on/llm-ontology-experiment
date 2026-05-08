@@ -1,14 +1,10 @@
 from __future__ import annotations
 
 import argparse
-import sys
 from collections import defaultdict
 from pathlib import Path
 from statistics import mean, median
 from typing import Any
-
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
 
 from llm_ontology.evaluation.prediction_io import normalize_prediction_record, read_jsonl, write_csv, write_json, write_jsonl
 from llm_ontology.evaluation.refactoring_metrics import compute_refactoring_metrics
