@@ -5,9 +5,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
-
 from llm_ontology.evaluation.prediction_io import write_jsonl
 
 
@@ -51,9 +48,9 @@ def main() -> None:
         ],
         refactoring_dir / "dummy_model.jsonl",
     )
-    subprocess.run([sys.executable, "scripts/compute_eval_metrics.py", "--task", "testing", "--predictions-dir", str(testing_dir), "--output-dir", str(root / "metrics" / "testing")], check=True)
-    subprocess.run([sys.executable, "scripts/compute_eval_metrics.py", "--task", "refactoring", "--predictions-dir", str(refactoring_dir), "--output-dir", str(root / "metrics" / "refactoring")], check=True)
-    subprocess.run([sys.executable, "scripts/build_eval_report.py", "--output-root", str(root)], check=True)
+    subprocess.run([sys.executable, "scripts/evaluation/compute_eval_metrics.py", "--task", "testing", "--predictions-dir", str(testing_dir), "--output-dir", str(root / "metrics" / "testing")], check=True)
+    subprocess.run([sys.executable, "scripts/evaluation/compute_eval_metrics.py", "--task", "refactoring", "--predictions-dir", str(refactoring_dir), "--output-dir", str(root / "metrics" / "refactoring")], check=True)
+    subprocess.run([sys.executable, "scripts/evaluation/build_eval_report.py", "--output-root", str(root)], check=True)
     required = [
         root / "metrics" / "testing" / "aggregate_metrics.csv",
         root / "metrics" / "testing" / "aggregate_metrics.json",

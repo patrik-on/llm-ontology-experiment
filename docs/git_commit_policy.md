@@ -114,3 +114,4 @@ Typický commit pre aktuálnu fázu má obsahovať:
 - `src/**/*.py`
 - `**/info.md`
 - `requirements.txt`
+

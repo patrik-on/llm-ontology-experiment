@@ -2,13 +2,9 @@ from __future__ import annotations
 
 import json
 import subprocess
-import sys
 from pathlib import Path
 from urllib.error import URLError
 from urllib.request import urlopen
-
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "src"))
 
 from llm_ontology.core.config import read_yaml
 

@@ -85,6 +85,10 @@ Hlavné configy:
 - `configs/finetuning/training_b2_refactoring_wsl.yaml`
 - `configs/finetuning/training_b1_shared_wsl.yaml`
 
+Hlavná tréningová logika je v `src/llm_ontology/training/finetuning.py`. Skript `scripts/training/train_finetuning.py` je iba CLI wrapper, aby zostali zachované pôvodné príkazy.
+
+Rovnaký princíp platí aj pre evaluation: `scripts/` obsahuje spustiteľné vstupy, zatiaľ čo hlavná logika je v `src/llm_ontology/evaluation/`.
+
 Aktuálne QLoRA nastavenie:
 
 - 4-bit NF4 quantization,
@@ -100,22 +104,22 @@ Aktuálne QLoRA nastavenie:
 Kontrola WSL fine-tuning kompatibility:
 
 ```bash
-python scripts/check_transformers_compat.py
-python scripts/check_finetuning_ready.py --config configs/finetuning/training_b1_shared_wsl.yaml
+python scripts/training/check_transformers_compat.py
+python scripts/training/check_finetuning_ready.py --config configs/finetuning/training_b1_shared_wsl.yaml
 ```
 
 Spustenie tréningu:
 
 ```bash
-python scripts/train_finetuning.py --config configs/finetuning/training_b2_testing_wsl.yaml
-python scripts/train_finetuning.py --config configs/finetuning/training_b2_refactoring_wsl.yaml
-python scripts/train_finetuning.py --config configs/finetuning/training_b1_shared_wsl.yaml
+python scripts/training/train_finetuning.py --config configs/finetuning/training_b2_testing_wsl.yaml
+python scripts/training/train_finetuning.py --config configs/finetuning/training_b2_refactoring_wsl.yaml
+python scripts/training/train_finetuning.py --config configs/finetuning/training_b1_shared_wsl.yaml
 ```
 
 Pokračovanie z checkpointu:
 
 ```bash
-python scripts/train_finetuning.py \
+python scripts/training/train_finetuning.py \
   --config configs/finetuning/training_b1_shared_wsl.yaml \
   --resume_from_checkpoint /home/patrik/experiments/llm-ontology/b1_shared/checkpoints/checkpoint-300
 ```
@@ -123,7 +127,7 @@ python scripts/train_finetuning.py \
 Malá evaluation inference:
 
 ```bash
-python scripts/run_inference_eval.py \
+python scripts/evaluation/run_inference_eval.py \
   --task testing \
   --models-config configs/evaluation/eval_models.yaml \
   --dataset data/processed/testing/test.jsonl \
@@ -136,7 +140,7 @@ python scripts/run_inference_eval.py \
 Full evaluation s limitom 100:
 
 ```bash
-python scripts/run_full_evaluation.py \
+python scripts/evaluation/run_full_evaluation.py \
   --models-config configs/evaluation/eval_models.yaml \
   --limit 100 \
   --output-root evaluation \
@@ -203,7 +207,7 @@ Hlavné priečinky majú vlastný `info.md` s krátkym vysvetlením. Rýchla map
 | `evaluation/` | predikcie, metriky, reporty a ukážky |
 | `experiments/` | lokálne checkpointy/adaptéry a tréningové výsledky v repo časti |
 | `scripts/` | spustiteľné CLI skripty pre dáta, tréning, inferenciu a evaluation |
-| `src/llm_ontology/` | knižničný Python kód projektu |
+| `src/llm_ontology/` | knižničný Python kód projektu; obsahuje reálnu logiku pre data, training, inference a evaluation |
 | `tests/` | testy a budúce overovanie |
 | `notebooks/` | experimentálne notebooky |
 | `artifacts/` a `results/` | pomocné výstupy a staršie výsledky |
@@ -217,3 +221,4 @@ Hlavné priečinky majú vlastný `info.md` s krátkym vysvetlením. Rýchla map
 - Fine-tuning používa Hugging Face + PEFT, nie Ollama.
 - Natívny Windows nie je odporúčaný pre QLoRA, pretože `bitsandbytes` môže byť problematický.
 - Evaluation s viacerými modelmi má bežať cez `run_full_evaluation.py`, ktorý izoluje modely do samostatných procesov.
+

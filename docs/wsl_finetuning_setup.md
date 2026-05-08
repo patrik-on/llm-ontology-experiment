@@ -16,7 +16,7 @@ Tento dokument popisuje WSL2/Ubuntu setup pre QLoRA fine-tuning modelu Qwen2.5-C
 cd /mnt/c/Users/patri/OneDrive/Dokumenty/GitHub/llm-ontology-experiment
 source .venv_wsl/bin/activate
 
-python scripts/check_transformers_compat.py
+python scripts/training/check_transformers_compat.py
 ```
 
 ## Experiment outputs
@@ -34,28 +34,28 @@ The repository remains on `/mnt/c`, but checkpoints, logs, results and final ada
 ## B2-T Testing
 
 ```bash
-python scripts/check_finetuning_ready.py --config configs/finetuning/training_b2_testing_wsl.yaml
-python scripts/train_finetuning.py --config configs/finetuning/training_b2_testing_wsl.yaml
+python scripts/training/check_finetuning_ready.py --config configs/finetuning/training_b2_testing_wsl.yaml
+python scripts/training/train_finetuning.py --config configs/finetuning/training_b2_testing_wsl.yaml
 ```
 
 ## B2-R Refactoring
 
 ```bash
-python scripts/check_finetuning_ready.py --config configs/finetuning/training_b2_refactoring_wsl.yaml
-python scripts/train_finetuning.py --config configs/finetuning/training_b2_refactoring_wsl.yaml
+python scripts/training/check_finetuning_ready.py --config configs/finetuning/training_b2_refactoring_wsl.yaml
+python scripts/training/train_finetuning.py --config configs/finetuning/training_b2_refactoring_wsl.yaml
 ```
 
 ## B1 Shared
 
 ```bash
-python scripts/check_finetuning_ready.py --config configs/finetuning/training_b1_shared_wsl.yaml
-python scripts/train_finetuning.py --config configs/finetuning/training_b1_shared_wsl.yaml
+python scripts/training/check_finetuning_ready.py --config configs/finetuning/training_b1_shared_wsl.yaml
+python scripts/training/train_finetuning.py --config configs/finetuning/training_b1_shared_wsl.yaml
 ```
 
 ## Resume interrupted training
 
 ```bash
-python scripts/train_finetuning.py \
+python scripts/training/train_finetuning.py \
   --config configs/finetuning/training_b1_shared_wsl.yaml \
   --resume_from_checkpoint /home/patrik/experiments/llm-ontology/b1_shared/checkpoints/checkpoint-300
 ```
@@ -65,3 +65,4 @@ Odporúčané poradie spustenia:
 1. B2-T testing
 2. B2-R refactoring
 3. B1 shared
+
