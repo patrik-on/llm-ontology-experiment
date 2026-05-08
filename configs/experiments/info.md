@@ -2,4 +2,4 @@
 
 Staršie alebo pomocné experimentálne konfigurácie.
 
-Aktuálny reálny fine-tuning používa primárne `configs/finetuning/*_wsl.yaml`. Tento priečinok ponecháva skoršie experiment configy pre spätnú orientáciu.
+Pôvodné `*_ft.yaml` configy pre starý `scripts/training/train.py` flow boli odstránené. Aktuálny reálny fine-tuning používa `configs/finetuning/*_wsl.yaml` a `scripts/training/train_finetuning.py`.

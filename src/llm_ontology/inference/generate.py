@@ -8,7 +8,7 @@ from llm_ontology.core.paths import ensure_dir, resolve_path
 from llm_ontology.inference.prompts import build_prompt
 from llm_ontology.models.adapters import load_adapter
 from llm_ontology.models.base_model import load_base_model, load_tokenizer
-from llm_ontology.training.dataset import load_instruction_dataset
+from llm_ontology.finetuning.dataset_loader import load_jsonl
 
 
 def generate_text(model: Any, tokenizer: Any, prompt: str, max_new_tokens: int = 512) -> str:
@@ -18,7 +18,7 @@ def generate_text(model: Any, tokenizer: Any, prompt: str, max_new_tokens: int =
 
 
 def generate_predictions(config: dict) -> Path:
-    test_records = load_instruction_dataset(resolve_path(config["data"]["test_file"]))
+    test_records = load_jsonl(resolve_path(config["data"]["test_file"]))
     result_dir = ensure_dir(resolve_path(config["output"]["result_dir"]))
     output_path = result_dir / "predictions.jsonl"
 
