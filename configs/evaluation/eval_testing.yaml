@@ -1,0 +1,4 @@
+task: "testing"
+dataset: "data/processed/testing/test.jsonl"
+predictions_dir: "evaluation/predictions/testing"
+metrics_dir: "evaluation/metrics/testing"

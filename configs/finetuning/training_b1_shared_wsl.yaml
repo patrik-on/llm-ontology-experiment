@@ -1,0 +1,23 @@
+experiment:
+  name: "b1_shared"
+  description: "Shared fine-tuning on testing + refactoring tasks"
+  model_config: "configs/models/qwen25_coder_7b_hf_wsl.yaml"
+  lora_config: "configs/finetuning/lora_config.yaml"
+
+dataset:
+  train_file: "data/processed/combined/train.jsonl"
+  val_file: "data/processed/combined/val.jsonl"
+  test_file: "data/processed/combined/test.jsonl"
+
+output:
+  output_dir: "/home/patrik/experiments/llm-ontology/b1_shared/checkpoints"
+  logging_dir: "/home/patrik/experiments/llm-ontology/b1_shared/logs"
+  results_dir: "/home/patrik/experiments/llm-ontology/b1_shared/results"
+  final_adapter_dir: "/home/patrik/experiments/llm-ontology/b1_shared/checkpoints/final_adapter"
+
+run:
+  dry_run: false
+  max_train_samples: null
+  max_val_samples: null
+  max_steps: null
+  seed: 42

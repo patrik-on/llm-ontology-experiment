@@ -1,0 +1,23 @@
+experiment:
+  name: "b2_testing"
+  description: "Fine-tuning on JUnit test generation tasks only"
+  model_config: "configs/models/qwen25_coder_7b_hf_wsl.yaml"
+  lora_config: "configs/finetuning/lora_config.yaml"
+
+dataset:
+  train_file: "data/processed/testing/train.jsonl"
+  val_file: "data/processed/testing/val.jsonl"
+  test_file: "data/processed/testing/test.jsonl"
+
+output:
+  output_dir: "/home/patrik/experiments/llm-ontology/b2_testing/checkpoints"
+  logging_dir: "/home/patrik/experiments/llm-ontology/b2_testing/logs"
+  results_dir: "/home/patrik/experiments/llm-ontology/b2_testing/results"
+  final_adapter_dir: "/home/patrik/experiments/llm-ontology/b2_testing/checkpoints/final_adapter"
+
+run:
+  dry_run: false
+  max_train_samples: null
+  max_val_samples: null
+  max_steps: null
+  seed: 42

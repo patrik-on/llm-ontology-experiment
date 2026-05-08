@@ -1,0 +1,6 @@
+models_config: "configs/evaluation/eval_models.yaml"
+output_root: "evaluation"
+testing:
+  dataset: "data/processed/testing/test.jsonl"
+refactoring:
+  dataset: "data/processed/refactoring/test.jsonl"

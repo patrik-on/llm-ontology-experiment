@@ -2,7 +2,13 @@
 __pycache__/
 *.pyc
 .venv/
+.venv*/
+venv/
+env/
 .env
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
 
 # Model weights
 *.safetensors
@@ -23,12 +29,13 @@ data/raw/**
 data/processed/**
 data/external/**
 !data/raw/
-!data/raw/**/
+!data/raw/info.md
 !data/processed/
 !data/processed/**/
 !data/external/
-!data/external/**/
+!data/external/info.md
 !data/**/.gitkeep
+!data/processed/**/info.md
 
 # ML4Refactoring large raw data
 data/raw/ml4refactoring/all/
@@ -44,23 +51,37 @@ artifacts/**
 !artifacts/
 !artifacts/**/
 !artifacts/**/.gitkeep
+!artifacts/**/info.md
 
 # Experiment artifacts
 experiments/**/checkpoints/
 experiments/**/logs/
+experiments/**/results/*
+!experiments/**/results/
+!experiments/**/results/.gitkeep
+!experiments/**/info.md
 wandb/
+
+# Evaluation outputs
+evaluation_smoke/**
+evaluation/predictions/**
+evaluation/metrics/**
+evaluation/reports/**
+evaluation/samples/**
+!evaluation/
+!evaluation/**/
+!evaluation/**/info.md
 
 # Logs
 *.log
 runs/
 
 # Results - keep only selected small reports if needed
-results/**/logs/
-results/**/tmp/
-results/**/checkpoints/
+results/**
 !results/
 !results/**/
 !results/**/.gitkeep
+!results/**/info.md
 
 # IDE
 .vscode/

@@ -1,0 +1,4 @@
+task: "refactoring"
+dataset: "data/processed/refactoring/test.jsonl"
+predictions_dir: "evaluation/predictions/refactoring"
+metrics_dir: "evaluation/metrics/refactoring"
