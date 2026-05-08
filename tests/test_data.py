@@ -4,7 +4,7 @@ from llm_ontology.data.format import load_domain_records, write_jsonl
 from llm_ontology.data.marv import build_instruction_records, stratified_split
 from llm_ontology.data.methods2test import prepare_methods2test
 from llm_ontology.data.split import combine_records, split_records
-from llm_ontology.training.dataset import load_instruction_dataset
+from llm_ontology.finetuning.dataset_loader import load_jsonl
 
 
 def test_format_refactoring_jsonl(tmp_path: Path) -> None:
@@ -29,7 +29,7 @@ def test_write_and_load_instruction_dataset(tmp_path: Path) -> None:
 
     write_jsonl(records, output)
 
-    assert load_instruction_dataset(output) == records
+    assert load_jsonl(output) == records
 
 
 def test_split_and_combine_records() -> None:
@@ -44,7 +44,7 @@ def test_split_and_combine_records() -> None:
 
 def test_prepare_methods2test_uses_official_splits(tmp_path: Path) -> None:
     corpus = tmp_path / "corpus" / "json"
-    good_input = "public int add(int a, int b) { return a + b; }" + " " * 10
+    good_input = "public int add(int a, int b) { int result = a + b; return result; }"
     good_output = "@Test public void testAdd() { assertEquals(3, add(1, 2)); }"
     bad_output = "public void helper() {}"
     for split in ("train", "eval", "test"):
@@ -65,7 +65,7 @@ def test_prepare_methods2test_uses_official_splits(tmp_path: Path) -> None:
     assert (tmp_path / "processed" / "train.jsonl").exists()
     assert (tmp_path / "processed" / "val.jsonl").exists()
     assert (tmp_path / "processed" / "test.jsonl").exists()
-    record = load_instruction_dataset(tmp_path / "processed" / "val.jsonl")[0]
+    record = load_jsonl(tmp_path / "processed" / "val.jsonl")[0]
     assert record["source"] == "methods2test"
     assert record["context_level"] == "src_fm"
     assert record["source_file"].endswith("corpus/json/eval/123/123_0_corpus.json")
