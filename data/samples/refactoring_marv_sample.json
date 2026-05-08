@@ -1,0 +1,8 @@
+{
+  "instruction": "Vygeneruj refaktorovanú verziu nasledujúceho Java kódu podľa typu refaktoringu: Extract Method.",
+  "input": "ProcessorSupplier<K, Change<V>> aggregateSupplier = new KTableAggregate<>(name, initializer, adder, subtractor); /* repartition setup inline */",
+  "output": "ProcessorSupplier<K, Change<V>> aggregateSupplier = new KTableAggregate<>(name, initializer, adder, subtractor); return doAggregate(aggregateSupplier, aggValueSerde, AGGREGATE_NAME, name);",
+  "domain": "refactoring",
+  "source": "marv",
+  "refactoring_type": "Extract Method"
+}

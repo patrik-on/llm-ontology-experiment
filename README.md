@@ -63,6 +63,8 @@ JSONL záznamy používajú instruction-tuning formát:
 }
 ```
 
+Malé commitovateľné ukážky záznamov sú v `data/samples/`, keďže plné JSONL datasety sú ignorované Gitom.
+
 ## Modely A Tréning
 
 Hugging Face model pre WSL:

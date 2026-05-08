@@ -9,3 +9,5 @@ Finálne spracované datasety vo formáte JSONL.
 - `combined/`: finálny B1 shared dataset, Methods2Test + ML4Refactoring, 8000/1000/1000.
 
 Tieto súbory nemení tréning ani evaluation pipeline.
+
+Malé ukážky formátu sú v `data/samples/`, aby boli viditeľné aj na GitHube bez commitovania plných datasetov.

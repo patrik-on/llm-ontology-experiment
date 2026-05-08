@@ -1,0 +1,9 @@
+{
+  "instruction": "Vygeneruj refaktorovanú verziu nasledujúceho Java kódu podľa typu refaktoringu: Rename Method.",
+  "input": "public int getDiscarded() { TopicSubscription topicSubscription = getTopicSubscription(); return topicSubscription != null ? topicSubscription.discarded() : 0; }",
+  "output": "public int getDiscardedCount() { TopicSubscription topicSubscription = getTopicSubscription(); return topicSubscription != null ? topicSubscription.discarded() : 0; }",
+  "domain": "refactoring",
+  "source": "ml4refactoring",
+  "project": "activemq",
+  "refactoring_type": "Rename Method"
+}
