@@ -1,0 +1,8 @@
+{
+  "instruction": "Vygeneruj JUnit test pre nasledujúcu Java metódu.",
+  "input": "public static String getPartitionAddress(String address, int partition) { Objects.requireNonNull(address); return String.format(\"%s-%d\", address, partition); }",
+  "output": "@Test public void shouldGetPartitionAddress() { assertThat(NamingUtils.getPartitionAddress(\"testAddress\", 0)).isEqualTo(\"testAddress-0\"); }",
+  "domain": "testing",
+  "source": "methods2test",
+  "context_level": "src_fm"
+}
