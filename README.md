@@ -1,232 +1,219 @@
 # LLM Ontology Experiment
 
-Experimentálny repozitár pre diplomovú prácu zameranú na využitie veľkých jazykových modelov v softvérovom inžinierstve.
+Repozitár pre diplomovú prácu zameranú na použitie veľkých jazykových modelov pri úlohách softvérového inžinierstva. Projekt aktuálne rieši dve hlavné úlohy:
 
-Aktuálna fáza projektu pripravuje datasety, modelové konfigurácie a infraštruktúru pre fine-tuning modelu **Qwen2.5-Coder-7B-Instruct** na dvoch úlohách:
+- generovanie JUnit testov pre Java metódy,
+- refaktoring Java kódu.
 
-- refaktoring Java kódu,
-- generovanie JUnit testov.
+Hlavný lokálny model je **Qwen2.5-Coder-7B-Instruct**. Fine-tuning prebieha cez Hugging Face Transformers, PEFT a LoRA/QLoRA. Ollama model `qwen2.5-coder:7b` slúži iba ako baseline/prompt testing, nie na fine-tuning.
 
-Repozitár je zároveň pripravený tak, aby bolo možné neskôr doplniť RAG, Split RAG a Graph RAG experimenty bez zásadnej zmeny štruktúry.
+## Aktuálny Stav
+
+| Oblasť | Verzia / stav | Poznámka |
+|---|---:|---|
+| Dokumentácia | 2026-05-08 | README aktualizované podľa aktuálnej štruktúry projektu |
+| Dataset pipeline | v1 | Methods2Test, MaRV, ML4Refactoring a finálne mixy pripravené |
+| Fine-tuning pipeline | v2 | QLoRA, early stopping, resume z checkpointu, robustné summary pri chybe/Ctrl+C |
+| WSL setup | v1 | Reálne tréningy používajú WSL2/CUDA; výstupy idú mimo OneDrive |
+| Evaluation pipeline | v1 | Inference, proxy metriky, CSV/JSON/Markdown reporty |
+| RAG experimenty | plán | Zatiaľ len šablóna, nie implementácia |
+
+## Ciele Projektu
+
+1. Pripraviť datasety pre instruction-tuning na test generation a refactoring.
+2. Natrénovať a porovnať tri LoRA/QLoRA varianty:
+   - **B2-T**: testing-only fine-tuning,
+   - **B2-R**: refactoring-only fine-tuning,
+   - **B1**: shared fine-tuning na oboch úlohách.
+3. Porovnať baseline a fine-tuned modely na testovacej a refaktoringovej úlohe.
+4. Vytvoriť auditovateľné výstupy použiteľné v diplomovej práci: JSONL predikcie, CSV metriky, agregácie a Markdown report.
+5. Neskôr rozšíriť projekt o RAG / Split RAG / Graph RAG experimenty.
 
 ## Experimenty
 
-| Konfigurácia | Popis | Stav |
-|---|---|---|
-| **B1** | Shared fine-tuning na refaktoringu aj testovaní | Datasety a config pripravené |
-| **B2-R** | Fine-tuning iba na refaktoringu | Datasety a config pripravené |
-| **B2-T** | Fine-tuning iba na generovaní testov | Datasety a config pripravené |
-| **C0** | Ollama baseline bez fine-tuningu | Config a runner pripravené |
-| **A1/A2/A3** | RAG, Split RAG, Graph RAG | Budúce rozšírenie |
-
-Plný fine-tuning sa zatiaľ nespúšťa. Aktuálne sú pripravené iba dáta, konfigurácie, validačné skripty a skeleton loaderov.
+| Experiment | Úloha | Model / adaptér | Stav |
+|---|---|---|---|
+| **C0** | baseline inference | Qwen2.5-Coder-7B-Instruct bez adaptéra alebo Ollama baseline | infra pripravená |
+| **B2-T** | JUnit test generation | LoRA adaptér v `experiments/b2_testing/checkpoints/final_adapter` | prvý beh dokončený/prerušený po cca 1 epoche, adaptér dostupný |
+| **B2-R** | refactoring | LoRA adaptér v `experiments/b2_refactoring/checkpoints/final_adapter` | prvý beh prerušený po checkpoint-300, adaptér dostupný |
+| **B1** | shared testing + refactoring | LoRA adaptér v `/home/patrik/experiments/llm-ontology/b1_shared/checkpoints/final_adapter` | WSL výstup mimo repozitára |
+| **A1/A2/A3** | RAG varianty | zatiaľ bez modelovej implementácie | plánované |
 
 ## Datasety
 
-Spracované datasety sú uložené v `data/processed/`.
+Spracované datasety sú v `data/processed/`.
 
-| Dataset | Úloha | Split-y | Poznámka |
-|---|---|---|---|
-| `testing/` | JUnit test generation | `4000/500/500` | Methods2Test |
-| `refactoring_marv/` | Refactoring | `478/100/108` | MaRV |
-| `refactoring_ml4ref/` | Refactoring | `4000/500/500` | ML4Refactoring subset |
-| `refactoring/` | B2-R final | `4478/600/608` | ML4Refactoring + MaRV |
-| `combined/` | B1 final | `8000/1000/1000` | Methods2Test + ML4Refactoring, bez MaRV |
+| Dataset | Úloha | Train | Val | Test | Zdroj |
+|---|---:|---:|---:|---:|---|
+| `testing/` | JUnit test generation | 4000 | 500 | 500 | Methods2Test |
+| `refactoring_marv/` | refactoring | 478 | 100 | 108 | MaRV |
+| `refactoring_ml4ref/` | refactoring | 4000 | 500 | 500 | ML4Refactoring subset |
+| `refactoring/` | B2-R final | 4478 | 600 | 608 | ML4Refactoring + MaRV |
+| `combined/` | B1 final | 8000 | 1000 | 1000 | Methods2Test + ML4Refactoring |
 
-JSONL záznamy sú v instruction-tuning formáte a obsahujú minimálne:
+JSONL záznamy používajú instruction-tuning formát:
 
 ```json
 {
   "instruction": "...",
   "input": "...",
   "output": "...",
-  "domain": "refactoring alebo testing",
-  "source": "..."
+  "domain": "testing alebo refactoring",
+  "source": "methods2test / marv / ml4refactoring"
 }
 ```
 
-### ML4Refactoring
+## Modely A Tréning
 
-ML4Refactoring dataset je očakávaný mimo repozitára:
+Hugging Face model pre WSL:
 
 ```text
-C:/datasets/ml4refactoring/all/dataset/
+/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct
 ```
 
-Pipeline spracúva projektové ZIPy po jednom, rozbaľuje ich do dočasného priečinka, páruje `before-refactoring` a `after-refactoring` súbory podľa relatívnej cesty a ignoruje `-astc` súbory.
-
-Užitočné príkazy:
-
-```powershell
-py scripts/inspect_ml4refactoring.py --project-zip C:/datasets/ml4refactoring/all/dataset/apache-abdera.zip
-py scripts/prepare_ml4refactoring.py
-py scripts/prepare_final_datasets.py
-```
-
-## Modely
-
-Používané modely sú definované v `configs/models/`.
-
-| Model | Config | Účel |
-|---|---|---|
-| Hugging Face Qwen2.5-Coder-7B-Instruct | `configs/models/qwen25_coder_7b_hf.yaml` | LoRA/QLoRA fine-tuning |
-| Ollama `qwen2.5-coder:7b` | `configs/models/qwen25_coder_7b_ollama.yaml` | Lokálna baseline inferencia |
-
-Lokálny Hugging Face model sa očakáva mimo repozitára:
+Windows cesta toho istého lokálneho modelu:
 
 ```text
 C:/models/huggingface/Qwen2.5-Coder-7B-Instruct
 ```
 
-Modelové váhy, checkpointy a logy sa necommitujú.
+Hlavné configy:
 
-## Fine-Tuning Konfigurácie
+- `configs/models/qwen25_coder_7b_hf_wsl.yaml`
+- `configs/finetuning/lora_config.yaml`
+- `configs/finetuning/training_b2_testing_wsl.yaml`
+- `configs/finetuning/training_b2_refactoring_wsl.yaml`
+- `configs/finetuning/training_b1_shared_wsl.yaml`
 
-Fine-tuning konfigurácie sú v `configs/finetuning/`:
+Aktuálne QLoRA nastavenie:
 
-- `lora_config.yaml`
-- `training_b1_shared.yaml`
-- `training_b2_refactoring.yaml`
-- `training_b2_testing.yaml`
+- 4-bit NF4 quantization,
+- LoRA `r=16`, `alpha=32`, `dropout=0.05`,
+- max 2 epochy,
+- eval/save každých 100 krokov,
+- `load_best_model_at_end=true`,
+- early stopping patience 2,
+- experiment výstupy vo WSL filesysteme: `/home/patrik/experiments/llm-ontology`.
 
-Všetky tréningové configy sú zatiaľ nastavené ako dry-run:
+## Dôležité Príkazy
 
-```yaml
-run:
-  dry_run: true
-  max_train_samples: 50
-  max_val_samples: 20
-  max_steps: 5
-  seed: 42
+Kontrola WSL fine-tuning kompatibility:
+
+```bash
+python scripts/check_transformers_compat.py
+python scripts/check_finetuning_ready.py --config configs/finetuning/training_b1_shared_wsl.yaml
 ```
 
-LoRA/QLoRA skeleton je implementovaný v:
+Spustenie tréningu:
 
-```text
-src/llm_ontology/finetuning/
-├── dataset_loader.py
-├── model_loader.py
-└── prompt_formatter.py
+```bash
+python scripts/train_finetuning.py --config configs/finetuning/training_b2_testing_wsl.yaml
+python scripts/train_finetuning.py --config configs/finetuning/training_b2_refactoring_wsl.yaml
+python scripts/train_finetuning.py --config configs/finetuning/training_b1_shared_wsl.yaml
 ```
 
-Prompt formát:
+Pokračovanie z checkpointu:
 
-```text
-### Instruction:
-...
-
-### Input:
-...
-
-### Response:
-...
+```bash
+python scripts/train_finetuning.py \
+  --config configs/finetuning/training_b1_shared_wsl.yaml \
+  --resume_from_checkpoint /home/patrik/experiments/llm-ontology/b1_shared/checkpoints/checkpoint-300
 ```
 
-## Ollama Baseline
+Malá evaluation inference:
 
-Baseline konfigurácia je v:
-
-```text
-configs/inference/ollama_qwen25_coder_baseline.yaml
+```bash
+python scripts/run_inference_eval.py \
+  --task testing \
+  --models-config configs/evaluation/eval_models.yaml \
+  --dataset data/processed/testing/test.jsonl \
+  --output evaluation/predictions/testing \
+  --limit 5 \
+  --model-name baseline_qwen25_coder_7b \
+  --overwrite
 ```
 
-Runner je pripravený v:
+Full evaluation s limitom 100:
 
-```powershell
-py scripts/run_ollama_baseline.py
+```bash
+python scripts/run_full_evaluation.py \
+  --models-config configs/evaluation/eval_models.yaml \
+  --limit 100 \
+  --output-root evaluation \
+  --overwrite
 ```
 
-Defaultne generuje najviac 20 predikcií na dataset. Skript nie je spúšťaný automaticky a neslúži na fine-tuning.
+`run_full_evaluation.py` spúšťa každý model v samostatnom Python procese, aby sa po každom modeli uvoľnila VRAM a bitsandbytes/accelerate stav.
 
-## Kontroly Setupu
+## Evaluation Pipeline
 
-Overenie modelového setupu:
+Evaluation výstupy sú v `evaluation/`:
 
-```powershell
-py scripts/check_model_setup.py
-```
+- `predictions/`: JSONL predikcie po modeli a úlohe,
+- `metrics/`: per-example a aggregate metriky v JSON/CSV,
+- `reports/`: Markdown report,
+- `samples/`: kvalitatívne ukážky.
 
-Skript kontroluje:
+Testing metriky obsahujú proxy pre test coverage a test quality:
 
-- HF model config,
-- lokálny HF model priečinok,
-- `config.json`,
-- tokenizer config,
-- `.safetensors` súbory,
-- Ollama API,
-- dostupnosť modelu `qwen2.5-coder:7b`.
+- výskyt `@Test`,
+- počet testovacích metód,
+- assertion/verify count,
+- trivial test smell,
+- coverage proxy score.
 
-Overenie fine-tuning infraštruktúry:
+Refactoring metriky obsahujú proxy pre:
 
-```powershell
-py scripts/check_finetuning_setup.py
-```
+- code health,
+- cohesion,
+- coupling,
+- podobnosť k referenčnému výstupu.
 
-Skript kontroluje:
+Tieto metriky sú textové/proxy metriky. Nenahrádzajú reálne JaCoCo coverage, kompiláciu ani manuálne hodnotenie.
 
-- tréningové configy,
-- dataset súbory,
-- prvý validný JSONL záznam v každom splite,
-- prompt formatter,
-- experiment priečinky.
+## Kalendár Práce
 
-## Štruktúra Repozitára
+| Dátum / fáza | Stav | Úloha |
+|---|---|---|
+| 2026-04 | splnené | Založenie projektu, základná štruktúra, prvé dataset skripty |
+| 2026-04 | splnené | Spracovanie Methods2Test a MaRV datasetov |
+| 2026-05-01 | splnené | ML4Refactoring pipeline a subset 4000/500/500 |
+| 2026-05-02 | splnené | Finálne datasety `refactoring/` a `combined/` |
+| 2026-05-04 | splnené | Hugging Face/Ollama configy, prompt formatter, model/dataset loadery |
+| 2026-05-05 | splnené | WSL QLoRA setup, readiness checks, compatibility fixes pre Transformers |
+| 2026-05-06 | splnené | Robustný training script: summary, Ctrl+C, failed runs, resume checkpoint |
+| 2026-05-06 | splnené | Early stopping a presun WSL experiment outputov mimo OneDrive |
+| 2026-05-06 | splnené | Evaluation pipeline, proxy metriky a Markdown report |
+| 2026-05-08 | splnené | Full evaluation upravená tak, aby každý model bežal v samostatnom procese |
+| najbližšie | plánované | Spustiť stabilnú full evaluation s väčším limitom |
+| najbližšie | plánované | Vyhodnotiť B1/B2-T/B2-R v tabuľkách pre diplomovku |
+| ďalšia fáza | plánované | Kvalitatívna analýza vybraných predikcií |
+| ďalšia fáza | plánované | Prípadný spustiteľný Java subset pre reálne coverage meranie |
+| neskôr | plánované | RAG / Split RAG / Graph RAG porovnanie |
 
-```text
-llm-ontology-experiment/
-├── configs/
-│   ├── datasets/
-│   ├── experiments/
-│   ├── finetuning/
-│   ├── inference/
-│   ├── models/
-│   └── templates/
-├── data/
-│   ├── raw/
-│   ├── processed/
-│   │   ├── combined/
-│   │   ├── refactoring/
-│   │   ├── refactoring_marv/
-│   │   ├── refactoring_ml4ref/
-│   │   └── testing/
-│   └── external/
-├── experiments/
-│   ├── b1_shared/
-│   ├── b2_refactoring/
-│   ├── b2_testing/
-│   └── c0_ollama_baseline/
-├── scripts/
-│   ├── check_finetuning_setup.py
-│   ├── check_model_setup.py
-│   ├── inspect_ml4refactoring.py
-│   ├── prepare_final_datasets.py
-│   ├── prepare_ml4refactoring.py
-│   └── run_ollama_baseline.py
-└── src/
-    └── llm_ontology/
-        ├── core/
-        ├── data/
-        ├── evaluation/
-        ├── finetuning/
-        ├── inference/
-        ├── models/
-        ├── retrieval/
-        └── training/
-```
+## Orientácia V Repozitári
 
-## Inštalácia
+Hlavné priečinky majú vlastný `info.md` s krátkym vysvetlením. Rýchla mapa:
 
-Základné závislosti:
+| Priečinok | Obsah |
+|---|---|
+| `configs/` | YAML konfigurácie modelov, tréningu, inferencie a evaluation |
+| `data/` | raw a processed datasety |
+| `docs/` | detailnejšia dokumentácia a poznámky k WSL/fine-tuningu |
+| `evaluation/` | predikcie, metriky, reporty a ukážky |
+| `experiments/` | lokálne checkpointy/adaptéry a tréningové výsledky v repo časti |
+| `scripts/` | spustiteľné CLI skripty pre dáta, tréning, inferenciu a evaluation |
+| `src/llm_ontology/` | knižničný Python kód projektu |
+| `tests/` | testy a budúce overovanie |
+| `notebooks/` | experimentálne notebooky |
+| `artifacts/` a `results/` | pomocné výstupy a staršie výsledky |
 
-```powershell
-pip install -r requirements.txt
-```
+## Bezpečnostné A Praktické Poznámky
 
-Fine-tuning závislosti zahŕňajú `transformers`, `datasets`, `peft`, `accelerate`, `torch` a podľa platformy `bitsandbytes`. Na Windows môže byť 4-bit QLoRA cez `bitsandbytes` limitovaná; pre reálny tréning je vhodnejšie Linux/CUDA prostredie.
-
-## Bezpečnostné Poznámky
-
-- Necommitovať `C:/models/` ani žiadne modelové váhy.
-- Necommitovať checkpointy a logy z `experiments/**/checkpoints/` a `experiments/**/logs/`.
-- Nespúšťať plný fine-tuning bez samostatnej kontroly GPU prostredia.
-- Ollama baseline používa iba lokálnu inferenciu, nie tréning.
+- Necommitovať modelové váhy: `*.safetensors`, `*.bin`, `*.pt`, `*.gguf`.
+- Necommitovať veľké checkpointy a logy.
+- Detailné pravidlá, čo commitovať a čo ignorovať, sú v `docs/git_commit_policy.md`.
+- WSL tréningové výstupy ukladať mimo OneDrive do `/home/patrik/experiments/llm-ontology`.
+- Fine-tuning používa Hugging Face + PEFT, nie Ollama.
+- Natívny Windows nie je odporúčaný pre QLoRA, pretože `bitsandbytes` môže byť problematický.
+- Evaluation s viacerými modelmi má bežať cez `run_full_evaluation.py`, ktorý izoluje modely do samostatných procesov.

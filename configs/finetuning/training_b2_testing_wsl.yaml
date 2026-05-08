@@ -1,7 +1,7 @@
 experiment:
   name: "b2_testing"
   description: "Fine-tuning on JUnit test generation tasks only"
-  model_config: "configs/models/qwen25_coder_7b_hf.yaml"
+  model_config: "configs/models/qwen25_coder_7b_hf_wsl.yaml"
   lora_config: "configs/finetuning/lora_config.yaml"
 
 dataset:
@@ -10,10 +10,10 @@ dataset:
   test_file: "data/processed/testing/test.jsonl"
 
 output:
-  output_dir: "experiments/b2_testing/checkpoints"
-  logging_dir: "experiments/b2_testing/logs"
-  results_dir: "experiments/b2_testing/results"
-  final_adapter_dir: "experiments/b2_testing/checkpoints/final_adapter"
+  output_dir: "/home/patrik/experiments/llm-ontology/b2_testing/checkpoints"
+  logging_dir: "/home/patrik/experiments/llm-ontology/b2_testing/logs"
+  results_dir: "/home/patrik/experiments/llm-ontology/b2_testing/results"
+  final_adapter_dir: "/home/patrik/experiments/llm-ontology/b2_testing/checkpoints/final_adapter"
 
 run:
   dry_run: false

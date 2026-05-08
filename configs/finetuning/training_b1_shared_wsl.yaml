@@ -1,7 +1,7 @@
 experiment:
   name: "b1_shared"
   description: "Shared fine-tuning on testing + refactoring tasks"
-  model_config: "configs/models/qwen25_coder_7b_hf.yaml"
+  model_config: "configs/models/qwen25_coder_7b_hf_wsl.yaml"
   lora_config: "configs/finetuning/lora_config.yaml"
 
 dataset:
@@ -10,10 +10,10 @@ dataset:
   test_file: "data/processed/combined/test.jsonl"
 
 output:
-  output_dir: "experiments/b1_shared/checkpoints"
-  logging_dir: "experiments/b1_shared/logs"
-  results_dir: "experiments/b1_shared/results"
-  final_adapter_dir: "experiments/b1_shared/checkpoints/final_adapter"
+  output_dir: "/home/patrik/experiments/llm-ontology/b1_shared/checkpoints"
+  logging_dir: "/home/patrik/experiments/llm-ontology/b1_shared/logs"
+  results_dir: "/home/patrik/experiments/llm-ontology/b1_shared/results"
+  final_adapter_dir: "/home/patrik/experiments/llm-ontology/b1_shared/checkpoints/final_adapter"
 
 run:
   dry_run: false

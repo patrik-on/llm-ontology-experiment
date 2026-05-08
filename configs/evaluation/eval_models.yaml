@@ -1,0 +1,41 @@
+base_model:
+  name: "qwen25_coder_7b_base"
+  model_path: "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct"
+  adapter_path: null
+  type: "baseline"
+
+models:
+  - name: "baseline_qwen25_coder_7b"
+    model_path: "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct"
+    adapter_path: null
+    type: "baseline"
+
+  - name: "b2_testing"
+    model_path: "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct"
+    adapter_path: "experiments/b2_testing/checkpoints/final_adapter"
+    type: "lora"
+
+  - name: "b2_refactoring"
+    model_path: "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct"
+    adapter_path: "experiments/b2_refactoring/checkpoints/final_adapter"
+    type: "lora"
+
+  - name: "b1_shared"
+    model_path: "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct"
+    adapter_path: "/home/patrik/experiments/llm-ontology/b1_shared/checkpoints/final_adapter"
+    type: "lora"
+
+generation:
+  max_new_tokens: 512
+  temperature: 0.0
+  do_sample: false
+  top_p: 1.0
+
+inference:
+  device_map: "auto"
+  torch_dtype: "float16"
+  load_in_4bit: true
+  bnb_4bit_compute_dtype: "float16"
+  bnb_4bit_use_double_quant: true
+  bnb_4bit_quant_type: "nf4"
+  offload_dir: "/home/patrik/experiments/llm-ontology/eval_offload"

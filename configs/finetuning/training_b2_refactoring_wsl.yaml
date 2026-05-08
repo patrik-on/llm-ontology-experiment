@@ -1,7 +1,7 @@
 experiment:
   name: "b2_refactoring"
   description: "Fine-tuning on refactoring tasks only"
-  model_config: "configs/models/qwen25_coder_7b_hf.yaml"
+  model_config: "configs/models/qwen25_coder_7b_hf_wsl.yaml"
   lora_config: "configs/finetuning/lora_config.yaml"
 
 dataset:
@@ -10,10 +10,10 @@ dataset:
   test_file: "data/processed/refactoring/test.jsonl"
 
 output:
-  output_dir: "experiments/b2_refactoring/checkpoints"
-  logging_dir: "experiments/b2_refactoring/logs"
-  results_dir: "experiments/b2_refactoring/results"
-  final_adapter_dir: "experiments/b2_refactoring/checkpoints/final_adapter"
+  output_dir: "/home/patrik/experiments/llm-ontology/b2_refactoring/checkpoints"
+  logging_dir: "/home/patrik/experiments/llm-ontology/b2_refactoring/logs"
+  results_dir: "/home/patrik/experiments/llm-ontology/b2_refactoring/results"
+  final_adapter_dir: "/home/patrik/experiments/llm-ontology/b2_refactoring/checkpoints/final_adapter"
 
 run:
   dry_run: false
