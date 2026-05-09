@@ -7,7 +7,7 @@ def main() -> None:
     import bitsandbytes  # noqa: F401
     import torch
     import transformers
-    from transformers import DataCollatorForLanguageModeling, Trainer
+    from transformers import DataCollatorForSeq2Seq, Trainer
 
     print(f"torch: {torch.__version__}")
     print(f"transformers: {transformers.__version__}")
@@ -19,9 +19,11 @@ def main() -> None:
     if "processing_class" not in trainer_params:
         raise SystemExit("Trainer does not accept processing_class. Update transformers or adjust train_finetuning.py.")
 
-    collator_params = inspect.signature(DataCollatorForLanguageModeling.__init__).parameters
+    collator_params = inspect.signature(DataCollatorForSeq2Seq.__init__).parameters
     if "tokenizer" not in collator_params:
-        raise SystemExit("DataCollatorForLanguageModeling does not accept tokenizer.")
+        raise SystemExit("DataCollatorForSeq2Seq does not accept tokenizer.")
+    if "label_pad_token_id" not in collator_params:
+        raise SystemExit("DataCollatorForSeq2Seq does not accept label_pad_token_id.")
 
     print("Transformers compatibility check OK.")
 

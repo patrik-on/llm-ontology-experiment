@@ -7,7 +7,7 @@ Tento dokument popisuje WSL2/Ubuntu setup pre QLoRA fine-tuning modelu Qwen2.5-C
 - Vo WSL používame `*_wsl.yaml` configy.
 - Model path vo WSL je `/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct`.
 - `Trainer` používa `processing_class=tokenizer`.
-- `DataCollatorForLanguageModeling` používa `tokenizer=tokenizer`.
+- `DataCollatorForSeq2Seq` používa `tokenizer=tokenizer` a `label_pad_token_id=-100`, aby ostal zachovaný loss mask iba na odpovedi.
 - Natívny Windows nie je odporúčaný pre QLoRA, pretože `bitsandbytes` nemusí fungovať.
 
 ## Kontrola kompatibility

@@ -10,7 +10,7 @@ from typing import Any
 from llm_ontology.core.config import read_yaml
 from llm_ontology.finetuning.dataset_loader import load_instruction_dataset
 from llm_ontology.finetuning.model_loader import apply_lora, load_base_model, load_tokenizer
-from llm_ontology.finetuning.prompt_formatter import format_training_prompt
+from llm_ontology.finetuning.prompt_formatter import format_prompt, format_training_prompt
 
 
 def ensure_output_dirs(output_config: dict[str, Any]) -> None:
@@ -252,23 +252,41 @@ def require_training_packages() -> None:
         raise ImportError(f"Missing fine-tuning dependencies: {', '.join(missing)}. Run: pip install -r requirements.txt")
 
 
+def build_tokenized_training_example(record: dict[str, Any], tokenizer: Any, max_seq_length: int) -> dict[str, Any] | None:
+    eos_token = getattr(tokenizer, "eos_token", None) or ""
+    prompt = format_prompt(record)
+    full_text = format_training_prompt(record, eos_token=eos_token)
+    prompt_ids = tokenizer(prompt, add_special_tokens=False)["input_ids"]
+    tokenized = tokenizer(
+        full_text,
+        truncation=True,
+        max_length=max_seq_length,
+        padding=False,
+        add_special_tokens=False,
+    )
+    input_ids = list(tokenized["input_ids"])
+    labels = list(input_ids)
+    prompt_length = min(len(prompt_ids), len(labels))
+    labels[:prompt_length] = [-100] * prompt_length
+    if not any(label != -100 for label in labels):
+        return None
+    tokenized["input_ids"] = input_ids
+    tokenized["labels"] = labels
+    tokenized.setdefault("attention_mask", [1] * len(input_ids))
+    return tokenized
+
+
 def make_hf_dataset(records: list[dict[str, Any]], tokenizer: Any, max_seq_length: int) -> Any:
     from datasets import Dataset
 
-    texts = [format_training_prompt(record) for record in records]
-    dataset = Dataset.from_dict({"text": texts})
-
-    def tokenize(batch: dict[str, list[str]]) -> dict[str, Any]:
-        tokenized = tokenizer(
-            batch["text"],
-            truncation=True,
-            max_length=max_seq_length,
-            padding=False,
-        )
-        tokenized["labels"] = [list(input_ids) for input_ids in tokenized["input_ids"]]
-        return tokenized
-
-    return dataset.map(tokenize, batched=True, remove_columns=["text"])
+    features = [
+        feature
+        for record in records
+        if (feature := build_tokenized_training_example(record, tokenizer, max_seq_length)) is not None
+    ]
+    if not features:
+        raise ValueError("No training examples retained any output tokens after truncation.")
+    return Dataset.from_list(features)
 
 
 def training_arguments_kwargs(defaults: dict[str, Any], training_config: dict[str, Any]) -> dict[str, Any]:
@@ -396,11 +414,11 @@ def run_training(config_path: str | Path, resume_from_checkpoint: str | None = N
         if hasattr(model, "print_trainable_parameters"):
             model.print_trainable_parameters()
 
-        from transformers import DataCollatorForLanguageModeling, EarlyStoppingCallback, Trainer, TrainingArguments
+        from transformers import DataCollatorForSeq2Seq, EarlyStoppingCallback, Trainer, TrainingArguments
 
         args_kwargs = set_eval_strategy(training_arguments_kwargs(lora_config["training_defaults"], training_config))
         training_args = TrainingArguments(**args_kwargs)
-        collator = DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False)
+        collator = DataCollatorForSeq2Seq(tokenizer=tokenizer, model=model, label_pad_token_id=-100)
         callbacks = []
         early_stopping_patience = int(lora_config["training_defaults"].get("early_stopping_patience") or 0)
         if early_stopping_patience > 0:

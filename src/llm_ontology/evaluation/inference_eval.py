@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import argparse
 import gc
-import json
 from pathlib import Path
 from typing import Any
 
 from llm_ontology.core.config import read_yaml
 from llm_ontology.evaluation.prediction_io import pick_first, read_jsonl, write_jsonl
+from llm_ontology.finetuning.prompt_formatter import format_inference_prompt
 
 
 def selected_models(config: dict[str, Any], model_name: str | None) -> list[dict[str, Any]]:
@@ -112,48 +112,10 @@ def load_eval_model(model_config: dict[str, Any], inference_config: dict[str, An
     return model, tokenizer
 
 
-def messages_for_task(task: str, input_code: str) -> list[dict[str, str]]:
+def instruction_for_task(task: str) -> str:
     if task == "testing":
-        return [
-            {
-                "role": "system",
-                "content": "You are a Java developer specialized in writing concise and correct JUnit tests.",
-            },
-            {
-                "role": "user",
-                "content": (
-                    "Generate a JUnit test for the following Java method. Return only Java test code, "
-                    "without explanations.\n\nJava method:\n```java\n"
-                    f"{input_code}\n```"
-                ),
-            },
-        ]
-    return [
-        {
-            "role": "system",
-            "content": "You are a Java refactoring assistant. Preserve behavior and return only refactored Java code.",
-        },
-        {
-            "role": "user",
-            "content": (
-                "Refactor the following Java code. Return only the refactored Java code, without explanations.\n\n"
-                "Original Java code:\n```java\n"
-                f"{input_code}\n```"
-            ),
-        },
-    ]
-
-
-def fallback_prompt_for_task(task: str, input_code: str) -> str:
-    if task == "testing":
-        return (
-            "Generate a JUnit test for the following Java method. Return only Java test code.\n\n"
-            f"Java method:\n{input_code}\n\nJUnit test:\n"
-        )
-    return (
-        "Refactor the following Java code. Return only refactored Java code.\n\n"
-        f"Original Java code:\n{input_code}\n\nRefactored Java code:\n"
-    )
+        return "Vygeneruj JUnit test pre nasledujúcu Java metódu."
+    return "Refaktoruj nasledujúci Java kód."
 
 
 def as_input_ids(encoded: Any) -> Any:
@@ -164,35 +126,25 @@ def as_input_ids(encoded: Any) -> Any:
     return encoded
 
 
-def encode_prompt(tokenizer: Any, task: str, input_code: str) -> tuple[Any, Any, str, list[dict[str, str]] | None]:
-    messages = messages_for_task(task, input_code)
-    if hasattr(tokenizer, "apply_chat_template") and getattr(tokenizer, "chat_template", None):
-        input_ids = tokenizer.apply_chat_template(
-            messages,
-            tokenize=True,
-            add_generation_prompt=True,
-            return_tensors="pt",
-        )
-        rendered = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-        ids = as_input_ids(input_ids)
-        return ids, ids.new_ones(ids.shape), str(rendered), messages
-    prompt = fallback_prompt_for_task(task, input_code)
+def encode_prompt(tokenizer: Any, instruction: str, input_code: str) -> tuple[Any, Any, str]:
+    prompt = format_inference_prompt(instruction, input_code)
     encoded = tokenizer(prompt, return_tensors="pt")
     ids = as_input_ids(encoded)
-    return ids, encoded.get("attention_mask", ids.new_ones(ids.shape)), prompt, None
+    return ids, encoded.get("attention_mask", ids.new_ones(ids.shape)), prompt
 
 
 def generate_prediction(
     model: Any,
     tokenizer: Any,
     task: str,
+    instruction: str,
     input_code: str,
     generation: dict[str, Any],
     debug: bool = False,
     model_name: str = "",
     index: int = 0,
 ) -> tuple[str, dict[str, Any]]:
-    input_ids, attention_mask, rendered_prompt, messages = encode_prompt(tokenizer, task, input_code)
+    input_ids, attention_mask, rendered_prompt = encode_prompt(tokenizer, instruction, input_code)
     if hasattr(model, "device"):
         input_ids = input_ids.to(model.device)
         attention_mask = attention_mask.to(model.device)
@@ -214,7 +166,6 @@ def generate_prediction(
         print("\n=== DEBUG PROMPT ===")
         print(f"task: {task}")
         print(f"model_name: {model_name}")
-        print(f"messages: {json.dumps(messages, ensure_ascii=False, indent=2) if messages else None}")
         print(f"prompt:\n{rendered_prompt}")
         print(f"input token length: {input_ids.shape[-1]}")
         print(f"raw decoded generated text:\n{raw_generated_text}")
@@ -223,13 +174,22 @@ def generate_prediction(
     return prediction, generate_kwargs
 
 
-def build_prediction_record(raw: dict[str, Any], task: str, model_name: str, index: int, prediction: str, generation: dict[str, Any]) -> dict[str, Any]:
+def build_prediction_record(
+    raw: dict[str, Any],
+    task: str,
+    model_name: str,
+    index: int,
+    instruction: str,
+    prediction: str,
+    generation: dict[str, Any],
+) -> dict[str, Any]:
     return {
         "id": pick_first(raw, ("id", "sample_id", "refactoring_id"), f"{task}:{index}"),
         "task": task,
         "model_name": model_name,
         "source": raw.get("source", ""),
         "domain": raw.get("domain", task),
+        "instruction": instruction,
         "input": pick_first(raw, ("input", "prompt", "code_before")),
         "expected_output": pick_first(raw, ("output", "expected_output", "code_after", "reference_output")),
         "prediction": prediction,
@@ -275,17 +235,29 @@ def run_inference(args: argparse.Namespace) -> None:
         predictions = []
         for index, raw in enumerate(records):
             input_text = pick_first(raw, ("input", "prompt", "code_before"))
+            instruction = pick_first(raw, ("instruction",), instruction_for_task(args.task))
             prediction, actual_generation = generate_prediction(
                 model,
                 tokenizer,
                 args.task,
+                instruction,
                 input_text,
                 generation,
                 debug=args.debug_prompts,
                 model_name=model_config["name"],
                 index=index,
             )
-            predictions.append(build_prediction_record(raw, args.task, model_config["name"], index, prediction, actual_generation))
+            predictions.append(
+                build_prediction_record(
+                    raw,
+                    args.task,
+                    model_config["name"],
+                    index,
+                    instruction,
+                    prediction,
+                    actual_generation,
+                )
+            )
         write_jsonl(predictions, output_path)
         print(f"Wrote predictions: {output_path}")
         try:
