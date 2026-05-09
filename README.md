@@ -151,6 +151,25 @@ python scripts/evaluation/run_full_evaluation.py \
 
 `run_full_evaluation.py` spúšťa každý model v samostatnom Python procese, aby sa po každom modeli uvoľnila VRAM a bitsandbytes/accelerate stav.
 
+## Developer Setup
+
+Základné vývojové prostredie:
+
+```bash
+python -m pip install -e ".[dev]"
+python -m pytest -q
+python -m compileall -q src scripts tests
+```
+
+WSL/CUDA prostredie pre reálny fine-tuning:
+
+```bash
+python -m pip install -e ".[dev,training]"
+python scripts/training/check_transformers_compat.py
+```
+
+`training` extra obsahuje aj Linux/WSL-only `bitsandbytes`. Na natívnom Windows sa QLoRA stále odporúča spúšťať vo WSL2.
+
 ## Evaluation Pipeline
 
 Evaluation výstupy sú v `evaluation/`:
