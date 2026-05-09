@@ -1,40 +1,32 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
-from llm_ontology.core.paths import ensure_dir, resolve_path
-from llm_ontology.inference.prompts import build_prompt
-from llm_ontology.models.adapters import load_adapter
-from llm_ontology.models.base_model import load_base_model, load_tokenizer
-from llm_ontology.finetuning.dataset_loader import load_jsonl
+
+LEGACY_GENERATE_MESSAGE = """\
+scripts/inference/generate.py is a legacy entrypoint for the removed experiment.yaml flow.
+
+Use the current evaluation inference entrypoint instead, for example:
+
+python scripts/evaluation/run_inference_eval.py ^
+  --task testing ^
+  --models-config configs/evaluation/eval_models.yaml ^
+  --dataset data/processed/testing/test.jsonl ^
+  --output evaluation/predictions/testing ^
+  --model-name baseline_qwen25_coder_7b ^
+  --limit 5 ^
+  --overwrite
+
+For full inference + metrics + report orchestration use:
+
+python scripts/evaluation/run_full_evaluation.py --models-config configs/evaluation/eval_models.yaml --limit 100 --overwrite
+"""
 
 
-def generate_text(model: Any, tokenizer: Any, prompt: str, max_new_tokens: int = 512) -> str:
-    inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
-    output_ids = model.generate(**inputs, max_new_tokens=max_new_tokens, do_sample=False)
-    return tokenizer.decode(output_ids[0], skip_special_tokens=True).split("### Response:")[-1].strip()
+def generate_text(*args: Any, **kwargs: Any) -> str:
+    raise RuntimeError(LEGACY_GENERATE_MESSAGE)
 
 
-def generate_predictions(config: dict) -> Path:
-    test_records = load_jsonl(resolve_path(config["data"]["test_file"]))
-    result_dir = ensure_dir(resolve_path(config["output"]["result_dir"]))
-    output_path = result_dir / "predictions.jsonl"
-
-    tokenizer = load_tokenizer(config)
-    model = load_adapter(load_base_model(config), str(resolve_path(config["output"]["adapter_dir"])))
-    model.eval()
-
-    with output_path.open("w", encoding="utf-8") as handle:
-        for record in test_records:
-            prediction = generate_text(model, tokenizer, build_prompt(record))
-            payload = {
-                "instruction": record["instruction"],
-                "input": record["input"],
-                "reference": record["output"],
-                "prediction": prediction,
-                "domain": record["domain"],
-            }
-            handle.write(json.dumps(payload, ensure_ascii=False) + "\n")
-    return output_path
+def generate_predictions(config: dict[str, Any]) -> Path:
+    raise RuntimeError(LEGACY_GENERATE_MESSAGE)

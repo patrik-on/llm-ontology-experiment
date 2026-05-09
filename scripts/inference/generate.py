@@ -7,20 +7,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
-from llm_ontology.core.config import load_experiment_config
-from llm_ontology.core.logging import setup_logging
-from llm_ontology.inference.generate import generate_predictions
+from llm_ontology.inference.generate import LEGACY_GENERATE_MESSAGE
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Generate predictions for one experiment config.")
-    parser.add_argument("--config", required=True)
-    args = parser.parse_args()
-
-    logger = setup_logging()
-    config = load_experiment_config(args.config)
-    predictions_path = generate_predictions(config)
-    logger.info("Saved predictions to %s.", predictions_path)
+    parser = argparse.ArgumentParser(
+        description="Legacy compatibility wrapper. Use scripts/evaluation/run_inference_eval.py instead."
+    )
+    parser.add_argument("--config", default=None, help="Legacy experiment config path; no longer supported.")
+    parser.parse_args()
+    raise SystemExit(LEGACY_GENERATE_MESSAGE)
 
 
 if __name__ == "__main__":
