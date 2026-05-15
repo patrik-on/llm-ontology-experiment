@@ -200,16 +200,16 @@ Tieto metriky sú textové/proxy metriky. Nenahrádzajú reálne JaCoCo coverage
 
 | Dátum / fáza | Stav | Úloha |
 |---|---|---|
-| 2026-04 | splnené | Založenie projektu, základná štruktúra, prvé dataset skripty |
-| 2026-04 | splnené | Spracovanie Methods2Test a MaRV datasetov |
-| 2026-05-01 | splnené | ML4Refactoring pipeline a subset 4000/500/500 |
-| 2026-05-02 | splnené | Finálne datasety `refactoring/` a `combined/` |
-| 2026-05-04 | splnené | Hugging Face/Ollama configy, prompt formatter, model/dataset loadery |
-| 2026-05-05 | splnené | WSL QLoRA setup, readiness checks, compatibility fixes pre Transformers |
-| 2026-05-06 | splnené | Robustný training script: summary, Ctrl+C, failed runs, resume checkpoint |
-| 2026-05-06 | splnené | Early stopping a presun WSL experiment outputov mimo OneDrive |
-| 2026-05-06 | splnené | Evaluation pipeline, proxy metriky a Markdown report |
-| 2026-05-08 | splnené | Full evaluation upravená tak, aby každý model bežal v samostatnom procese |
+| 2026-02 | splnené | Založenie projektu, základná štruktúra, prvé dataset skripty |
+| 2026-03 | splnené | Spracovanie Methods2Test a MaRV datasetov |
+| 2026-04 | splnené | ML4Refactoring pipeline a subset 4000/500/500 |
+| 2026-04 | splnené | Finálne datasety `refactoring/` a `combined/` |
+| 2026-05 | splnené | Hugging Face/Ollama configy, prompt formatter, model/dataset loadery |
+| 2026-05 | splnené | WSL QLoRA setup, readiness checks, compatibility fixes pre Transformers |
+| 2026-05 | splnené | Robustný training script: summary, Ctrl+C, failed runs, resume checkpoint |
+| 2026-05 | splnené | Early stopping a presun WSL experiment outputov mimo OneDrive |
+| 2026-05 | splnené | Evaluation pipeline, proxy metriky a Markdown report |
+| 2026-05 | splnené | Full evaluation upravená tak, aby každý model bežal v samostatnom procese |
 | najbližšie | plánované | Spustiť stabilnú full evaluation s väčším limitom |
 | najbližšie | plánované | Vyhodnotiť B1/B2-T/B2-R v tabuľkách pre diplomovku |
 | ďalšia fáza | plánované | Kvalitatívna analýza vybraných predikcií |
