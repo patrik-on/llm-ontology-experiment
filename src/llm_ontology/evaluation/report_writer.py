@@ -123,9 +123,13 @@ def write_evaluation_report(output_root: str | Path = "evaluation") -> Path:
 
     best_testing = best_model(testing, "avg_test_quality_score")
     best_refactoring = best_model(refactoring, "avg_refactoring_quality_score")
-    b1_testing = next((item for item in testing if item.get("model_name") == "b1_shared"), None)
-    b1_refactoring = next((item for item in refactoring if item.get("model_name") == "b1_shared"), None)
-    b1_note = "B1 shared was evaluated on both tasks." if b1_testing and b1_refactoring else "B1 shared is missing from at least one task aggregate."
+    evaluated_models = sorted({str(item.get("model_name")) for item in testing + refactoring if item.get("model_name")})
+    shared_models = [name for name in evaluated_models if name.startswith("b1_shared")]
+    shared_note = (
+        "Shared B1 variants evaluated: " + ", ".join(shared_models) + "."
+        if shared_models
+        else "No shared B1 variant is present in the aggregate metrics."
+    )
 
     lines = [
         "# Evaluation Report: LLM Ontology Experiment",
@@ -134,10 +138,7 @@ def write_evaluation_report(output_root: str | Path = "evaluation") -> Path:
         "",
         "## Evaluated Models",
         "",
-        "- baseline_qwen25_coder_7b",
-        "- b2_testing",
-        "- b2_refactoring",
-        "- b1_shared",
+        *(f"- {model_name}" for model_name in evaluated_models),
         "",
         "## Evaluated Datasets",
         "",
@@ -168,7 +169,7 @@ def write_evaluation_report(output_root: str | Path = "evaluation") -> Path:
         "",
         f"- Best model by test quality score: **{best_testing}**.",
         f"- Best model by refactoring quality score: **{best_refactoring}**.",
-        f"- {b1_note}",
+        f"- {shared_note}",
         "- Proxy metrics are useful for scalable comparison, but should be complemented by qualitative analysis and real executable coverage on a curated subset.",
         "",
         "## Limitations",

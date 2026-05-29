@@ -70,6 +70,13 @@ def peft_from_pretrained_with_fallback(base_model: Any, adapter_path: str, devic
     ) from last_error
 
 
+def is_lora_model(model_config: dict[str, Any]) -> bool:
+    adapter_path = model_config.get("adapter_path")
+    adapter_text = str(adapter_path).strip().lower() if adapter_path is not None else ""
+    has_adapter_path = bool(adapter_text and adapter_text not in {"baseline", "none", "null"})
+    return str(model_config.get("type", "")).lower() == "lora" or has_adapter_path
+
+
 def load_eval_model(model_config: dict[str, Any], inference_config: dict[str, Any]):
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
@@ -101,7 +108,7 @@ def load_eval_model(model_config: dict[str, Any], inference_config: dict[str, An
         )
 
     model = AutoModelForCausalLM.from_pretrained(model_config["model_path"], **kwargs)
-    if model_config.get("adapter_path"):
+    if is_lora_model(model_config):
         model = peft_from_pretrained_with_fallback(
             model,
             model_config["adapter_path"],
@@ -225,7 +232,8 @@ def run_inference(args: argparse.Namespace) -> None:
         inference_config = merged_inference_config(models_config, model_config, args)
         print(
             "Loading model "
-            f"{model_config['name']} | adapter_path={model_config.get('adapter_path') or 'baseline'} "
+            f"{model_config['name']} | adapter_path={model_config.get('adapter_path') or 'none'} "
+            f"| use_peft={is_lora_model(model_config)} "
             f"| device_map={inference_config.get('device_map')} "
             f"| load_in_4bit={bool(inference_config.get('load_in_4bit'))} "
             f"| offload_dir={inference_config.get('offload_dir')} "

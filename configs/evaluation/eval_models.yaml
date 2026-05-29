@@ -10,19 +10,34 @@ models:
     adapter_path: null
     type: "baseline"
 
-  - name: "b2_testing"
+  - name: "b2_testing_v1"
     model_path: "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct"
     adapter_path: "experiments/b2_testing/checkpoints/final_adapter"
     type: "lora"
 
-  - name: "b2_refactoring"
+  - name: "b2_refactoring_v1"
     model_path: "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct"
     adapter_path: "experiments/b2_refactoring/checkpoints/final_adapter"
     type: "lora"
 
-  - name: "b1_shared"
+  - name: "b1_shared_v1"
     model_path: "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct"
     adapter_path: "/home/patrik/experiments/llm-ontology/b1_shared/checkpoints/final_adapter"
+    type: "lora"
+
+  - name: "b2_testing_v2"
+    model_path: "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct"
+    adapter_path: "/home/patrik/experiments/llm-ontology-v2/b2_testing/checkpoints/final_adapter"
+    type: "lora"
+
+  - name: "b2_refactoring_v2"
+    model_path: "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct"
+    adapter_path: "/home/patrik/experiments/llm-ontology-v2/b2_refactoring/checkpoints/final_adapter"
+    type: "lora"
+
+  - name: "b1_shared_v2"
+    model_path: "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct"
+    adapter_path: "/home/patrik/experiments/llm-ontology-v2/b1_shared/checkpoints/final_adapter"
     type: "lora"
 
 generation:

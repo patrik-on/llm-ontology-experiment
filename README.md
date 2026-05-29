@@ -18,6 +18,25 @@ Hlavný lokálny model je **Qwen2.5-Coder-7B-Instruct**. Fine-tuning prebieha ce
 | Evaluation pipeline | v1 | Inference, proxy metriky, CSV/JSON/Markdown reporty |
 | RAG experimenty | plán | Zatiaľ len šablóna, nie implementácia |
 
+## Reprodukovateľný Handoff
+
+Repozitár je pripravený tak, aby bol spustiteľný aj bez plných datasetov, base modelu a LoRA váh. Minimálna kontrola pre učiteľa:
+
+```bash
+python -m pip install -e ".[dev]"
+python -m compileall -q src scripts tests
+python -m pytest tests
+python scripts/evaluation/smoke_eval_metrics.py
+```
+
+Tieto príkazy overia zdrojový kód, testy a malú evaluation metrics pipeline na syntetických príkladoch. Kompletný handoff popis je v `docs/reproducible_handoff.md`.
+
+Modelové váhy, plné datasety a v2 LoRA adaptéry nie sú súčasťou Git repozitára. V2 adaptéry majú približne 50 MB každý a majú byť odovzdané separatne alebo uložené na cestách uvedených v `configs/evaluation/eval_models_v2_only.yaml`. Ich prítomnosť sa dá overiť:
+
+```bash
+python scripts/check_v2_adapters.py --models-config configs/evaluation/eval_models_v2_only.yaml
+```
+
 ## Ciele Projektu
 
 1. Pripraviť datasety pre instruction-tuning na test generation a refactoring.
