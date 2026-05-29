@@ -1,0 +1,49 @@
+{
+  "created_at_utc": "2026-05-29T21:34:43.884005+00:00",
+  "models_config": "configs/evaluation/eval_models_v2_only.yaml",
+  "output_dir": "artifacts/adapters",
+  "adapters": [
+    {
+      "model_name": "b2_testing_v2",
+      "source_adapter_dir": "/home/patrik/experiments/llm-ontology-v2/b2_testing/checkpoints/final_adapter",
+      "zip_file": "artifacts/adapters/b2_testing_v2_final_adapter.zip",
+      "zip_file_name": "b2_testing_v2_final_adapter.zip",
+      "sha256_file": "artifacts/adapters/b2_testing_v2_final_adapter.zip.sha256",
+      "sha256": "97c6c4cacaf8193627706942d9e4233c134cda7b765b67df163d8a970ada7621",
+      "size_bytes": 39513777,
+      "required_files": [
+        "adapter_config.json",
+        "adapter_model.safetensors",
+        "tokenizer_config.json"
+      ]
+    },
+    {
+      "model_name": "b2_refactoring_v2",
+      "source_adapter_dir": "/home/patrik/experiments/llm-ontology-v2/b2_refactoring/checkpoints/final_adapter",
+      "zip_file": "artifacts/adapters/b2_refactoring_v2_final_adapter.zip",
+      "zip_file_name": "b2_refactoring_v2_final_adapter.zip",
+      "sha256_file": "artifacts/adapters/b2_refactoring_v2_final_adapter.zip.sha256",
+      "sha256": "da44031505e4caf28e7b9e3fae95985d74507ff2428bb5d3324aaf4339c4e3e5",
+      "size_bytes": 39521900,
+      "required_files": [
+        "adapter_config.json",
+        "adapter_model.safetensors",
+        "tokenizer_config.json"
+      ]
+    },
+    {
+      "model_name": "b1_shared_v2",
+      "source_adapter_dir": "/home/patrik/experiments/llm-ontology-v2/b1_shared/checkpoints/final_adapter",
+      "zip_file": "artifacts/adapters/b1_shared_v2_final_adapter.zip",
+      "zip_file_name": "b1_shared_v2_final_adapter.zip",
+      "sha256_file": "artifacts/adapters/b1_shared_v2_final_adapter.zip.sha256",
+      "sha256": "b42e54a8de7cecfbb2825c23631fb5183383d181e3e0b245129bfeb783c809f2",
+      "size_bytes": 39507455,
+      "required_files": [
+        "adapter_config.json",
+        "adapter_model.safetensors",
+        "tokenizer_config.json"
+      ]
+    }
+  ]
+}

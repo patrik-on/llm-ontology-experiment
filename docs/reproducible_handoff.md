@@ -4,6 +4,27 @@ Tento dokument popisuje, co je pripravene na odovzdanie do Gitu a co ostava ako 
 
 Repozitar je pripraveny tak, aby sa dal spustit aj bez plnych datasetov, base modelu a LoRA vah. V Gite maju byt zdrojove kody, konfiguracie, testy, male ukazky dat, runbooky a vysledkove reporty. Velke modelove a datasetove subory sa maju odovzdat separatne alebo znovu vytvorit podla runbookov.
 
+## Download links
+
+Kompletny zoznam odkazov je v `docs/download_links.md`.
+
+Zakladne verejne zdroje:
+
+- Qwen2.5-Coder-7B-Instruct: <https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct>
+- Methods2Test: <https://github.com/microsoft/methods2test>
+- ML4Refactoring: <https://zenodo.org/records/3547639>
+- MaRV Scripts and Dataset: <https://zenodo.org/records/14450098>
+
+V2 LoRA adaptery su projektove artefakty a treba ich odovzdat separatne ako ZIP subory alebo release assets.
+
+ZIP subory z lokalnych adapterov vytvoris:
+
+```bash
+python scripts/package_v2_adapters.py \
+  --models-config configs/evaluation/eval_models_v2_only.yaml \
+  --output-dir artifacts/adapters
+```
+
 ## Quick start pre ucitela
 
 V root priecinku projektu:
