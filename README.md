@@ -37,6 +37,13 @@ Modelové váhy, plné datasety a v2 LoRA adaptéry nie sú súčasťou Git repo
 python scripts/check_v2_adapters.py --models-config configs/evaluation/eval_models_v2_only.yaml
 ```
 
+Všetky download odkazy sú zhrnuté v `docs/download_links.md`:
+
+- Qwen2.5-Coder-7B-Instruct: <https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct>
+- Methods2Test: <https://github.com/microsoft/methods2test>
+- ML4Refactoring: <https://zenodo.org/records/3547639>
+- MaRV Scripts and Dataset: <https://zenodo.org/records/14450098>
+
 ## Ciele Projektu
 
 1. Pripraviť datasety pre instruction-tuning na test generation a refactoring.
