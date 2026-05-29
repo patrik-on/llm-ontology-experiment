@@ -64,6 +64,7 @@ wandb/
 
 # Evaluation outputs
 evaluation_smoke/**
+evaluation_v2*/
 evaluation/predictions/**
 evaluation/metrics/**
 evaluation/reports/**
@@ -82,6 +83,8 @@ results/**
 !results/**/
 !results/**/.gitkeep
 !results/**/info.md
+!results/*.md
+!results/*.tex
 
 # IDE
 .vscode/

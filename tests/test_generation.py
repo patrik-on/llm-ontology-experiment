@@ -1,6 +1,7 @@
 from llm_ontology.inference.prompts import build_prompt, build_training_text
 from llm_ontology.finetuning.prompt_formatter import format_inference_prompt, format_training_prompt
 from llm_ontology.training.finetuning import build_tokenized_training_example
+from llm_ontology.evaluation.inference_eval import is_lora_model
 
 
 class FakeTokenizer:
@@ -63,11 +64,22 @@ def test_tokenized_training_example_masks_prompt_labels() -> None:
     assert labels[first_unmasked:] == feature["input_ids"][first_unmasked:]
 
 
-def test_tokenized_training_example_skips_when_truncation_removes_answer() -> None:
+def test_tokenized_training_example_preserves_answer_labels_when_prompt_is_truncated() -> None:
     record = {"instruction": "Do it.", "input": "code", "output": "answer"}
     tokenizer = FakeTokenizer()
     prompt_length = len(format_inference_prompt(record["instruction"], record["input"]))
 
     feature = build_tokenized_training_example(record, tokenizer, max_seq_length=prompt_length)
 
-    assert feature is None
+    assert feature is not None
+    labels = feature["labels"]
+    assert labels[0] == -100
+    assert any(label != -100 for label in labels)
+
+
+def test_is_lora_model_ignores_baseline_adapter_sentinel() -> None:
+    assert not is_lora_model({"type": "baseline", "adapter_path": None})
+    assert not is_lora_model({"type": "baseline", "adapter_path": "baseline"})
+    assert not is_lora_model({"type": "baseline", "adapter_path": "none"})
+    assert is_lora_model({"type": "lora", "adapter_path": "/tmp/adapter"})
+    assert is_lora_model({"type": "baseline", "adapter_path": "/tmp/adapter"})

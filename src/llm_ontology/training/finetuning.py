@@ -255,25 +255,26 @@ def require_training_packages() -> None:
 def build_tokenized_training_example(record: dict[str, Any], tokenizer: Any, max_seq_length: int) -> dict[str, Any] | None:
     eos_token = getattr(tokenizer, "eos_token", None) or ""
     prompt = format_prompt(record)
-    full_text = format_training_prompt(record, eos_token=eos_token)
     prompt_ids = tokenizer(prompt, add_special_tokens=False)["input_ids"]
-    tokenized = tokenizer(
-        full_text,
-        truncation=True,
-        max_length=max_seq_length,
-        padding=False,
-        add_special_tokens=False,
-    )
-    input_ids = list(tokenized["input_ids"])
-    labels = list(input_ids)
-    prompt_length = min(len(prompt_ids), len(labels))
-    labels[:prompt_length] = [-100] * prompt_length
+    output_ids = tokenizer(f"{record['output']}{eos_token}", add_special_tokens=False)["input_ids"]
+    if max_seq_length < 2 or not output_ids:
+        return None
+
+    if len(prompt_ids) + len(output_ids) > max_seq_length:
+        output_budget = min(len(output_ids), max_seq_length - 1)
+        prompt_budget = max_seq_length - output_budget
+        prompt_ids = prompt_ids[-prompt_budget:]
+        output_ids = output_ids[:output_budget]
+
+    input_ids = list(prompt_ids) + list(output_ids)
+    labels = [-100] * len(prompt_ids) + list(output_ids)
     if not any(label != -100 for label in labels):
         return None
-    tokenized["input_ids"] = input_ids
-    tokenized["labels"] = labels
-    tokenized.setdefault("attention_mask", [1] * len(input_ids))
-    return tokenized
+    return {
+        "input_ids": input_ids,
+        "labels": labels,
+        "attention_mask": [1] * len(input_ids),
+    }
 
 
 def make_hf_dataset(records: list[dict[str, Any]], tokenizer: Any, max_seq_length: int) -> Any:
@@ -320,6 +321,46 @@ def training_arguments_kwargs(defaults: dict[str, Any], training_config: dict[st
     return kwargs
 
 
+def apply_training_overrides(
+    training_config: dict[str, Any],
+    *,
+    dry_run: bool = False,
+    max_steps: int | None = None,
+    max_train_samples: int | None = None,
+    max_val_samples: int | None = None,
+    output_root: str | Path | None = None,
+) -> dict[str, Any]:
+    if dry_run:
+        training_config.setdefault("run", {})["dry_run"] = True
+    if max_steps is not None:
+        training_config.setdefault("run", {})["max_steps"] = max_steps
+    if max_train_samples is not None:
+        training_config.setdefault("run", {})["max_train_samples"] = max_train_samples
+    if max_val_samples is not None:
+        training_config.setdefault("run", {})["max_val_samples"] = max_val_samples
+    if output_root is not None:
+        experiment_name = training_config["experiment"]["name"]
+        output_base = Path(output_root)
+        root = output_base if output_base.name == experiment_name else output_base / experiment_name
+        training_config["output"] = {
+            "output_dir": str(root / "checkpoints"),
+            "logging_dir": str(root / "logs"),
+            "results_dir": str(root / "results"),
+            "final_adapter_dir": str(root / "checkpoints" / "final_adapter"),
+        }
+    return training_config
+
+
+def apply_lora_training_overrides(lora_config: dict[str, Any], *, dry_run: bool = False, max_steps: int | None = None) -> dict[str, Any]:
+    if dry_run and max_steps is not None:
+        defaults = lora_config.setdefault("training_defaults", {})
+        checkpoint_steps = max(1, int(max_steps))
+        defaults["save_steps"] = checkpoint_steps
+        defaults["eval_steps"] = checkpoint_steps
+        defaults["logging_steps"] = 1
+    return lora_config
+
+
 def set_eval_strategy(kwargs: dict[str, Any]) -> dict[str, Any]:
     from transformers import TrainingArguments
 
@@ -341,13 +382,29 @@ def extract_losses(train_result: Any, eval_metrics: dict[str, Any]) -> tuple[flo
     return train_loss, eval_loss
 
 
-def run_training(config_path: str | Path, resume_from_checkpoint: str | None = None) -> None:
+def run_training(
+    config_path: str | Path,
+    resume_from_checkpoint: str | None = None,
+    *,
+    dry_run: bool = False,
+    max_steps: int | None = None,
+    max_train_samples: int | None = None,
+    max_val_samples: int | None = None,
+    output_root: str | Path | None = None,
+) -> None:
     if resume_from_checkpoint and not Path(resume_from_checkpoint).exists():
         raise FileNotFoundError(f"Resume checkpoint does not exist: {resume_from_checkpoint}")
 
-    training_config = read_yaml(config_path)
+    training_config = apply_training_overrides(
+        read_yaml(config_path),
+        dry_run=dry_run,
+        max_steps=max_steps,
+        max_train_samples=max_train_samples,
+        max_val_samples=max_val_samples,
+        output_root=output_root,
+    )
     model_config = read_yaml(training_config["experiment"]["model_config"])
-    lora_config = read_yaml(training_config["experiment"]["lora_config"])
+    lora_config = apply_lora_training_overrides(read_yaml(training_config["experiment"]["lora_config"]), dry_run=dry_run, max_steps=max_steps)
     ensure_output_dirs(training_config["output"])
 
     logger = setup_file_logger(training_config["output"]["logging_dir"], training_config["experiment"]["name"])
