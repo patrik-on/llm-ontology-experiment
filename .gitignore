@@ -54,7 +54,6 @@ artifacts/**
 !artifacts/**/info.md
 !artifacts/adapters/*.json
 !artifacts/adapters/*.sha256
-!artifacts/adapters/*_final_adapter.zip
 
 # Experiment artifacts
 experiments/**/checkpoints/

@@ -1,5 +1,3 @@
-# Reserved for future RAG experiments. The current phase intentionally does not
-# implement retrieval, embeddings, vector databases, or Graph RAG.
-experiment:
-  method: rag
-  enabled: false
+# Deprecated compatibility pointer. Use configs/experiments/rag/template.yaml.
+deprecated: true
+replacement: "configs/experiments/rag/template.yaml"

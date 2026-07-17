@@ -1,7 +1,11 @@
 # configs/inference
 
-Konfigurácie pre lokálnu baseline inferenciu.
+Konfigurácie samostatnej lokálnej inferencie mimo hlavného Hugging Face
+evaluation toku.
 
-Aktuálne je tu `ollama_qwen25_coder_baseline.yaml`, ktorý používa Ollama model `qwen2.5-coder:7b`.
+`ollama_qwen25_coder_baseline.yaml` používa modelový config
+`configs/models/qwen25_coder_7b_ollama.yaml`, limitované testovacie datasety a
+zapisuje JSONL predikcie.
 
-Ollama sa používa iba na baseline inferenciu a prompt testing, nie na fine-tuning.
+Ollama slúži na rýchly baseline a prompt testing. Fine-tuning používa Hugging
+Face/PEFT a hlavné porovnanie modelov používa `scripts/evaluation/`.

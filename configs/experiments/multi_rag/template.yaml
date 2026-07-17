@@ -1,0 +1,20 @@
+experiment:
+  name: "multi_rag_qwen25_coder_7b"
+  approach: "multi_rag"
+  enabled: false
+
+model:
+  config: "configs/models/qwen25_coder_7b_hf_wsl.yaml"
+
+retrieval:
+  allowed_splits:
+    - "train"
+  indexes:
+    - "testing_examples"
+    - "refactoring_ml4ref"
+    - "refactoring_marv"
+  fusion: "rrf"
+  top_k: 3
+
+notes:
+  - "Template only; routing, fusion and retrieval execution will be implemented in the next phase."

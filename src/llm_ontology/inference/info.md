@@ -1,12 +1,15 @@
 # src/llm_ontology/inference
 
-Inferenčný pomocný kód.
+Spoločná inferenčná vrstva nezávislá od konkrétneho experimentu.
 
-- `ollama_client.py`: HTTP klient pre Ollama `/api/generate`,
-- `ollama_baseline.py`: runner pre C0 Ollama baseline predikcie,
-- `model_setup_check.py`: kontrola lokálneho HF modelu a Ollama dostupnosti,
-- `prompts.py`: prompt helpery,
-- `generate.py`: všeobecné generovanie.
+- `prompting/`: jednotný instruction prompt pre training a inference,
+- `approach_runner.py`: výber direct/RAG/multi-RAG prompt composition,
+- `prompts.py`: kompatibilné high-level prompt helpery,
+- `ollama_client.py`: HTTP klient pre Ollama,
+- `ollama_baseline.py`: limitovaný Ollama runner,
+- `model_setup_check.py`: kontrola modelových configov a lokálneho runtime,
+- `generate.py`: legacy navigácia.
 
-Fine-tuned Hugging Face evaluation inferenciu riadi hlavne `scripts/evaluation/run_inference_eval.py`.
-
+Hugging Face/LoRA model execution je zatiaľ v evaluation runneri. Pri ďalšom
+refaktore sa backend oddelí tak, aby direct, RAG a multi-RAG používali rovnaké
+generovanie a líšili sa iba pripraveným kontextom.

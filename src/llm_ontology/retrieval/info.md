@@ -1,5 +1,17 @@
 # src/llm_ontology/retrieval
 
-Miesto pre budúcu retrieval/RAG implementáciu.
+Budúca spoločná retrieval infraštruktúra pre RAG a multi-RAG.
 
-Aktuálne RAG, Split RAG ani Graph RAG nie sú implementované. Priečinok je ponechaný pre plánovanú ďalšiu fázu projektu.
+Plánované zodpovednosti:
+
+- train-only corpus builder a document schema,
+- code-aware chunking a fingerprinty,
+- dense embeddings a persistent vector store,
+- lexical/sparse retrieval,
+- deduplikácia kandidátov,
+- fusion a voliteľný reranker,
+- retrieval trace a latency meranie.
+
+Aktuálne sú implementované iba approach kontrakty; indexovanie a search backend
+ešte nie sú hotové. Retrieval nesmie importovať model generation ani task
+metriky. RAG prompt composition patrí do `llm_ontology.approaches`.

@@ -1,10 +1,13 @@
 # data
 
-Datasety projektu.
+Lokálne datasety a malé dokumentačné ukážky.
 
-- `raw/`: pôvodné alebo stiahnuté datasety a archívy,
-- `processed/`: finálne JSONL datasety pripravené na fine-tuning/evaluation,
-- `samples/`: malé commitovateľné ukážky formátu a obsahu datasetov,
-- `external/`: miesto pre externé dáta, ak sa používajú mimo štandardnej pipeline.
+| Priečinok | Obsah | Git |
+|---|---|---|
+| `raw/` | pôvodné stiahnuté datasety | ignorované okrem dokumentácie |
+| `processed/` | train/val/test JSONL pre tréning a evaluáciu | JSONL ignorované |
+| `samples/` | malé ukážky schémy | commitované |
+| `external/` | doplnkové externé zdroje | ignorované |
 
-Veľké raw datasety a archívy môžu byť lokálne. Pred commitom vždy skontroluj veľkosť súborov.
+Tréning ani evaluácia nesmú meniť processed datasety. Budúci RAG corpus builder
+číta iba train splity a zapisuje indexy mimo dataset priečinkov.

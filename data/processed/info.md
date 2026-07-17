@@ -1,13 +1,15 @@
 # data/processed
 
-Finálne spracované datasety vo formáte JSONL.
+Validované JSONL datasety pripravené na tréning a evaluáciu.
 
-- `testing/`: Methods2Test subset pre JUnit test generation, 4000/500/500.
-- `refactoring_ml4ref/`: ML4Refactoring subset, 4000/500/500.
-- `refactoring_marv/`: MaRV refactoring dataset, 478/100/108.
-- `refactoring/`: finálny B2-R dataset, ML4Refactoring + MaRV, 4478/600/608.
-- `combined/`: finálny B1 shared dataset, Methods2Test + ML4Refactoring, 8000/1000/1000.
+| Priečinok | Train/Val/Test | Účel |
+|---|---|---|
+| `testing/` | 4000/500/500 | Methods2Test, JUnit generation |
+| `refactoring_ml4ref/` | 4000/500/500 | ML4Refactoring subset |
+| `refactoring_marv/` | 478/100/108 | MaRV refactoring |
+| `refactoring/` | 4478/600/608 | finálny B2-R mix |
+| `combined/` | 8000/1000/1000 | balanced B1 shared mix |
 
-Tieto súbory nemení tréning ani evaluation pipeline.
-
-Malé ukážky formátu sú v `data/samples/`, aby boli viditeľné aj na GitHube bez commitovania plných datasetov.
+Plné JSONL súbory sú lokálne a ignorované Gitom. Pre RAG sa indexuje iba
+`train.jsonl`; val a test zostávajú mimo indexu. Pred finálnym retrieval
+experimentom treba overiť deduplikáciu a project/commit leakage.

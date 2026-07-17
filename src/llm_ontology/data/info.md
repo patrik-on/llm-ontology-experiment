@@ -1,11 +1,13 @@
 # src/llm_ontology/data
 
-Datasetové pipeline moduly.
+Reprodukovateľná dataset pipeline.
 
-- `methods2test.py`: spracovanie Methods2Test dát,
-- `marv.py`: spracovanie MaRV refactoring dát,
-- `ml4refactoring.py`: spracovanie ML4Refactoring ZIP projektov,
-- `final_datasets.py`: tvorba finálnych B2-R a B1 dataset mixov,
-- `format.py`, `split.py`, `clean.py`: pomocné funkcie pre formátovanie, splitovanie a čistenie.
+- `methods2test.py`: oficiálne Methods2Test splity a filtering,
+- `marv.py`: MaRV validácia a stratifikovaný split,
+- `ml4refactoring.py`: bezpečné ZIP rozbalenie a before/after páry,
+- `final_datasets.py`: finálny B2-R a B1 mix,
+- `format.py`, `split.py`, `clean.py`, `download.py`: spoločné utility.
 
-Výsledkom sú JSONL datasety v `data/processed/`.
+Výstupom sú JSONL súbory v `data/processed/`. Táto vrstva nepripravuje RAG
+indexy. Budúci corpus builder bude čítať validované train splity a pridá
+fingerprinty, provenance a leakage kontroly.

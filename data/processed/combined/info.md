@@ -1,16 +1,13 @@
 # data/processed/combined
 
-Finálny B1 shared dataset.
+Balanced B1 shared dataset:
 
-Balanced mix:
+- train: 4000 Methods2Test + 4000 ML4Refactoring,
+- val: 500 Methods2Test + 500 ML4Refactoring,
+- test: 500 Methods2Test + 500 ML4Refactoring.
 
-- 4000/500/500 príkladov z Methods2Test,
-- 4000/500/500 príkladov z ML4Refactoring.
+Celkové počty sú 8000/1000/1000. MaRV nie je súčasťou combined datasetu.
 
-Súbory:
-
-- `train.jsonl`: 8000 príkladov,
-- `val.jsonl`: 1000 príkladov,
-- `test.jsonl`: 1000 príkladov.
-
-MaRV zatiaľ nie je súčasťou combined datasetu.
+Tento mix je určený pre shared fine-tuning. Pre kontrolované RAG porovnanie sa
+majú budovať explicitné source kolekcie z pôvodných train datasetov, nie
+automaticky indexovať combined val alebo test dáta.

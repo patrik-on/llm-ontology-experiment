@@ -1,5 +1,8 @@
 # data/external
 
-Priestor pre externé dáta, ktoré nepatria priamo medzi raw datasety ani finálne processed datasety.
+Voliteľné externé zdroje, ktoré nepatria medzi hlavné raw datasety. Priečinok
+je ignorovaný Gitom okrem tohto dokumentu.
 
-Momentálne nie je hlavnou časťou pipeline.
+Ak sa neskôr pridajú Java/JUnit pravidlá alebo dokumentácia pre RAG, každý
+zdroj musí mať licenciu, verziu, dátum získania a jednoznačné document ID.
+Externé dáta nesmú potichu meniť iba jednu vetvu kontrolovaného experimentu.

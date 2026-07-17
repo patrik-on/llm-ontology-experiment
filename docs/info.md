@@ -1,11 +1,16 @@
 # docs
 
-Detailnejšia dokumentácia projektu.
+Metodická, architektonická a prevádzková dokumentácia projektu.
 
-Užitočné súbory:
+- `architecture.md`: model × approach × task architektúra,
+- `experiment_design.md`: kontrolovaný experimentálny dizajn,
+- `finetuning_design.md`: fine-tuning a evaluation flow,
+- `wsl_finetuning_setup.md`: WSL/CUDA prostredie,
+- `v2_finetuning_runbook.md`: manuálny v2 tréning,
+- `v2_evaluation_runbook.md`: manuálna v2 evaluácia,
+- `reproducible_handoff.md`: minimálny reprodukovateľný handoff,
+- `download_links.md`: externé modely, datasety a adaptéry,
+- `git_commit_policy.md`: čo patrí a nepatrí do Gitu.
 
-- `wsl_finetuning_setup.md`: WSL/CUDA/QLoRA setup a príkazy,
-- `finetuning_design.md`: návrh fine-tuning infraštruktúry,
-- `experiment_design.md`: experimentálne rozdelenie a koncepty.
-
-README slúži ako rýchla mapa. Tento priečinok je miesto pre podrobnejšie metodické poznámky.
+Root README je rýchly vstup. Rozhodnutia, predpoklady a limity experimentov
+majú byť vysvetlené v tomto priečinku.

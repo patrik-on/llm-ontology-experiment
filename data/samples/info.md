@@ -1,7 +1,8 @@
 # data/samples
 
-Malé ukážky z dátových formátov používaných v projekte.
+Malé commitovateľné ukážky instruction-tuning schémy pre Methods2Test,
+ML4Refactoring a MaRV.
 
-Tieto súbory sú určené iba na orientáciu čitateľa na GitHube. Nie sú to tréningové, validačné ani testovacie splity a nepoužívajú sa vo fine-tuningu.
-
-Skutočné datasety sú lokálne v `data/processed/` a sú ignorované Gitom, pretože obsahujú väčšie JSONL súbory.
+Nie sú to train, validation ani test dáta a nepoužívajú sa pri tréningu,
+evaluácii ani budúcom indexovaní. Detailný formát je v `README.md` v tomto
+priečinku.

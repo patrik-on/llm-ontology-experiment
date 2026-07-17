@@ -1,5 +1,5 @@
 model:
-  base_model: codellama/CodeLlama-7b-Instruct-hf
+  base_model: Qwen/Qwen2.5-Coder-7B-Instruct
   max_seq_length: 2048
 
 lora:
