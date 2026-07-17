@@ -328,6 +328,7 @@ def apply_training_overrides(
     max_steps: int | None = None,
     max_train_samples: int | None = None,
     max_val_samples: int | None = None,
+    seed: int | None = None,
     output_root: str | Path | None = None,
 ) -> dict[str, Any]:
     if dry_run:
@@ -338,6 +339,8 @@ def apply_training_overrides(
         training_config.setdefault("run", {})["max_train_samples"] = max_train_samples
     if max_val_samples is not None:
         training_config.setdefault("run", {})["max_val_samples"] = max_val_samples
+    if seed is not None:
+        training_config.setdefault("run", {})["seed"] = seed
     if output_root is not None:
         experiment_name = training_config["experiment"]["name"]
         output_base = Path(output_root)
@@ -359,6 +362,10 @@ def apply_lora_training_overrides(lora_config: dict[str, Any], *, dry_run: bool 
         defaults["eval_steps"] = checkpoint_steps
         defaults["logging_steps"] = 1
     return lora_config
+
+
+def dataset_sample_limits(run_config: dict[str, Any]) -> tuple[int | None, int | None]:
+    return run_config.get("max_train_samples"), run_config.get("max_val_samples")
 
 
 def set_eval_strategy(kwargs: dict[str, Any]) -> dict[str, Any]:
@@ -390,6 +397,7 @@ def run_training(
     max_steps: int | None = None,
     max_train_samples: int | None = None,
     max_val_samples: int | None = None,
+    seed: int | None = None,
     output_root: str | Path | None = None,
 ) -> None:
     if resume_from_checkpoint and not Path(resume_from_checkpoint).exists():
@@ -401,6 +409,7 @@ def run_training(
         max_steps=max_steps,
         max_train_samples=max_train_samples,
         max_val_samples=max_val_samples,
+        seed=seed,
         output_root=output_root,
     )
     model_config = read_yaml(training_config["experiment"]["model_config"])
@@ -428,8 +437,7 @@ def run_training(
         require_training_packages()
         run = training_config["run"]
         dry_run = bool(run.get("dry_run", False))
-        max_train_samples = run.get("max_train_samples") if dry_run else None
-        max_val_samples = run.get("max_val_samples") if dry_run else None
+        max_train_samples, max_val_samples = dataset_sample_limits(run)
 
         train_records, val_records = load_instruction_dataset(
             training_config["dataset"]["train_file"],
