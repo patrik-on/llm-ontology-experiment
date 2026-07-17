@@ -1,13 +1,19 @@
 # configs
 
-Tento priečinok obsahuje YAML konfigurácie projektu. Sú rozdelené podľa účelu:
+YAML konfigurácie sú rozdelené podľa nezávislých častí experimentu.
 
-- `models/`: lokálne Hugging Face a Ollama modely,
-- `finetuning/`: LoRA/QLoRA a tréningové konfigurácie,
-- `inference/`: baseline inference cez Ollama,
-- `evaluation/`: modely, datasety a parametre evaluation pipeline,
-- `datasets/`: datasetové konfigurácie,
-- `experiments/`: staršie alebo pomocné experiment configy,
-- `templates/`: šablóny pre budúce rozšírenia, napríklad RAG.
+| Priečinok | Účel |
+|---|---|
+| `models/` | modelové cesty a runtime nastavenia |
+| `finetuning/` | LoRA/QLoRA parametre a training runs |
+| `experiments/` | kompozície model × approach × task |
+| `retrieval/` | spoločné retrieval nastavenia |
+| `evaluation/` | modely, datasety a generation parametre evaluácie |
+| `inference/` | samostatná Ollama baseline inferencia |
+| `datasets/` | dataset-specific spracovanie |
+| `templates/` | legacy navigácia na nové experiment configy |
 
-Pre reálny WSL fine-tuning používaj primárne `configs/finetuning/*_wsl.yaml`.
+Pre reálny CUDA tréning používaj `configs/finetuning/*_wsl.yaml`. Direct, RAG
+a multi-RAG experimenty patria do samostatných podpriečinkov
+`configs/experiments/`. RAG šablóny zostávajú vypnuté až do implementácie
+retrieval runnera.

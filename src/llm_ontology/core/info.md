@@ -1,9 +1,10 @@
 # src/llm_ontology/core
 
-Spoločné utility.
+Spoločné infraštruktúrne utility:
 
-- `config.py`: načítanie konfigurácií,
-- `paths.py`: práca s cestami,
-- `logging.py`: logging helpery.
+- `config.py`: YAML loading, fallback parser, deep merge a required keys,
+- `paths.py`: project root, relative/absolute paths a output directories,
+- `logging.py`: konzistentný console logging.
 
-Tieto moduly sú určené na zdieľanie medzi dataset, training a evaluation časťou.
+Core nesmie importovať training, retrieval ani evaluation implementáciu.
+Vyššie vrstvy môžu používať core, nie naopak.

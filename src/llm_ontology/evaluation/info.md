@@ -1,17 +1,19 @@
 # src/llm_ontology/evaluation
 
-Implementácia evaluation metrík a reportovania.
+Inference, metriky, agregácie a reportovanie.
 
-- `text_metrics.py`: základné textové podobnosti a dĺžky,
-- `code_metrics.py`: Java-like proxy metriky pre kód,
-- `test_metrics.py`: proxy metriky pre JUnit test generation,
-- `refactoring_metrics.py`: code health, cohesion a coupling proxy metriky,
-- `prediction_io.py`: čítanie/zápis JSONL predikcií,
-- `report_writer.py`: Markdown report a ukážky,
-- `inference_eval.py`: inference pre baseline a LoRA adaptéry,
-- `metrics_runner.py`: CLI logika výpočtu metrík,
-- `full_evaluation.py`: orchestrace inferencie, metrík a reportu,
-- `smoke.py`: malý dummy smoke test evaluation pipeline,
-- `coverage_runner.py`: placeholder pre budúcu reálnu JaCoCo coverage evaluáciu.
+- `inference_eval.py`: Hugging Face baseline a LoRA generovanie,
+- `prediction_io.py`: normalizovaná JSONL/JSON/CSV schéma,
+- `test_metrics.py`: JUnit štrukturálne proxy metriky,
+- `refactoring_metrics.py`: refactoring quality proxy,
+- `text_metrics.py` a `code_metrics.py`: spoločné text/code signály,
+- `metrics_runner.py`: per-example a aggregate výpočty,
+- `report_writer.py`: report a kvalitatívne ukážky,
+- `full_evaluation.py`: subprocess orchestration,
+- `smoke.py`: model-free end-to-end kontrola,
+- `coverage_runner.py`: placeholder pre executable JaCoCo subset.
 
-Aktuálne metriky sú proxy metriky, nie plná kompilácia alebo spustenie Java testov.
+Staršie `metrics.py`, `testing.py`, `refactoring.py` a `report.py` zostávajú pre
+kompatibilitu. Nové RAG vyhodnotenie doplní retrieval trace, Recall/MRR tam,
+kde existuje relevance, a efficiency metriky. Proxy skóre nie sú náhradou
+kompilácie alebo behavior preservation.

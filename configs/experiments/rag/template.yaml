@@ -1,0 +1,16 @@
+experiment:
+  name: "rag_qwen25_coder_7b"
+  approach: "rag"
+  enabled: false
+
+model:
+  config: "configs/models/qwen25_coder_7b_hf_wsl.yaml"
+
+retrieval:
+  allowed_splits:
+    - "train"
+  index: "unified_examples"
+  top_k: 3
+
+notes:
+  - "Template only; indexing and retrieval execution will be implemented in the next phase."

@@ -1,11 +1,13 @@
 # src/llm_ontology/training
 
-Aktuálna tréningová infraštruktúra projektu.
+QLoRA training engine a environment readiness kontroly.
 
-- `finetuning.py`: hlavný LoRA/QLoRA tréningový engine používaný cez `scripts/training/train_finetuning.py`.
-- `readiness.py`: kontrola pripravenosti konkrétneho training configu.
-- `compat.py`: kontrola kompatibility PyTorch/Transformers/bitsandbytes/CUDA.
-- `setup_check.py`: staršia všeobecná kontrola fine-tuning infraštruktúry.
+- `finetuning.py`: tokenizácia, prompt label masking, Trainer, checkpoints,
+  early stopping, resume, final adapter a summary,
+- `readiness.py`: model/config/dataset/output validácia,
+- `compat.py`: CUDA, Transformers a collator API kontrola,
+- `setup_check.py`: staršia všeobecná setup kontrola.
 
-CLI skript `scripts/training/train_finetuning.py` je už iba tenký wrapper. Skutočná logika načítania configov, datasetov, modelu, LoRA adaptera, Trainer inicializácie, summary handlingu, Ctrl+C handlingu a resume z checkpointu je v `finetuning.py`.
-
+Model loading deleguje na `llm_ontology.models`; prompt formatter je zdieľaný
+s inferenciou. Training nemení generation approach. Natrénovaný adaptér sa dá
+neskôr vyhodnotiť s direct, RAG aj multi-RAG kontextom.

@@ -1,10 +1,11 @@
 # src/llm_ontology/finetuning
 
-Pomocný kód pre fine-tuning.
+Kompatibilná vrstva pôvodných fine-tuning importov.
 
-- `prompt_formatter.py`: tréningový a inferenčný instruction prompt formát,
-- `dataset_loader.py`: načítanie a validácia JSONL instruction datasetov,
-- `model_loader.py`: loadery pre Hugging Face model, tokenizer a LoRA.
+- `dataset_loader.py`: načítanie a validácia instruction JSONL,
+- `prompt_formatter.py`: re-export `llm_ontology.inference.prompting`,
+- `model_loader.py`: re-export `llm_ontology.models`.
 
-Hlavný tréningový beh je implementovaný v `src/llm_ontology/training/finetuning.py`; `scripts/training/train_finetuning.py` je iba CLI wrapper.
-
+Nový kód má používať spoločné modelové a promptovacie moduly. Hlavný training
+engine je v `llm_ontology.training.finetuning`. Wrappery sa odstránia až po
+migrácii všetkých externých importov a runbookov.

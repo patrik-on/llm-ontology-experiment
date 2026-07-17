@@ -1,13 +1,15 @@
 # configs/finetuning
 
-Konfigurácie pre LoRA/QLoRA fine-tuning.
+LoRA/QLoRA tréningové konfigurácie.
 
-Hlavné súbory:
+- `lora_config.yaml`: LoRA, NF4 kvantizácia a training defaults,
+- `training_b2_testing*.yaml`: testing-only model,
+- `training_b2_refactoring*.yaml`: refactoring-only model,
+- `training_b1_shared*.yaml`: shared testing + refactoring model.
 
-- `lora_config.yaml`: LoRA parametre, 4-bit quantization a training defaults,
-- `training_b2_testing_wsl.yaml`: B2-T testing-only beh vo WSL,
-- `training_b2_refactoring_wsl.yaml`: B2-R refactoring-only beh vo WSL,
-- `training_b1_shared_wsl.yaml`: B1 shared beh vo WSL,
-- súbory bez `_wsl`: Windows/relatívne varianty ponechané pre kompatibilitu.
+Súbory s `_wsl` používajú lokálny model z
+`configs/models/qwen25_coder_7b_hf_wsl.yaml` a zapisujú veľké výstupy mimo
+Windows/OneDrive filesystemu. Varianty bez `_wsl` zostávajú pre Windows
+readiness kontroly a kompatibilitu.
 
-WSL configy ukladajú checkpointy, logy a výsledky do `/home/patrik/experiments/llm-ontology`, nie do OneDrive-backed repozitára.
+Fine-tuning je modelová os experimentu a je možné ho neskôr kombinovať s RAG.

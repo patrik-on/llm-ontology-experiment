@@ -1,0 +1,13 @@
+experiment:
+  name: "direct_qwen25_coder_7b"
+  approach: "direct"
+  enabled: true
+
+model:
+  config: "configs/models/qwen25_coder_7b_hf_wsl.yaml"
+
+generation:
+  max_new_tokens: 512
+  temperature: 0.0
+  do_sample: false
+  top_p: 1.0
