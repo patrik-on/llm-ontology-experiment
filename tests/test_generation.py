@@ -1,6 +1,6 @@
 from llm_ontology.inference.prompts import build_prompt, build_training_text
 from llm_ontology.finetuning.prompt_formatter import format_inference_prompt, format_training_prompt
-from llm_ontology.training.finetuning import build_tokenized_training_example
+from llm_ontology.training.finetuning import apply_training_overrides, build_tokenized_training_example, dataset_sample_limits
 from llm_ontology.evaluation.inference_eval import is_lora_model
 
 
@@ -83,3 +83,22 @@ def test_is_lora_model_ignores_baseline_adapter_sentinel() -> None:
     assert not is_lora_model({"type": "baseline", "adapter_path": "none"})
     assert is_lora_model({"type": "lora", "adapter_path": "/tmp/adapter"})
     assert is_lora_model({"type": "baseline", "adapter_path": "/tmp/adapter"})
+
+
+def test_dataset_sample_limits_apply_to_real_training_runs() -> None:
+    run_config = {
+        "dry_run": False,
+        "max_train_samples": 1000,
+        "max_val_samples": 200,
+    }
+
+    assert dataset_sample_limits(run_config) == (1000, 200)
+
+
+def test_training_ablation_overrides_sample_count_and_seed() -> None:
+    config = {"experiment": {"name": "demo"}, "run": {}, "output": {}}
+
+    updated = apply_training_overrides(config, max_train_samples=500, seed=43)
+
+    assert updated["run"]["max_train_samples"] == 500
+    assert updated["run"]["seed"] == 43

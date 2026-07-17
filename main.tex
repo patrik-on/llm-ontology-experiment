@@ -1,0 +1,660 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[slovak]{babel}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\geometry{
+left=2.5cm,
+right=2.5cm,
+top=2.5cm,
+bottom=2.5cm
+}
+
+\lstset{
+basicstyle=\ttfamily\small,
+breaklines=true,
+columns=fullflexible,
+frame=single,
+backgroundcolor=\color{gray!6}
+}
+
+\newcommand{\modelbase}{\texttt{baseline\_qwen25\_coder\_7b}}
+\newcommand{\modeltest}{\texttt{b2\_testing\_v2}}
+\newcommand{\modelref}{\texttt{b2\_refactoring\_v2}}
+\newcommand{\modelshared}{\texttt{b1\_shared\_v2}}
+\newcommand{\projectname}{\texttt{llm-ontology-experiment}}
+
+\title{
+\textbf{Zdieľané a špecializované LoRA adaptéry pre úlohy softvérového inžinierstva}\\
+\large Report k predmetu Current Approaches in Machine Learning
+}
+
+\author{Patrik Ončák}
+\date{\today}
+
+\usepackage{float}
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+Táto práca skúma, do akej miery dokáže menší open-source jazykový model pre kód zdieľať znalosti medzi dvoma úlohami softvérového inžinierstva: generovaním jednotkových testov a refaktoringom Java kódu. Experiment porovnáva základný model bez fine-tuningu, dva špecializované LoRA adaptéry a jeden spoločný LoRA adaptér trénovaný na kombinovaných dátach z oboch úloh. Špecializované modely boli trénované samostatne pre generovanie testov a refaktoring, zatiaľ čo spoločný model bol trénovaný na oboch doménach naraz.
+
+Modely boli vyhodnocované pomocou automatických proxy metrík pre kvalitu testov, coverage proxy, code health, cohesion, coupling a refactoring quality. Okrem výkonnostnej evaluácie bola vykonaná aj analýza samotných LoRA adaptérov, ktorej cieľom bolo zistiť, či sa naučené aktualizácie váh líšia medzi úlohami a či je spoločný adaptér podobnejší testovaciemu alebo refaktoringovému adaptéru.
+\end{abstract}
+
+Zdrojový kód experimentálnej pipeline je dostupný v repozitári
+\href{https://github.com/patrik-on/llm-ontology-experiment}{llm-ontology-experiment}.
+
+\section{Úvod}
+
+Plný fine-tuning veľkých modelov je však výpočtovo náročný a často nepraktický, najmä pri práci na bežne dostupnom hardvéri. Preto sú zaujímavé metódy parameter-efficient fine-tuning, medzi ktoré patrí aj LoRA a QLoRA.
+
+Projekt \projectname{} bol vytvorený ako experimentálna pipeline pre diplomovú prácu zameranú na použitie jazykových modelov pri úlohách softvérového inžinierstva. Projekt pokrýva celý experimentálny tok: prípravu datasetov, instruction-tuning formát, LoRA/QLoRA tréning, inferenciu, výpočet metrík, reportovanie a následnú analýzu LoRA adaptérov.
+
+Cieľom bolo preskúmať, či je pri dvoch príbuzných, ale odlišných úlohách výhodnejšie trénovať jeden spoločný model alebo viacero špecializovaných modelov. Konkrétne boli skúmané dve úlohy:
+\begin{itemize}
+\item generovanie jednotkových testov pre Java metódy,
+\item refaktoring Java kódu.
+\end{itemize}
+
+Tieto úlohy majú spoločné to, že vyžadujú porozumenie zdrojovému kódu, metódam, identifikátorom a štruktúre programu. Zároveň sa však líšia typom požadovaného výstupu. Pri generovaní testov model vytvára nový JUnit testovací kód, zatiaľ čo pri refaktoringu model transformuje existujúci kód tak, aby zlepšil jeho štruktúru alebo zodpovedal určitému typu refaktoringu.
+
+Hlavná výskumná otázka bola:
+
+\begin{quote}
+Do akej miery dokáže menší jazykový model pre kód zdieľať reprezentácie medzi generovaním testov a refaktoringom, a kedy je výhodnejšie použiť špecializované adaptéry?
+\end{quote}
+
+Na zodpovedanie tejto otázky boli porovnané štyri varianty modelu:
+\begin{itemize}
+\item základný model bez fine-tuningu,
+\item špecializovaný LoRA adaptér pre generovanie testov,
+\item špecializovaný LoRA adaptér pre refaktoring,
+\item spoločný LoRA adaptér trénovaný na kombinovanom datasete.
+\end{itemize}
+
+% =============================================
+% RELATED WORK
+% =============================================
+\section{Súvisiace práce}
+\label{sec:related}
+
+\paragraph{Parameter-efficient fine-tuning.}
+Plný fine-tuning veľkých jazykových modelov vyžaduje aktualizáciu všetkých parametrov, čo je pri modeloch s miliardami váh výpočtovo náročné. Metóda LoRA~\cite{lora} rieši tento problém tréningom nízkodimenzionálnych aktualizácií váh, pričom pôvodné parametre zostávajú zmrazené. QLoRA~\cite{qlora} ďalej kombinuje LoRA s 4-bitovou kvantizáciou, čím umožňuje fine-tuning veľkých modelov na bežne dostupnom hardvéri.
+
+\paragraph{Jazykové modely pre kód.}
+Špecializované jazykové modely pre kód, ako napríklad Qwen2.5-Coder~\cite{qwen25coder}, sú predtrénované na rozsiahlych korpusoch zdrojového kódu a dosahujú dobré výsledky pri úlohách softvérového inžinierstva, ako sú generovanie, oprava a transformácia kódu.
+
+\paragraph{Generovanie jednotkových testov.}
+Automatické generovanie jednotkových testov pomocou jazykových modelov je aktívnou výskumnou oblasťou. Dataset Methods2Test~\cite{methods2test} poskytuje páry Java metód a zodpovedajúcich JUnit testov, ktoré slúžia ako tréningové dáta pre modely zamerané na túto úlohu.
+
+\paragraph{Automatický refaktoring kódu.}
+Refaktoring kódu pomocou jazykových modelov bol skúmaný v kontexte viacerých datasetov. Dataset MaRV~\cite{marv_dataset,marv} a dataset ML4Refactoring~\cite{ml4refactoring} poskytujú príklady refaktoringových transformácií Java kódu, ktoré pokrývajú rôzne typy refaktoringu, ako sú \textit{Extract Method}, \textit{Rename Method} a ďalšie.
+
+\paragraph{Interferencia a zdieľané reprezentácie.}
+Pri tréningu jedného modelu na viacerých úlohách môže dochádzať k negatívnej interferencii, pri ktorej znalosti z jednej domény zhoršujú výkon na inej. Tento jav súvisí s literatúrou o multi-task learningu~\cite{multitask}. Naša práca skúma, do akej miery sa táto interferencia prejavuje pri kombinácii generovania testov a refaktoringu kódu.
+
+% =============================================
+% END RELATED WORK
+% =============================================
+
+
+\section{Projekt a experimentálna pipeline}
+
+Repozitár \projectname{} je organizovaný tak, aby oddelil knižničnú logiku od spustiteľných skriptov. Hlavný kód sa nachádza v priečinku \texttt{src/llm\_ontology/}, zatiaľ čo priečinok \texttt{scripts/} obsahuje CLI vstupy pre prípravu dát, tréning a evaluáciu.
+
+Dôležité časti projektu sú:
+\begin{itemize}
+\item \texttt{src/llm\_ontology/data/}: príprava datasetov Methods2Test, MaRV a ML4Refactoring,
+\item \texttt{src/llm\_ontology/finetuning/}: prompt formatter, dataset loader a model loader,
+\item \texttt{src/llm\_ontology/training/}: QLoRA tréningová logika,
+\item \texttt{src/llm\_ontology/evaluation/}: inference, proxy metriky, reportovanie a analýzy,
+\item \texttt{configs/}: YAML konfigurácie pre modely, tréning a evaluáciu.
+\end{itemize}
+
+Výsledkom projektu nie je iba jeden model, ale reprodukovateľná experimentálna infraštruktúra. Tá umožňuje pripraviť datasety, natrénovať LoRA adaptéry, vyhodnotiť ich na viacerých úlohách a analyzovať rozdiely medzi špecializovanými a zdieľanými adaptérmi.
+
+\section{Datasety a formát úloh}
+
+Experiment používa tri zdroje dát:
+\begin{itemize}
+\item Methods2Test pre generovanie JUnit testov,
+\item MaRV pre refaktoringové príklady,
+\item ML4Refactoring pre väčší refaktoringový dataset.
+\end{itemize}
+
+Spracované dáta sú uložené v instruction-tuning formáte. Každý záznam obsahuje inštrukciu, vstup, očakávaný výstup, doménu a zdroj. Zjednodušený príklad záznamu vyzerá nasledovne:
+
+\begin{lstlisting}
+{
+  "instruction": "Vygeneruj JUnit test pre nasledujucu Java metodu.",
+  "input": "public int add(int a, int b) { return a + b; }",
+  "output": "@Test public void testAdd() { assertEquals(3, add(1, 2)); }",
+  "domain": "testing",
+  "source": "methods2test"
+}
+\end{lstlisting}
+
+Pre refactoring má záznam podobný tvar, ale výstupom je upravená verzia kódu:
+
+\begin{lstlisting}
+{
+  "instruction": "Vygeneruj refaktorovanu verziu nasledujuceho Java kodu podla typu refaktoringu: Rename Method.",
+  "input": "public void oldName() { System.out.println(\"hello\"); }",
+  "output": "public void newName() { System.out.println(\"hello\"); }",
+  "domain": "refactoring",
+  "source": "marv"
+}
+\end{lstlisting}
+
+Finálne datasety použité pre tréning boli:
+\begin{itemize}
+\item \texttt{testing/}: Methods2Test pre B2-T model,
+\item \texttt{refactoring/}: ML4Refactoring + MaRV pre B2-R model,
+\item \texttt{combined/}: Methods2Test + ML4Refactoring pre B1 shared model.
+\end{itemize}
+
+\section{Promptovací formát a tréningová pipeline}
+
+V2 experimenty boli vykonané po oprave tréningovej pipeline. Táto oprava bola dôležitá, pretože pilotné verzie modelov nepracovali s promptom a label maskovaním úplne konzistentne.
+
+Použitý prompt formát bol jednotný pre tréning aj evaluáciu:
+
+\begin{lstlisting}
+### Instruction:
+<instruction>
+
+### Input:
+<input code>
+
+### Response:
+<expected output>
+\end{lstlisting}
+
+Pri tréningu sa model nemá učiť reprodukovať zadanie. Má sa učiť generovať iba odpoveď. Preto sa tokeny patriace časti \texttt{Instruction} a \texttt{Input} v labeloch maskovali hodnotou $-100$. Strata sa tak počítala iba nad výstupnou časťou za \texttt{Response}.
+
+
+
+\section{Základný model a LoRA fine-tuning}
+
+Ako základný model bol použitý Qwen2.5-Coder-7B-Instruct dostupný lokálne ako:
+
+\begin{lstlisting}
+/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct
+\end{lstlisting}
+
+Namiesto plného fine-tuningu boli použité LoRA a QLoRA techniky, ktoré umožňujú adaptovať model pomocou malého počtu dodatočných parametrov.
+
+Pri LoRA sa pôvodná váhová matica nemení priamo. Namiesto toho sa k nej pridáva nízkorozmerná aktualizácia:
+\begin{equation}
+W' = W + \Delta W,
+\qquad
+\Delta W = BA,
+\end{equation}
+kde $A$ a $B$ sú trénovateľné nízkorozmerné matice. Pôvodné váhy modelu zostávajú zmrazené a trénujú sa iba LoRA parametre.
+
+Použité nastavenia LoRA/QLoRA boli:
+\begin{itemize}
+\item LoRA rank $r = 16$,
+\item LoRA alpha $= 32$,
+\item dropout $= 0.05$,
+\item 4-bitová QLoRA kvantizácia typu NF4,
+\item learning rate $2 \cdot 10^{-4}$,
+\item early stopping podľa validačnej straty.
+\end{itemize}
+
+\section{Porovnávané modely}
+
+Vo finálnej evaluácii boli porovnávané štyri modely uvedené v tabuľke~\ref{tab:models}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{ll}
+\toprule
+Model & Popis \\
+\midrule
+\modelbase & Základný model bez LoRA adaptácie \\
+\modeltest & LoRA adaptér trénovaný iba na generovaní testov \\
+\modelref & LoRA adaptér trénovaný iba na refaktoringu \\
+\modelshared & LoRA adaptér trénovaný na kombinovaných dátach \\
+\bottomrule
+\end{tabular}
+\caption{Porovnávané modelové varianty.}
+\label{tab:models}
+\end{table}
+
+Špecializované modely umožňujú zistiť, aký výkon možno dosiahnuť pri tréningu na jednej doméne. Spoločný model slúži na overenie, či jeden adaptér dokáže efektívne pokryť obe úlohy naraz.
+
+\section{Evaluačné metriky}
+
+\subsection{Spoločný postup extrakcie a agregácie}
+
+Pre každý vygenerovaný výstup sa najprv vypočítali metriky na úrovni jedného
+príkladu. Text sa pri porovnávaní normalizoval nahradením postupností bielych
+znakov jednou medzerou a odstránením okrajových medzier. Binárne príznaky, ako
+napríklad prítomnosť anotácie \texttt{@Test}, nadobúdali hodnotu 0 alebo 1.
+Výsledok modelu pre metriku $m$ na množine $N$ príkladov bol následne aritmetický
+priemer
+\begin{equation}
+\overline{m} = \frac{1}{N}\sum_{i=1}^{N}m_i.
+\end{equation}
+Podiely v tabuľkách sú teda priemery binárnych príznakov a výsledné quality
+skóre je priemer skóre vypočítaného samostatne pre každý príklad. Priemery sa
+nepočítali najprv po podskupinách ani sa dodatočne nevážili.
+
+\subsection{Metriky pre generovanie testov}
+
+Pri generovaní testov boli z výstupu extrahované nasledujúce binárne príznaky:
+\begin{itemize}
+\item $E$: výstup po odstránení bielych znakov nie je prázdny,
+\item $T$: výstup obsahuje reťazec \texttt{@Test},
+\item $A$: výstup obsahuje aspoň jedno volanie z množiny
+\texttt{assertEquals}, \texttt{assertTrue}, \texttt{assertFalse},
+\texttt{assertNull}, \texttt{assertNotNull}, \texttt{assertThrows},
+\texttt{assertThat} alebo \texttt{verify},
+\item $M$: výstup obsahuje volanie cieľovej metódy. Jej názov sa preberá z
+metadát, ak je dostupný, inak sa extrahuje regulárnym výrazom z prvej
+Java-like signatúry vo vstupe,
+\item $X$: výstup obsahuje test výnimky, indikovaný konštrukciami
+\texttt{assertThrows}, \texttt{expected=}, \texttt{try}, \texttt{catch}
+alebo \texttt{throws},
+\item $D$: výstup obsahuje viac ako jeden assertion alebo viac ako jeden
+výskyt regulárneho výrazu pre \texttt{@Test} alebo signatúru
+\texttt{void name(...)},
+\item $S$: je prítomný triviálny testovací vzor. Za triviálny sa považuje
+prázdny výstup, výstup tvorený iba komentárom alebo vzory
+\texttt{assertTrue(true)}, \texttt{true == true} a
+\texttt{assertEquals(1,1)}.
+\end{itemize}
+
+Skóre kvality generovaného testu sa vypočítalo ako
+\begin{equation}
+Q_{\mathrm{test}} =
+\operatorname{clip}_{[0,10]}
+\left(E + 2T + 2A + 2M + X + D - 3S - 5(1-E)\right).
+\end{equation}
+Váhy sú heuristické: najväčšiu kladnú váhu majú základné znaky vykonateľného
+testu a penalizované sú prázdne alebo zjavne triviálne výstupy. Metrika
+neoveruje kompilovateľnosť ani správnosť assertions.
+
+Implementácia označuje rovnakú číselnú hodnotu $Q_{\mathrm{test}}$ aj názvom
+\textit{coverage proxy score} a priraďuje jej kategóriu
+\textit{high} pre skóre aspoň 7, \textit{medium} pre skóre aspoň 4,
+\textit{low} pre kladné skóre a \textit{invalid} pre nulu. Nejde teda o
+nezávislú metriku a už vôbec nie o line alebo branch coverage. V tabuľke
+výsledkov ju preto neuvádzame ako druhý samostatný dôkaz kvality.
+
+\subsection{Metriky pre refaktoring}
+
+Podobnosť k referenčnému výstupu $R$ je pomer vrátený algoritmom
+\texttt{SequenceMatcher} po normalizácii bielych znakov, v rozsahu 0 až 1.
+Príznak $C$ nadobúda hodnotu 1, ak sa normalizovaný výstup líši od vstupu.
+
+Code health skóre $H$ začína hodnotou 5. Zníženie proxy cyklomatickej
+komplexity pridáva 1.5 bodu, zníženie maximálneho vnorenia 1 bod a skrátenie
+priemernej metódy 1 bod. Nárast komplexity o viac ako 3 odoberá 2 body,
+nárast vnorenia o viac ako 1 alebo priemernej dĺžky metódy o viac ako 20
+riadkov odoberá po 1 bode. Zmena oproti vstupu pridáva 1 bod, nezmenený
+výstup odoberá 2 body. Výsledok sa oreže do rozsahu 0 až 10; prázdny výstup
+má $H=0$.
+
+Cohesion proxy $K$ začína hodnotou 10:
+\begin{equation}
+K=\operatorname{clip}_{[0,10]}\left(
+10-\min\left(3,\frac{L}{30}\right)
+-\min\left(2,\frac{P}{2}\right)-2U-2Z+0.5F
+\right),
+\end{equation}
+kde $L$ je priemerná dĺžka metódy, $P$ priemerný počet parametrov,
+$U=1$ pri nízkom opakovaní identifikátorov, $Z=1$ ak sa nedetegovala žiadna
+metóda a $F=1$ pri jednej až šiestich metódach.
+
+Coupling proxy $G$ sa vypočíta ako
+\begin{equation}
+G=\operatorname{clip}_{[0,10]}
+\left(0.4I+0.15V+0.6O+0.25Y+0.8P\right),
+\end{equation}
+kde $I$ je počet importov, $V$ počet volaní cez bodku, $O$ počet vytvorení
+objektu operátorom \texttt{new}, $Y$ počet unikátnych identifikátorov
+začínajúcich veľkým písmenom a $P$ priemerný počet parametrov.
+
+Finálne skóre refaktoringu je
+\begin{equation}
+Q_{\mathrm{ref}}=\operatorname{clip}_{[0,10]}
+\left(1.5C+2.5R+0.25H+0.2K+0.15(10-G)\right).
+\end{equation}
+Prázdny výstup má $Q_{\mathrm{ref}}=0$. Všetky štrukturálne veličiny sa
+extrahujú regulárnymi výrazmi a počítaním zátvoriek, nie plnohodnotným Java
+parserom.
+
+Tieto metriky umožňujú škálovateľné porovnanie modelov, ale nenahrádzajú plnohodnotnú statickú analýzu, kompiláciu ani overenie zachovania správania programu.
+
+\section{Kvalitatívne príklady}
+
+Prvý príklad reprezentuje generovanie testu:
+
+\begin{lstlisting}
+Instruction:
+Vygeneruj JUnit test pre nasledujucu Java metodu.
+
+Input:
+public boolean isEven(int value) {
+    return value % 2 == 0;
+}
+
+Expected output:
+@Test
+public void testIsEven() {
+    assertTrue(isEven(2));
+    assertFalse(isEven(3));
+}
+\end{lstlisting}
+
+Druhý príklad reprezentuje refactoring:
+
+\begin{lstlisting}
+Instruction:
+Vygeneruj refaktorovanu verziu nasledujuceho Java kodu podla typu refaktoringu: Extract Method.
+
+Input:
+public void printUser(User user) {
+    System.out.println(user.getName());
+    System.out.println(user.getEmail());
+}
+
+Expected output:
+public void printUser(User user) {
+    printUserDetails(user);
+}
+
+private void printUserDetails(User user) {
+    System.out.println(user.getName());
+    System.out.println(user.getEmail());
+}
+\end{lstlisting}
+
+\section{Veľkosť tréningovej množiny a kvalita}
+
+Finálne modely neboli trénované na rovnako veľkých množinách. Testing
+špecialista použil 4000 príkladov, refactoringový špecialista 4478 príkladov
+a shared model 8000 príkladov, z toho 4000 testing a 4000 refactoring
+príkladov.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrr}
+\toprule
+Model & Testing dáta & Refactoring dáta & Spolu \\
+\midrule
+\modeltest & 4000 & 0 & 4000 \\
+\modelref & 0 & 4478 & 4478 \\
+\modelshared & 4000 & 4000 & 8000 \\
+\bottomrule
+\end{tabular}
+\caption{Počty tréningových príkladov vo finálnych behoch.}
+\label{tab:training-sizes}
+\end{table}
+
+Z týchto troch bodov nemožno izolovať vplyv veľkosti tréningovej množiny od
+vplyvu domény a zloženia dát. Najmä shared model má dvojnásobný celkový počet
+príkladov, ale pre každú jednotlivú doménu vidí 4000 príkladov. Jeho výsledok
+preto nie je dôkazom, že samotné zväčšenie datasetu zvyšuje kvalitu.
+
+Na priamu analýzu learning curve je potrebné pre každý špecializovaný model
+zachovať rovnaký validačný a testovací split, hyperparametre a počet epoch a
+meniť iba počet tréningových príkladov:
+\begin{equation}
+N \in \{500, 1000, 2000, 4000\}.
+\end{equation}
+Každý bod je vhodné zopakovať aspoň s tromi seedmi a reportovať priemer a
+smerodajnú odchýlku quality skóre. Absolútny a relatívny prírastok medzi
+susednými bodmi možno vyjadriť ako
+\begin{equation}
+\Delta Q_N = \overline{Q}_N-\overline{Q}_{N/2},
+\qquad
+\Delta Q_N^{\%}=100\frac{\overline{Q}_N-\overline{Q}_{N/2}}
+{\overline{Q}_{N/2}}.
+\end{equation}
+Takýto dizajn ukáže nielen to, či kvalita rastie, ale aj či sa prírastky pri
+väčších množinách zmenšujú. V aktuálnej verzii experimentu táto ablačná séria
+ešte nebola vykonaná, preto z existujúcich výsledkov neuvádzame tvrdenie o
+kauzálnom vzťahu medzi veľkosťou train setu a kvalitou.
+
+\section{Výsledky}
+
+\subsection{Výsledky generovania testov}
+
+Tabuľka~\ref{tab:testing-results} zobrazuje výsledky na 50 príkladoch z testovacej úlohy.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lrrrrr}
+\toprule
+Model & @Test & Assert. & Target & Smell & Quality \\
+\midrule
+\texttt{baseline} & 0.70 & 0.70 & 0.70 & 0.00 & 7.20 \\
+\modeltest & 1.00 & 0.90 & 0.88 & 0.00 & 8.08 \\
+\modelref & 0.78 & 0.72 & 0.70 & 0.00 & 6.90 \\
+\modelshared & 1.00 & 0.80 & 0.86 & 0.00 & 8.06 \\
+\bottomrule
+\end{tabular}
+\caption{Výsledky modelov na úlohe generovania testov. Hodnoty @Test, Assert., Target a Smell sú uvádzané ako podiely (0--1); Quality je skóre v rozsahu 0--10. Coverage proxy nie je uvedené, pretože je v aktuálnej implementácii numericky totožné s Quality.}
+\label{tab:testing-results}
+\end{table}
+
+Najlepšie výsledky dosiahol špecializovaný model \modeltest, ktorý získal priemerné test quality skóre 8.08. Spoločný model \modelshared dosiahol veľmi podobné skóre 8.06. Rozdiel medzi nimi je iba 0.02 bodu, čo naznačuje, že spoločný tréning na oboch doménach nespôsobil výrazné zhoršenie schopnosti generovať testy.
+
+Refaktoringový model \modelref dosiahol na testovacej úlohe nižšie skóre 6.90. Napriek tomu stále produkoval čiastočne použiteľné testovacie výstupy.
+
+\subsection{Výsledky refaktoringu}
+
+Tabuľka~\ref{tab:refactoring-results} zobrazuje výsledky na 50 refaktoringových príkladoch.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lrrrrrr}
+\toprule
+Model & Differs & Edit sim. & Health & Cohesion & Coupling & Quality \\
+\midrule
+\texttt{baseline} & 1.00 & 0.01 & 6.06 & 6.10 & 0.20 & 4.31 \\
+\modeltest & 0.48 & 0.68 & 5.54 & 9.15 & 7.78 & 5.96 \\
+\modelref & 0.96 & 0.80 & 6.74 & 9.38 & 8.68 & 7.20 \\
+\modelshared & 0.84 & 0.76 & 6.39 & 9.33 & 8.75 & 6.82 \\
+\bottomrule
+\end{tabular}
+\caption{Výsledky modelov na úlohe refaktoringu. Differs označuje podiel výstupov, ktoré sa líšili od vstupného kódu.}
+\label{tab:refactoring-results}
+\end{table}
+
+Na refaktoringovej úlohe dosiahol najlepší výsledok špecializovaný model \modelref s refactoring quality skóre 7.20. Výstup sa líšil od vstupu v 96~\% prípadov a model dosiahol najvyššiu podobnosť k referenčnému výstupu.
+
+Spoločný model \modelshared dosiahol skóre 6.82, čo je stále konkurencieschopný výsledok, ale rozdiel oproti refaktoringovému špecialistovi je väčší než pri testovacej úlohe. Testing model \modeltest dosiahol na refactoringu skóre 5.96 a menil vstup iba v 48~\% prípadov. To naznačuje, že testovací adaptér je pri refactoringu konzervatívnejší a menej vhodný.
+
+\section{Interferencia medzi úlohami}
+
+Interferencia bola definovaná ako rozdiel medzi výkonom spoločného modelu a príslušného špecializovaného modelu:
+\begin{equation}
+I_{\text{task}} = S_{\text{shared}} - S_{\text{specialized}}.
+\end{equation}
+Negatívna hodnota znamená, že spoločný model zaostáva za špecializovaným modelom.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrrrr}
+\toprule
+Úloha & Shared & Specialized & Rozdiel & Relatívny rozdiel \\
+\midrule
+Testing & 8.06 & 8.08 & -0.02 & -0.25~\% \\
+Refactoring & 6.82 & 7.20 & -0.38 & -5.23~\% \\
+\bottomrule
+\end{tabular}
+\caption{Odhad interferencie spoločného modelu oproti špecializovaným modelom.}
+\label{tab:interference}
+\end{table}
+
+Pri testovacej úlohe bola interferencia prakticky nulová. Spoločný model zaostal za špecializovaným testing modelom iba o 0.02 bodu, čo predstavuje relatívny pokles 0.25~\%. Pri refactoringu bol rozdiel väčší. Spoločný model zaostal za refaktoringovým špecialistom o 0.38 bodu, teda približne o 5.23~\%.
+
+Z toho vyplýva, že shared fine-tuning je veľmi efektívny pri generovaní testov, no refactoring viac profituje zo špecializácie.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lrr}
+\toprule
+Model & Testing score & Refactoring score \\
+\midrule
+\modeltest & 8.08 & 5.96 \\
+\modelref & 6.90 & 7.20 \\
+\modelshared & 8.06 & 6.82 \\
+\bottomrule
+\end{tabular}
+\caption{Cross-task porovnanie modelov na oboch úlohách.}
+\label{tab:cross-task}
+\end{table}
+
+Cross-task výsledky v tabuľke~\ref{tab:cross-task} ukazujú jasnú úlohovú špecializáciu. Testing model je najlepší na generovaní testov, ale slabší na refactoringu. Refactoring model je najlepší na refactoringu, ale nedosahuje výkon testing ani shared modelu na testovacej úlohe. Spoločný model je najvyrovnanejší.
+
+\section{Analýza LoRA adaptérov}
+
+Okrem výstupnej kvality bola vykonaná aj analýza samotných LoRA adaptérov. Cieľom bolo zistiť, ktoré vrstvy modelu boli jednotlivými úlohami najviac adaptované a či je spoločný adaptér podobnejší testing alebo refactoring adaptéru.
+
+Analýza bola vykonaná priamo nad súbormi \texttt{adapter\_model.safetensors}. Pre každý LoRA modul boli extrahované matice \texttt{lora\_A} a \texttt{lora\_B}. Aktualizácia váh bola aproximovaná ako:
+\begin{equation}
+\Delta W = BA.
+\end{equation}
+Veľkosť zmeny bola vyhodnocovaná pomocou normy aktualizácie, prípadne proxy hodnoty:
+\begin{equation}
+\lVert A \rVert_F \cdot \lVert B \rVert_F.
+\end{equation}
+Podobnosť medzi adaptérmi bola meraná pomocou kosínusovej podobnosti zodpovedajúcich LoRA aktualizácií.
+
+\subsection{Vrstvy s najväčšími LoRA zmenami}
+
+Tabuľka~\ref{tab:lora-top-layers} zobrazuje päť vrstiev s najväčšou agregovanou LoRA normou pre každý adaptér.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{llr}
+\toprule
+Model & Vrstva & LoRA norma \\
+\midrule
+\modeltest & 24 & 4.6321 \\
+\modeltest & 27 & 4.5190 \\
+\modeltest & 25 & 4.4920 \\
+\modeltest & 23 & 4.4020 \\
+\modeltest & 26 & 4.2982 \\
+\midrule
+\modelref & 25 & 15.9787 \\
+\modelref & 21 & 15.6578 \\
+\modelref & 20 & 15.0451 \\
+\modelref & 22 & 14.6503 \\
+\modelref & 19 & 14.1548 \\
+\midrule
+\modelshared & 23 & 10.4000 \\
+\modelshared & 25 & 10.0997 \\
+\modelshared & 24 & 10.0352 \\
+\modelshared & 21 & 10.0150 \\
+\modelshared & 22 & 9.8465 \\
+\bottomrule
+\end{tabular}
+\caption{Vrstvy s najväčšou agregovanou LoRA normou pre jednotlivé adaptéry.}
+\label{tab:lora-top-layers}
+\end{table}
+
+Testovací adaptér má najväčšie zmeny najmä vo vyšších vrstvách modelu, konkrétne vo vrstvách 23 až 27. Refaktoringový adaptér má najsilnejšie zmeny mierne nižšie, najmä vo vrstvách 19 až 25. Spoločný adaptér kombinuje oba vzory: prekrýva sa s testovacím adaptérom vo vrstvách 23, 24 a 25 a s refaktoringovým adaptérom vo vrstvách 21, 22 a 25.
+
+\subsection{Podobnosť LoRA adaptérov}
+
+Tabuľka~\ref{tab:lora-similarity} uvádza priemernú kosínusovú podobnosť medzi adaptérmi.
+
+\begin{table}[h]
+\centering
+\small
+\begin{tabular}{lr}
+\toprule
+Porovnávané adaptéry & Priemerná kosínusová podobnosť \\
+\midrule
+\modeltest{} vs. \modelref & 0.0096 \\
+\modelshared{} vs. \modeltest & 0.0903 \\
+\modelshared{} vs. \modelref & 0.0651 \\
+\bottomrule
+\end{tabular}
+\caption{Priemerná kosínusová podobnosť medzi LoRA adaptérmi.}
+\label{tab:lora-similarity}
+\end{table}
+
+Podobnosť medzi testovacím a refaktoringovým adaptérom je veľmi nízka, iba 0.0096. To naznačuje, že tieto dva špecializované adaptéry sa naučili výrazne odlišné aktualizácie váh. Spoločný adaptér je podobnejší obom špecializovaným adaptérom než sú špecializované adaptéry navzájom. Zároveň je mierne bližší testing adaptéru ako refactoring adaptéru.
+
+Tento výsledok je konzistentný s výkonnostnou evaluáciou. Spoločný model takmer dorovnal testing špecialistu, ale pri refactoringu zaostal za refaktoringovým špecialistom výraznejšie.
+
+\section{Diskusia}
+
+Výsledky podporujú hypotézu, že generovanie testov a refaktoring zdieľajú určitú časť znalostí, no zároveň vyžadujú aj úlohovo špecifickú adaptáciu. Špecializované modely dosiahli najlepšie výsledky na svojich doménach. Spoločný model však dosiahol veľmi dobrý kompromis a najmä pri generovaní testov prakticky nezaostal za špecializovaným modelom.
+
+Najdôležitejšie zistenia sú:
+\begin{itemize}
+\item špecializovaný testing adaptér dosiahol najlepšie výsledky na generovaní testov,
+\item špecializovaný refactoring adaptér dosiahol najlepšie výsledky na refactoringu,
+\item spoločný adaptér bol veľmi konkurencieschopný na oboch úlohách,
+\item negatívna interferencia bola takmer nulová pri testingu a mierna pri refactoringu,
+\item LoRA analýza ukázala veľmi nízku podobnosť medzi testing a refactoring adaptérom,
+\item spoločný adaptér kombinuje adaptačné vzory oboch špecializovaných adaptérov.
+\end{itemize}
+
+Z praktického hľadiska to znamená, že spoločný adaptér môže byť efektívnym riešením v situáciách, kde je cieľom podporovať viacero príbuzných úloh naraz. Ak je však cieľom maximalizovať výkon na jednej konkrétnej úlohe, špecializovaný adaptér môže byť vhodnejší, najmä pri refactoringu.
+
+\section{Limity práce}
+
+Táto práca má niekoľko obmedzení. Po prvé, väčšina použitých metrík je proxy charakteru. Coverage proxy nenahrádza reálne meranie pokrytia pomocou JaCoCo. Podobne refactoringové metriky neoverujú sémantickú ekvivalenciu ani zachovanie správania programu.
+
+Po druhé, finálne vyhodnotenie bolo vykonané na vzorke 50 príkladov pre každú úlohu. Táto veľkosť je vhodná pre projektové porovnanie a identifikáciu trendov, ale pre robustnejšie štatistické závery by bolo vhodné vyhodnotenie zopakovať na väčšej vzorke.
+
+Po tretie, LoRA analýza bola vykonaná na úrovni váh adaptérov, nie na úrovni aktivácií modelu. Kosínusová podobnosť LoRA aktualizácií preto predstavuje iba aproximačný signál o podobnosti adaptérov a nie úplné mechanistické vysvetlenie správania modelu.
+
+Po štvrté, experiment obsahuje iba jeden finálny tréningový bod pre každý
+model. Rozdiely medzi shared a špecializovanými modelmi sú preto ovplyvnené
+nielen typom tréningu, ale aj počtom a zložením tréningových príkladov.
+Learning-curve ablation opísaná vyššie je potrebná pred formulovaním záverov
+o vplyve veľkosti tréningovej množiny.
+
+Po piate, heuristika počtu testovacích metód vyhľadáva osobitne anotáciu
+\texttt{@Test} a signatúru \texttt{void}. Jedna štandardná testovacia metóda
+tak môže vytvoriť dve zhody a získať bod za diverzitu. Táto vlastnosť musí byť
+pri interpretácii $Q_{\mathrm{test}}$ zohľadnená a v ďalšej verzii metriky
+nahradená párovaním anotácie s konkrétnou signatúrou metódy.
+
+V ďalšej práci by bolo vhodné pripraviť menší executable subset, na ktorom by bolo možné vygenerované testy reálne kompilovať, spúšťať a merať pomocou JaCoCo. Pri refactoringu by bolo vhodné vytvoriť subset s existujúcimi testami, na ktorom by sa dalo overovať zachovanie správania pred a po refaktoringu.
+
+\section{Záver}
+
+V tejto práci boli porovnané zdieľané a špecializované LoRA adaptéry pre dve úlohy
+softvérového inžinierstva: generovanie jednotkových testov a refaktoring kódu.
+Experiment ukázal, že špecializované adaptéry dosahujú najlepší výkon na svojich
+cieľových úlohách, spoločný model \modelshared{} však dosiahol konkurencieschopné
+výsledky na oboch úlohách súčasne s interferenciou pod 0.25\,\% pri generovaní
+testov a 5.23\,\% pri refactoringu.
+
+Analýza LoRA adaptérov potvrdila, že testovací a refaktoringový adaptér sa naučili
+výrazne odlišné aktualizácie váh, zatiaľ čo spoločný adaptér kombinuje vzory oboch
+domén. Tieto výsledky naznačujú, že zdieľaný fine-tuning je prakticky efektívnou
+voľbou pri pokrytí viacerých príbuzných úloh, pričom maximálny výkon na konkrétnej
+úlohe stále profituje zo špecializácie.
+
+
+\bibliographystyle{plain}
+\bibliography{references}
+
+\end{document}

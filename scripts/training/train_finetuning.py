@@ -23,6 +23,7 @@ def main() -> None:
     parser.add_argument("--max_steps", type=int, default=None, help="Override run.max_steps, e.g. 2 for a smoke run.")
     parser.add_argument("--max_train_samples", type=int, default=None, help="Override run.max_train_samples.")
     parser.add_argument("--max_val_samples", type=int, default=None, help="Override run.max_val_samples.")
+    parser.add_argument("--seed", type=int, default=None, help="Override run.seed.")
     parser.add_argument(
         "--output-root",
         default=None,
@@ -36,6 +37,7 @@ def main() -> None:
         max_steps=args.max_steps,
         max_train_samples=args.max_train_samples,
         max_val_samples=args.max_val_samples,
+        seed=args.seed,
         output_root=args.output_root,
     )
 
