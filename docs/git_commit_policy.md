@@ -1,5 +1,8 @@
 # Git Commit Policy
 
+`benchmarks/TestBench-main/` is a large local checkout under review and must not
+be committed. The root `.gitignore` excludes the entire directory.
+
 Tento dokument určuje, čo sa má commitovať a čo má zostať mimo repozitára.
 
 ## Commitovať

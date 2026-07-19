@@ -1,0 +1,72 @@
+{
+  "schema_version": "1",
+  "captured_at": "2026-07-19T20:49:24.8589279+02:00",
+  "status": "blocked_missing_runtime_components",
+  "repository": {
+    "branch": "main",
+    "base_commit": "195ee18c439a725d61c885cbe31130a050ab61fb",
+    "worktree_dirty_at_capture": true,
+    "note": "Freeze the final source commit separately after reviewing and committing these changes."
+  },
+  "python": {
+    "implementation": "CPython",
+    "version": "3.12.10",
+    "build": "tags/v3.12.10:0cc8128, Apr 8 2025, 12:21:36",
+    "compiler": "MSC v.1943 64 bit (AMD64)"
+  },
+  "platform": {
+    "system": "Windows",
+    "release": "11",
+    "build": "10.0.26200",
+    "machine": "AMD64",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel"
+  },
+  "python_packages_lock": "configs/environment/requirements-rag-windows-cpu.lock.txt",
+  "python_packages_lock_sha256": "86ada34391f2860dffd3f0632a18ff2689ba8979576abaae6bf4f18d513cb844",
+  "torch_runtime": {
+    "version": "2.13.0+cpu",
+    "cuda_available": false,
+    "cuda_version": null
+  },
+  "embedding": {
+    "model": "jinaai/jina-embeddings-v2-base-code",
+    "revision": "516f4baf13dec4ddddda8631e019b5737c8bc250",
+    "remote_code_repository": "jinaai/jina-bert-v2-qk-post-norm",
+    "remote_code_revision": "3baf9e3ac750e76e8edd3019170176884695fb94",
+    "dimension": 768,
+    "normalized": true,
+    "trust_remote_code": true,
+    "candidate_status": "primary_baseline_candidate"
+  },
+  "tokenizer": {
+    "model": "Qwen/Qwen2.5-Coder-7B-Instruct",
+    "revision": "c03e6d358207e414f1eca0bb1891e29f1db0e242",
+    "counting_method": "huggingface_tokenizer"
+  },
+  "ollama": {
+    "version": "0.32.1",
+    "base_url": "http://localhost:11434",
+    "model": "qwen2.5-coder:7b",
+    "installed": false,
+    "runtime_digest": null,
+    "blocking_reason": "ollama list is empty and ollama show reports model not found"
+  },
+  "benchmark_toolchain": {
+    "java_on_path": false,
+    "maven_on_path": false,
+    "testbench_java8_home_set": false,
+    "testbench_java17_home_set": false,
+    "blocking_scope": "Java benchmark execution only; Python RAG unit tests remain available"
+  },
+  "generation": {
+    "temperature": 0.0,
+    "top_p": 0.9,
+    "max_tokens": 2048,
+    "seed": 42
+  },
+  "context_budget": {
+    "total_context_tokens": 32768,
+    "reserved_output_tokens": 2048,
+    "safety_margin_tokens": 256
+  }
+}

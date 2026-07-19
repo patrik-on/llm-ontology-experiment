@@ -1,5 +1,9 @@
 # configs/experiments
 
+`rag_v2/` contains the six controlled `refactoring/testing x no_rag/task/mixed`
+cells. They stay disabled until approved dataset manifest IDs are supplied. The
+new runner never selects metadata RAG or MultiRAG implicitly.
+
 Experiment je kompozícia troch osí:
 
 ```text

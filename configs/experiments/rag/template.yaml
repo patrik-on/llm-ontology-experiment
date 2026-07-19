@@ -7,10 +7,14 @@ model:
   config: "configs/models/qwen25_coder_7b_hf_wsl.yaml"
 
 retrieval:
+  mode: "single_collection_rag"
   allowed_splits:
     - "train"
-  index: "unified_examples"
+  collection: "test_examples"
+  metadata_filter: {}
   top_k: 3
+  max_context_tokens: 2048
 
 notes:
-  - "Template only; indexing and retrieval execution will be implemented in the next phase."
+  - "Phase-1 indexing and retrieval are implemented; experiment-runner wiring remains disabled."
+  - "Replace deterministic_mock embeddings before reporting research results."

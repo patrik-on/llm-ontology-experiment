@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import random
 import shutil
 import zipfile
 from collections import Counter
@@ -8,6 +7,9 @@ from dataclasses import dataclass
 from pathlib import Path
 from statistics import mean
 from typing import Any
+
+from llm_ontology.data.group_split import grouped_split_by_sizes, record_group_key
+from llm_ontology.ingestion.manifest import GroupLevel
 
 from llm_ontology.data.format import write_jsonl
 
@@ -270,13 +272,12 @@ def split_records(
     required = train_size + val_size + test_size
     if len(records) < required:
         raise ValueError(f"Need {required} valid records, collected only {len(records)}.")
-    shuffled = list(records)
-    random.Random(seed).shuffle(shuffled)
-    return {
-        "train": shuffled[:train_size],
-        "val": shuffled[train_size : train_size + val_size],
-        "test": shuffled[train_size + val_size : train_size + val_size + test_size],
-    }
+    return grouped_split_by_sizes(
+        records,
+        sizes={"train": train_size, "val": val_size, "test": test_size},
+        group_key=lambda record: record_group_key(record, GroupLevel.PROJECT),
+        seed=seed,
+    )
 
 
 def prepare_ml4refactoring_dataset(

@@ -1,0 +1,25 @@
+dataset_name: REPLACE_WITH_DATASET_NAME
+dataset_version: REPLACE_WITH_IMMUTABLE_DATASET_VERSION
+source_path: REPLACE_WITH_PILOT_VALIDATION_SOURCE_PATH
+source_split: validation
+usage_role: pilot_validation
+allowed_for_indexing: false
+sample_count: null
+content_hash: REPLACE_WITH_SHA256_OF_SOURCE
+fingerprints_path: REPLACE_WITH_PILOT_VALIDATION_FINGERPRINTS_JSONL
+grouping_policy:
+  primary_group_level: project
+  group_fields:
+    - repository
+    - project
+  related_case_fields:
+    - commit_sha
+    - case_id
+  require_cross_role_disjointness: true
+  audit_report_path: artifacts/split_audits/retrieval_vs_pilot_validation.json
+metadata:
+  task: REPLACE_WITH_refactoring_OR_testing
+  context_level: REPLACE_WITH_src_fm_FOR_METHODS2TEST_OR_null
+  approval_status: approved_for_pilot_validation_only
+  tuning_allowed: true
+  notes: Pilot-validation examples must never be inserted into a retrieval index.

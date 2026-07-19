@@ -7,14 +7,15 @@ model:
   config: "configs/models/qwen25_coder_7b_hf_wsl.yaml"
 
 retrieval:
+  mode: "multi_collection_rag"
   allowed_splits:
     - "train"
   indexes:
-    - "testing_examples"
-    - "refactoring_ml4ref"
-    - "refactoring_marv"
+    - "test_examples"
+    - "refactoring_examples"
+    - "software_engineering_literature"
   fusion: "rrf"
   top_k: 3
 
 notes:
-  - "Template only; routing, fusion and retrieval execution will be implemented in the next phase."
+  - "Template only; multi-collection fusion and routing are explicitly not implemented in phase 1."

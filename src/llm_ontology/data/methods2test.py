@@ -75,6 +75,7 @@ def to_instruction_record(
     context_field: str,
     source_file: str | Path,
 ) -> dict[str, str]:
+    project_id = Path(source_file).parent.name
     return {
         "instruction": TESTING_INSTRUCTION,
         "input": input_text.strip(),
@@ -83,6 +84,8 @@ def to_instruction_record(
         "source": SOURCE,
         "context_level": context_field,
         "source_file": Path(source_file).as_posix(),
+        "project": project_id,
+        "repository": project_id,
     }
 
 
@@ -141,6 +144,7 @@ def prepare_methods2test(
         raise ValueError(f"Unsupported context field '{context_field}'. Allowed values: {allowed}")
 
     sizes = subset_sizes or SUBSET_SIZES
+    require_project_disjoint_official_splits(raw_dir)
     output_root = Path(out_dir)
     output_root.mkdir(parents=True, exist_ok=True)
 
@@ -162,3 +166,23 @@ def prepare_methods2test(
             )
         )
     return stats
+
+
+def require_project_disjoint_official_splits(raw_dir: str | Path) -> None:
+    owners: dict[str, str] = {}
+    overlaps: dict[str, set[str]] = {}
+    for split in ("train", "eval", "test"):
+        for path in corpus_files(raw_dir, split):
+            project_id = path.parent.name.strip().lower()
+            if not project_id:
+                raise ValueError(f"Cannot derive Methods2Test project identity from {path}.")
+            previous = owners.setdefault(project_id, split)
+            if previous != split:
+                overlaps.setdefault(project_id, {previous}).add(split)
+    if overlaps:
+        details = "; ".join(
+            f"{project}: {sorted(splits)}" for project, splits in sorted(overlaps.items())
+        )
+        raise ValueError(
+            "Methods2Test official splits overlap at project/repository level: " + details
+        )

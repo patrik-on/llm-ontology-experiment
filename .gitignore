@@ -28,12 +28,14 @@ C:/models/
 data/raw/**
 data/processed/**
 data/external/**
+data/chroma/**
 !data/raw/
 !data/raw/info.md
 !data/processed/
 !data/processed/**/
 !data/external/
 !data/external/info.md
+!data/chroma/.gitkeep
 !data/**/.gitkeep
 !data/processed/**/info.md
 
@@ -45,6 +47,10 @@ data/processed/refactoring_ml4ref/
 !data/processed/refactoring_ml4ref/.gitkeep
 
 # Large external datasets outside repository are referenced via configs only
+
+# Local benchmark checkout under review; keep the large tree out of Git
+/benchmarks/TestBench-main/
+/benchmarks/swe-refactor/
 
 # Large artifacts
 artifacts/**

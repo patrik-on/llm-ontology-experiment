@@ -1,0 +1,25 @@
+dataset_name: REPLACE_WITH_BENCHMARK_NAME
+dataset_version: REPLACE_WITH_IMMUTABLE_BENCHMARK_VERSION
+source_path: REPLACE_WITH_FINAL_BENCHMARK_SOURCE_PATH
+source_split: test
+usage_role: benchmark
+allowed_for_indexing: false
+sample_count: null
+content_hash: REPLACE_WITH_SHA256_OF_SOURCE
+fingerprints_path: REPLACE_WITH_FINAL_BENCHMARK_FINGERPRINTS_JSONL
+grouping_policy:
+  primary_group_level: repository
+  group_fields:
+    - repository
+    - project
+  related_case_fields:
+    - commit_sha
+    - case_id
+  require_cross_role_disjointness: true
+  audit_report_path: artifacts/split_audits/retrieval_vs_final_benchmark.json
+metadata:
+  task: REPLACE_WITH_refactoring_OR_testing
+  context_level: REPLACE_WITH_src_fm_FOR_METHODS2TEST_OR_BENCHMARK_CONTEXT
+  approval_status: approved_for_final_evaluation_only
+  tuning_allowed: false
+  notes: Final benchmark identities and code fingerprints must remain absent from retrieval and pilot tuning data.
