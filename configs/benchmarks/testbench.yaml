@@ -1,0 +1,30 @@
+benchmark:
+  name: testbench
+  root: benchmarks/TestBench-main
+  task: testing
+  expected_cases: 108
+  context_level: source
+
+generation:
+  approach: direct
+  backend: ollama
+  model: qwen2.5-coder:7b
+  base_url: http://localhost:11434
+  temperature: 0.0
+  top_p: 0.9
+  max_tokens: 2048
+  seed: 42
+  generations_per_case: 1
+
+execution:
+  evaluator: maven
+  maven_executable: mvn
+  timeout_seconds: 600
+  repair_package: true
+  default_java_home_env: TESTBENCH_JAVA8_HOME
+  project_java_home_env:
+    Java: TESTBENCH_JAVA17_HOME
+
+outputs:
+  predictions: evaluation/predictions/testbench_direct_source.jsonl
+  metrics: evaluation/metrics/testbench_direct_source.jsonl

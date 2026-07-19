@@ -1,6 +1,6 @@
 # src/llm_ontology/retrieval
 
-Budúca spoločná retrieval infraštruktúra pre RAG a multi-RAG.
+Spoločná provider-neutral retrieval infraštruktúra pre RAG a multi-RAG.
 
 Plánované zodpovednosti:
 
@@ -12,6 +12,9 @@ Plánované zodpovednosti:
 - fusion a voliteľný reranker,
 - retrieval trace a latency meranie.
 
-Aktuálne sú implementované iba approach kontrakty; indexovanie a search backend
-ešte nie sú hotové. Retrieval nesmie importovať model generation ani task
-metriky. RAG prompt composition patrí do `llm_ontology.approaches`.
+Fáza 1 implementuje ChromaDB adaptér, deterministické dokumenty, deduplikáciu,
+single-collection vector search, metadata filtre, train-only ochranu, context
+budget a retrieval trace. Multi-collection fusion, routing, ontológia a
+reranking zostávajú explicitne neimplementované. Retrieval nesmie importovať
+model generation ani task metriky. RAG prompt composition patrí do
+`llm_ontology.approaches`.

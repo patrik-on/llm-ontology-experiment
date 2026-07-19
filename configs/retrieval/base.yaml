@@ -1,0 +1,56 @@
+collections:
+  refactor: refactor
+  tests: tests
+  mixed: mixed
+  refactoring_examples: refactoring_examples
+  test_examples: test_examples
+  software_engineering_literature: software_engineering_literature
+  ontology_concepts: ontology_concepts
+  project_context: project_context
+
+embeddings:
+  # Plumbing-only fallback. Do not use this provider for reported experiments.
+  provider: deterministic_mock
+  model: deterministic-hash-embedding
+  version: "1"
+  dimension: 64
+  revision: null
+  normalized: true
+  device: cpu
+  batch_size: 16
+  max_sequence_length: 2048
+  trust_remote_code: false
+  deterministic: true
+  candidate_status: test_only
+
+llm:
+  # Offline phase-1 provider. Real backends remain under llm_ontology.inference.
+  provider: mock
+  model: mock-llm
+  version: "1"
+  mock_response: '{"analysis_summary":"mock response"}'
+
+vector_store:
+  provider: chromadb
+  persist_path: data/chroma
+  distance: cosine
+
+ingestion:
+  allowed_splits:
+    - train
+  pipeline_version: rag-v1
+  literature_max_chars: 1800
+
+retrieval:
+  mode: single_collection_rag
+  top_k: 3
+  max_context_tokens: 2048
+  allowed_splits:
+    - train
+  collections:
+    - test_examples
+  metadata_filter: {}
+
+experiment:
+  results_path: experiments/results/rag_runs.jsonl
+  random_seed: 42

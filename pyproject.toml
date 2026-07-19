@@ -7,14 +7,24 @@ name = "llm-ontology-experiment"
 version = "0.1.0"
 description = "Fine-tuning experiment pipeline for LLMs in software engineering."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 dependencies = [
+  "pydantic>=2.7,<3",
   "pyyaml>=6.0",
 ]
 
 [project.optional-dependencies]
 dev = [
   "pytest>=8.0",
+  "reportlab>=4,<5",
+]
+rag = [
+  "chromadb>=1.0,<2",
+  "pypdf>=5,<7",
+  "sentence-transformers>=5.0,<6",
+  "transformers>=4.45,<5",
+  "tree-sitter>=0.25,<0.27",
+  "tree-sitter-java==0.23.5",
 ]
 training = [
   "transformers>=4.40",

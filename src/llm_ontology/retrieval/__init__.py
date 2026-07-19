@@ -1,5 +1,29 @@
-"""Retrieval infrastructure shared by RAG generation approaches.
+"""Retrieval infrastructure shared by RAG generation approaches."""
 
-The current phase defines approach contracts. Indexing and search backends are
-implemented in the next phase and must use train-only corpora for evaluation.
-"""
+from llm_ontology.retrieval.contracts import Reranker, Retriever
+from llm_ontology.retrieval.models import (
+    DocumentChunk,
+    DocumentType,
+    RetrievalHit,
+    RetrievalMode,
+    RetrievalRequest,
+    RetrievalResult,
+    RetrievalTrace,
+    SourceDocument,
+)
+from llm_ontology.retrieval.pipeline import NoOpReranker, VectorRetriever
+
+__all__ = [
+    "DocumentChunk",
+    "DocumentType",
+    "NoOpReranker",
+    "Reranker",
+    "Retriever",
+    "RetrievalHit",
+    "RetrievalMode",
+    "RetrievalRequest",
+    "RetrievalResult",
+    "RetrievalTrace",
+    "SourceDocument",
+    "VectorRetriever",
+]

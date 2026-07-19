@@ -47,14 +47,16 @@ def test_prepare_methods2test_uses_official_splits(tmp_path: Path) -> None:
     good_input = "public int add(int a, int b) { int result = a + b; return result; }"
     good_output = "@Test public void testAdd() { assertEquals(3, add(1, 2)); }"
     bad_output = "public void helper() {}"
+    project_ids = {"train": "123", "eval": "456", "test": "789"}
     for split in ("train", "eval", "test"):
-        split_dir = corpus / split / "123"
+        project_id = project_ids[split]
+        split_dir = corpus / split / project_id
         split_dir.mkdir(parents=True)
-        (split_dir / "123_0_corpus.json").write_text(
+        (split_dir / f"{project_id}_0_corpus.json").write_text(
             f'{{"src_fm": "{good_input}", "target": "{good_output}"}}',
             encoding="utf-8",
         )
-        (split_dir / "123_1_corpus.json").write_text(
+        (split_dir / f"{project_id}_1_corpus.json").write_text(
             f'{{"src_fm": "{good_input}", "target": "{bad_output}"}}',
             encoding="utf-8",
         )
@@ -68,7 +70,9 @@ def test_prepare_methods2test_uses_official_splits(tmp_path: Path) -> None:
     record = load_jsonl(tmp_path / "processed" / "val.jsonl")[0]
     assert record["source"] == "methods2test"
     assert record["context_level"] == "src_fm"
-    assert record["source_file"].endswith("corpus/json/eval/123/123_0_corpus.json")
+    assert record["source_file"].endswith("corpus/json/eval/456/456_0_corpus.json")
+    assert record["project"] == "456"
+    assert record["repository"] == "456"
 
 
 def test_marv_instruction_records_and_stratified_split() -> None:
@@ -82,11 +86,22 @@ def test_marv_instruction_records_and_stratified_split() -> None:
         "code_after": "public void newName() { System.out.println(\"hello\"); }",
         "evaluations": [{"vote": 1}, {"vote": -1}],
     }
+    def cases(prefix: str):
+        return [
+            dict(
+                base,
+                refactoring_id=f"{prefix}{index}",
+                commit_sha=f"{prefix}-commit-{index}",
+                commit_link=f"https://example.test/repo/commit/{prefix}-commit-{index}",
+            )
+            for index in range(10)
+        ]
+
     data = {
-        "Extract Method": [dict(base, refactoring_id=f"e{index}") for index in range(10)],
-        "Rename Method": [dict(base, refactoring_id=f"m{index}") for index in range(10)],
-        "Rename Variable": [dict(base, refactoring_id=f"v{index}") for index in range(10)],
-        "Remove Parameter": [dict(base, refactoring_id=f"p{index}") for index in range(10)],
+        "Extract Method": cases("e"),
+        "Rename Method": cases("m"),
+        "Rename Variable": cases("v"),
+        "Remove Parameter": cases("p"),
     }
 
     loaded, skipped, records = build_instruction_records(data)
@@ -97,5 +112,10 @@ def test_marv_instruction_records_and_stratified_split() -> None:
     assert records[0]["domain"] == "refactoring"
     assert records[0]["source"] == "marv"
     assert records[0]["evaluation_votes"] == [1, -1]
-    for split_records in splits.values():
-        assert {record["refactoring_type"] for record in split_records} == set(data)
+    assert set().union(
+        *({record["refactoring_type"] for record in split_records} for split_records in splits.values())
+    ) == set(data)
+    commit_owners = {}
+    for split, split_records in splits.items():
+        for record in split_records:
+            assert commit_owners.setdefault(record["commit_sha"], split) == split

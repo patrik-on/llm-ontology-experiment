@@ -1,0 +1,24 @@
+dataset_name: REPLACE_WITH_DATASET_NAME
+dataset_version: REPLACE_WITH_IMMUTABLE_DATASET_VERSION
+source_path: REPLACE_WITH_APPROVED_TRAIN_SOURCE_PATH
+source_split: train
+usage_role: retrieval
+allowed_for_indexing: true
+sample_count: null
+content_hash: REPLACE_WITH_SHA256_OF_SOURCE
+fingerprints_path: REPLACE_WITH_RETRIEVAL_FINGERPRINTS_JSONL
+grouping_policy:
+  primary_group_level: project
+  group_fields:
+    - repository
+    - project
+  related_case_fields:
+    - commit_sha
+    - case_id
+  require_cross_role_disjointness: true
+  audit_report_path: artifacts/split_audits/retrieval_vs_evaluation.json
+metadata:
+  task: REPLACE_WITH_refactoring_OR_testing_OR_literature
+  context_level: REPLACE_WITH_src_fm_FOR_METHODS2TEST_OR_null
+  approval_status: approved_for_retrieval
+  notes: Retrieval data may be indexed only after the cross-role group audit passes.

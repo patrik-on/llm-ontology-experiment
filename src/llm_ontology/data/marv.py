@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 import json
-import random
-from collections import Counter, defaultdict
+from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path
 from statistics import mean
 from typing import Any
 
 from llm_ontology.data.format import write_jsonl
+from llm_ontology.data.group_split import grouped_split_by_ratios, record_group_key
+from llm_ontology.ingestion.manifest import GroupLevel
 
 
 REFACTORING_TYPES = ("Extract Method", "Rename Method", "Rename Variable", "Remove Parameter")
@@ -68,6 +69,7 @@ def is_valid_record(record: dict[str, Any], max_input_chars: int, max_output_cha
 
 
 def to_instruction_record(record: dict[str, Any], refactoring_type: str) -> dict[str, Any]:
+    commit_link = str(record.get("commit_link", ""))
     return {
         "instruction": (
             "Vygeneruj refaktorovanú verziu nasledujúceho Java kódu podľa typu refaktoringu: "
@@ -80,7 +82,8 @@ def to_instruction_record(record: dict[str, Any], refactoring_type: str) -> dict
         "refactoring_type": refactoring_type,
         "refactoring_id": str(record.get("refactoring_id", "")),
         "commit_sha": str(record.get("commit_sha", "")),
-        "commit_link": str(record.get("commit_link", "")),
+        "commit_link": commit_link,
+        "repository": commit_link.partition("/commit/")[0],
         "file_path": str(record.get("file_path", "")),
         "description": str(record.get("description", "")),
         "evaluation_votes": extract_evaluation_votes(record.get("evaluations")),
@@ -117,35 +120,12 @@ def stratified_split(
     if round(train_ratio + val_ratio + test_ratio, 8) != 1.0:
         raise ValueError("train_ratio + val_ratio + test_ratio must equal 1.0")
 
-    by_type: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    for record in records:
-        by_type[record["refactoring_type"]].append(record)
-
-    rng = random.Random(seed)
-    splits = {"train": [], "val": [], "test": []}
-    for group in by_type.values():
-        shuffled = list(group)
-        rng.shuffle(shuffled)
-        total = len(shuffled)
-        train_count = int(total * train_ratio)
-        val_count = int(total * val_ratio)
-        if total >= 3:
-            train_count = max(1, train_count)
-            val_count = max(1, val_count)
-        test_count = total - train_count - val_count
-        if total >= 3 and test_count == 0:
-            test_count = 1
-            if train_count >= val_count and train_count > 1:
-                train_count -= 1
-            elif val_count > 1:
-                val_count -= 1
-        splits["train"].extend(shuffled[:train_count])
-        splits["val"].extend(shuffled[train_count : train_count + val_count])
-        splits["test"].extend(shuffled[train_count + val_count : train_count + val_count + test_count])
-
-    for split_records in splits.values():
-        rng.shuffle(split_records)
-    return splits
+    return grouped_split_by_ratios(
+        records,
+        ratios={"train": train_ratio, "val": val_ratio, "test": test_ratio},
+        group_key=lambda record: record_group_key(record, GroupLevel.COMMIT),
+        seed=seed,
+    )
 
 
 def count_by_type(records: list[dict[str, Any]]) -> dict[str, int]:

@@ -1,37 +1,24 @@
 # scripts
 
-CLI vstupy projektu. Skripty majú byť tenké: nastavia import path, spracujú
-argumenty a zavolajú implementáciu zo `src/llm_ontology/`.
+Tenké CLI vstupy projektu. Nastavia import path, spracujú argumenty a zavolajú
+implementáciu zo `src/llm_ontology/`.
 
 | Priečinok | Účel |
 |---|---|
 | `data/` | inspect a prepare dataset pipeline |
 | `training/` | WSL/CUDA kontroly a QLoRA tréning |
-| `inference/` | Ollama baseline, model setup a legacy navigácia |
+| `inference/` | Ollama baseline a model setup |
+| `benchmarks/` | inventár a direct benchmark runner |
 | `evaluation/` | HF inference, metriky, reporty a analýzy |
-| `experiments/` | budúci model × approach × task runner |
+| `experiments/` | budúce model × approach × task experimenty |
 
-Root wrappery ako `scripts/train_finetuning.py` a
-`scripts/run_full_evaluation.py` ostávajú pre pohodlné a spätne kompatibilné
-príkazy.
-
-## Bežný tok
+Benchmark smoke run:
 
 ```bash
-python scripts/data/prepare_methods2test.py
-python scripts/data/prepare_ml4refactoring.py
-python scripts/data/prepare_marv.py
-python scripts/data/prepare_final_datasets.py
-
-python scripts/training/check_transformers_compat.py
-python scripts/training/debug_prompt_masking.py
-
-python scripts/run_full_evaluation.py \
-  --models-config configs/evaluation/eval_models_v2_only.yaml \
-  --limit 50 \
-  --output-root evaluation_v2_only \
-  --overwrite
+python scripts/benchmarks/inspect_benchmarks.py
+python scripts/benchmarks/run_benchmark.py \
+  --benchmark testbench --limit 5 --backend prompt-only \
+  --output evaluation/predictions/testbench_direct.jsonl
 ```
 
-Retrieval indexing a porovnávací runner sa pridajú do samostatných CLI vrstiev;
-nebudú kopírovať existujúcu inference alebo evaluation logiku.
+Retrieval indexing a porovnávací RAG runner sa pridajú v samostatnej fáze.

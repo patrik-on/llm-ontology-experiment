@@ -1,0 +1,9 @@
+benchmark:
+  name: swe_refactor
+  root: benchmarks/swe-refactor/SWE-Refactor
+  task: refactoring
+  expected_cases: 1099
+
+execution:
+  approach: direct
+  backend: prompt-only

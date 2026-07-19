@@ -6,6 +6,7 @@ Knižničný Python kód projektu je v `src/llm_ontology/`.
 |---|---|
 | `core/` | konfigurácie, cesty a logging |
 | `data/` | dataset loading, čistenie, splitovanie a export |
+| `benchmarks/` | read-only adaptéry TestBench a SWE-Refactor |
 | `models/` | model, tokenizer, kvantizácia a LoRA loading |
 | `training/` | QLoRA training engine a readiness kontroly |
 | `inference/` | prompting, approach runner a Ollama utility |
@@ -14,5 +15,5 @@ Knižničný Python kód projektu je v `src/llm_ontology/`.
 | `evaluation/` | inference, task metriky, agregácie a reporty |
 | `finetuning/` | kompatibilné pôvodné importy a dataset loader |
 
-Implementačná logika patrí sem; `scripts/` majú zostať tenké CLI wrappery.
-Architektonické hranice sú popísané v `docs/architecture.md`.
+Implementačná logika patrí sem; `scripts/` zostávajú tenké CLI wrappery.
+Architektonické hranice sú v `docs/architecture.md`.

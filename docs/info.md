@@ -4,6 +4,7 @@ Metodická, architektonická a prevádzková dokumentácia projektu.
 
 - `architecture.md`: model × approach × task architektúra,
 - `experiment_design.md`: kontrolovaný experimentálny dizajn,
+- `testbench_runbook.md`: direct-LLM generation, readiness a Maven evaluation,
 - `finetuning_design.md`: fine-tuning a evaluation flow,
 - `wsl_finetuning_setup.md`: WSL/CUDA prostredie,
 - `v2_finetuning_runbook.md`: manuálny v2 tréning,

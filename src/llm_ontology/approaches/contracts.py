@@ -35,3 +35,16 @@ class GenerationApproach(Protocol):
 
     def prepare_prompt(self, request: PromptRequest) -> PreparedPrompt:
         """Render an inference prompt from a request and optional contexts."""
+
+
+class PromptBuilder(Protocol):
+    def build(
+        self,
+        *,
+        task: str,
+        instruction: str,
+        input_text: str,
+        contexts: tuple[RetrievedContext, ...] = (),
+        approach: str = "direct",
+    ) -> PreparedPrompt:
+        """Build a prompt independently from retrieval and LLM providers."""
