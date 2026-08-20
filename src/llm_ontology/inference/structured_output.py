@@ -35,6 +35,7 @@ class StructuredGenerationAttempt(BaseModel):
     attempt: int
     raw_response: str
     validation_errors: list[str] = Field(default_factory=list)
+    generation_metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class StructuredGenerationResult(BaseModel):
@@ -59,12 +60,14 @@ class StructuredOutputGenerator:
         prompt: str,
         task: CanonicalTask,
     ) -> StructuredGenerationResult:
-        model: type[RefactoringAnswer] | type[TestingAnswer]
+        model: type[RefactoringAnswer | TestingAnswer]
         model = RefactoringAnswer if task == CanonicalTask.REFACTORING else TestingAnswer
         attempts: list[StructuredGenerationAttempt] = []
         current_prompt = prompt
         for attempt_number in range(1, self.max_retries + 2):
-            raw = self._generate_with_schema(current_prompt, model.model_json_schema())
+            raw, generation_metadata = self._generate_with_schema(
+                current_prompt, model.model_json_schema()
+            )
             try:
                 answer = model.model_validate(_parse_json_object(raw))
             except (ValidationError, ValueError, json.JSONDecodeError) as exc:
@@ -74,6 +77,7 @@ class StructuredOutputGenerator:
                         attempt=attempt_number,
                         raw_response=raw,
                         validation_errors=errors,
+                        generation_metadata=generation_metadata,
                     )
                 )
                 if attempt_number > self.max_retries:
@@ -84,16 +88,28 @@ class StructuredOutputGenerator:
                 current_prompt = _repair_prompt(raw, errors, model.model_json_schema())
                 continue
             attempts.append(
-                StructuredGenerationAttempt(attempt=attempt_number, raw_response=raw)
+                StructuredGenerationAttempt(
+                    attempt=attempt_number,
+                    raw_response=raw,
+                    generation_metadata=generation_metadata,
+                )
             )
             return StructuredGenerationResult(answer=answer, attempts=attempts)
         raise AssertionError("unreachable")
 
-    def _generate_with_schema(self, prompt: str, schema: dict[str, Any]) -> str:
+    def _generate_with_schema(
+        self, prompt: str, schema: dict[str, Any]
+    ) -> tuple[str, dict[str, Any]]:
         generate_result = getattr(self.provider, "generate_result", None)
         if callable(generate_result):
-            return str(generate_result(prompt, json_schema=schema).response)
-        return self.provider.generate(prompt)
+            result = generate_result(prompt, json_schema=schema)
+            metadata = (
+                result.model_dump(exclude={"response", "raw"}, mode="json")
+                if isinstance(result, BaseModel)
+                else {}
+            )
+            return str(result.response), metadata
+        return self.provider.generate(prompt), {}
 
 
 def _parse_json_object(raw: str) -> dict[str, Any]:
@@ -103,7 +119,9 @@ def _parse_json_object(raw: str) -> dict[str, Any]:
         value = fence.group(1)
     parsed = json.loads(value)
     if not isinstance(parsed, dict):
-        raise ValueError("Structured response must be a JSON object.")
+        raise ValueError(  # noqa: TRY004 - this is a schema validation failure.
+            "Structured response must be a JSON object."
+        )
     return parsed
 
 

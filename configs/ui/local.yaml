@@ -1,0 +1,26 @@
+ui:
+  host: 127.0.0.1
+  port: 7860
+  default_task: testing
+  default_mode: no_rag
+  log_level: INFO
+  retrieval_config: configs/retrieval/jina_qwen_baseline.yaml
+  history_path: experiments/results/ui/interactive_runs.jsonl
+  prompt_artifacts_dir: artifacts/prompts/ui
+  max_input_chars: 100000
+  structured_retries: 2
+  environment_timeout_seconds: 3.0
+  experiment_configs:
+    testing:
+      no_rag: configs/experiments/rag_v2/testing_no_rag.yaml
+      single_collection_rag: configs/experiments/rag_v2/testing_mixed.yaml
+    refactoring:
+      no_rag: configs/experiments/rag_v2/refactoring_no_rag.yaml
+      single_collection_rag: configs/experiments/rag_v2/refactoring_mixed.yaml
+  default_instructions:
+    testing: >-
+      Generate meaningful JUnit 5 tests for the supplied Java code, including edge
+      cases. Return complete compilable test code in the structured response.
+    refactoring: >-
+      Refactor the supplied Java code while preserving its behavior. Return the
+      complete refactored code in the structured response.

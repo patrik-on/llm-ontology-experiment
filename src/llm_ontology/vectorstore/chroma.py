@@ -8,7 +8,6 @@ from llm_ontology.providers.contracts import EmbeddingProvider
 from llm_ontology.retrieval.models import DocumentChunk, RetrievalHit
 from llm_ontology.vectorstore.contracts import IndexWriteResult
 
-
 LOGGER = logging.getLogger(__name__)
 
 
@@ -40,6 +39,11 @@ class ChromaVectorStore:
             metadata={"hnsw:space": "cosine"},
             embedding_function=None,
         )
+
+    def _existing_collection(self, name: str) -> Any:
+        """Return an existing collection without mutating storage on a read path."""
+
+        return self.client.get_collection(name=name, embedding_function=None)
 
     def add(self, collection_name: str, documents: list[DocumentChunk]) -> IndexWriteResult:
         collection = self._collection(collection_name)
@@ -91,7 +95,7 @@ class ChromaVectorStore:
         top_k: int,
         where: dict[str, Any] | None = None,
     ) -> list[RetrievalHit]:
-        collection = self._collection(collection_name)
+        collection = self._existing_collection(collection_name)
         kwargs: dict[str, Any] = {
             "query_embeddings": [self.embedding_provider.embed_query(query)],
             "n_results": top_k,
