@@ -161,11 +161,13 @@ are under `configs/experiments/`. Benchmark and smoke commands are grouped under
 `scripts/experiments/benchmarks/`; corresponding tests are under
 `tests/experiments/`; design and runbooks are under `docs/experiments/`.
 
-The current commit has no `src/llm_ontology/experiments/` package or
-`SmokeExperimentRunner` class. The handcrafted smoke dataset and validation
-infrastructure are present, while benchmark orchestration currently uses
-`llm_ontology.benchmarks.runner`. A future experiment package should orchestrate
-existing inference/evaluation components rather than duplicate them.
+`src/llm_ontology/experiments/` contains the resumable `SmokeExperimentRunner`,
+canonical prompt fairness audit, report aggregation, and the
+`python -m llm_ontology.experiments.smoke` CLI. Its default configuration is
+`configs/experiments/baseline_v1.yaml`: 24 handcrafted cases across Direct,
+Single RAG, and MultiRAG (72 planned cells). The runner delegates retrieval,
+structured generation, prompt artifacts, and metrics to the existing shared
+inference/retrieval/evaluation components.
 
 ## UI
 
@@ -186,6 +188,7 @@ src/llm_ontology/finetuning/ active LoRA/QLoRA research line
 src/llm_ontology/retrieval/  search, fusion, budgeting, and trace
 src/llm_ontology/inference/  prompt/model execution and structured output
 src/llm_ontology/evaluation/ metrics, executable checks, prediction IO, reports
+src/llm_ontology/experiments/ resumable smoke orchestration and fairness audit
 scripts/experiments/         benchmark/experiment orchestration commands
 src/llm_ontology/ui/         interactive presentation and diagnostics
 ```

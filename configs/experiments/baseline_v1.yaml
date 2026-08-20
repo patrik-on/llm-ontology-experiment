@@ -1,0 +1,30 @@
+experiment_name: baseline_v1
+dataset_root: data/smoke
+retrieval_config: configs/retrieval/ollama_bge_m3.yaml
+output_dir: artifacts/experiments/smoke/baseline_v1
+
+modes:
+  - no_rag
+  - single_collection_rag
+  - multi_collection_rag
+single_collection: mixed
+multi_collections:
+  - testing_db
+  - refactoring_db
+allowed_splits: [train]
+
+top_k: 5
+rrf_k: 60
+per_collection_top_k: 5
+tokenizer_model: Qwen/Qwen2.5-Coder-7B-Instruct
+tokenizer_revision: c03e6d358207e414f1eca0bb1891e29f1db0e242
+total_context_tokens: 32768
+reserved_output_tokens: 2048
+safety_margin_tokens: 256
+structured_retries: 2
+generation_max_tokens: 4096
+random_seed: 42
+retrieval_dataset_manifest_ids:
+  - 86640657b063d30c3274ed644a893c578a80acea6f47a6f04d34b24890cb6d85
+  - 6dcbeeff649b53529d735402b4e543a6abed8477831a78c50e90bb3ce01d3a1c
+require_runtime_assets: true

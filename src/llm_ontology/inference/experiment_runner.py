@@ -8,7 +8,6 @@ from typing import Any
 from pydantic import BaseModel, Field, model_validator
 
 from llm_ontology.approaches import ApproachPromptBuilder, RetrievedContext
-from llm_ontology.approaches.context_prompt import contextual_prompt
 from llm_ontology.core.config import read_yaml
 from llm_ontology.core.task_mode import CanonicalTask, resolve_task
 from llm_ontology.evaluation.experiment_log import ExperimentRecord, JsonlExperimentWriter
@@ -41,6 +40,7 @@ class RagExperimentConfig(BaseModel):
     llm_model: str
     llm_version: str = "runtime_digest"
     generation_provider: str = "ollama"
+    generation_max_tokens: int = Field(default=2048, ge=1)
     top_k: int = Field(default=5, ge=1)
     rrf_k: int = Field(default=60, ge=1)
     per_collection_top_k: int = Field(default=5, ge=1, le=100)
@@ -102,6 +102,8 @@ class ExperimentCase(BaseModel):
     case_id: str
     instruction: str
     input_text: str
+    requirements: str = ""
+    project_context: str = ""
     structured_identity: dict[str, str] = Field(default_factory=dict)
     metadata: dict[str, Any] = Field(default_factory=dict)
 
@@ -139,6 +141,8 @@ class RagExperimentRunner:
         self,
         config: RagExperimentConfig,
         case: ExperimentCase,
+        *,
+        write_record: bool = True,
     ) -> ExperimentRecord:
         started = perf_counter()
         assert config.canonical_task is not None
@@ -163,16 +167,14 @@ class RagExperimentRunner:
                 per_collection_top_k=config.per_collection_top_k,
             )
         )
-        fixed_prompt = (
-            self.prompt_builder.build(
-                task=config.canonical_task.value,
-                instruction=case.instruction,
-                input_text=case.input_text,
-                approach="direct",
-            ).text
-            if config.retrieval_mode == RetrievalMode.NO_RAG
-            else contextual_prompt(case.instruction, case.input_text, "")
-        )
+        fixed_prompt = self.prompt_builder.build(
+            task=config.canonical_task.value,
+            instruction=case.instruction,
+            input_text=case.input_text,
+            requirements=case.requirements,
+            project_context=case.project_context,
+            approach="direct",
+        ).text
         selection = self.budgeter.select(fixed_prompt, retrieval.documents)
         contexts = tuple(
             RetrievedContext(
@@ -184,8 +186,12 @@ class RagExperimentRunner:
             )
             for document in selection.documents
         )
-        approach = "direct" if config.retrieval_mode == RetrievalMode.NO_RAG else "rag"
-        if approach == "rag" and not contexts:
+        approach = {
+            RetrievalMode.NO_RAG: "direct",
+            RetrievalMode.SINGLE_COLLECTION_RAG: "rag",
+            RetrievalMode.MULTI_COLLECTION_RAG: "multi_rag",
+        }[config.retrieval_mode]
+        if approach != "direct" and not contexts:
             raise RuntimeError("Token budget removed every retrieved document from a RAG prompt.")
         prepared = self.prompt_builder.build(
             task=config.canonical_task.value,
@@ -193,6 +199,8 @@ class RagExperimentRunner:
             input_text=case.input_text,
             contexts=contexts,
             approach=approach,
+            requirements=case.requirements,
+            project_context=case.project_context,
         )
         prompt_path, prompt_hash = _write_prompt_artifact(
             config.prompt_artifacts_dir, case.case_id, prepared.text
@@ -246,12 +254,17 @@ class RagExperimentRunner:
             generation_model_digest=digest,
             prompt_artifact_path=str(prompt_path),
             prompt_hash=prompt_hash,
+            prompt_template_version=prepared.prompt_template_version,
+            prompt_template_sha256=prepared.prompt_template_sha256,
+            normalized_prompt_sha256=prepared.normalized_prompt_sha256,
+            full_prompt_sha256=prepared.full_prompt_sha256,
             token_budget=selection.model_dump(mode="json", exclude={"documents"}),
             structured_output_attempts=[
                 attempt.model_dump(mode="json") for attempt in structured.attempts
             ],
         )
-        JsonlExperimentWriter(config.results_path).append(record)
+        if write_record:
+            JsonlExperimentWriter(config.results_path).append(record)
         return record
 
     def _validate_runtime(self, config: RagExperimentConfig) -> None:
