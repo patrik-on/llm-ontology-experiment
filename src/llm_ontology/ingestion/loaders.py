@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 from typing import Any, Iterable
 
-from llm_ontology.data.format import read_records
+from llm_ontology.datasets.format import read_records
 from llm_ontology.ingestion.documents import (
     DocumentRelationship,
     KnowledgeDocument,

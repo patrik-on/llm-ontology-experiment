@@ -8,8 +8,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
-from llm_ontology.data.format import read_records, write_jsonl
-from llm_ontology.data.group_split import (
+from llm_ontology.datasets.format import read_records, write_jsonl
+from llm_ontology.datasets.group_split import (
     PartitionRecords,
     audit_group_disjointness,
     record_group_key,

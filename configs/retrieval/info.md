@@ -9,7 +9,7 @@ vhodný pre reportované experimenty.
 `http://localhost:11434`, `bge-m3` (1024 rozmerov) a
 `qwen2.5-coder:7b`.
 Príprava modelu, produkčný leakage-safe builder a smoke validácia sú popísané v
-`docs/ollama_embeddings.md`. Pôvodná Jina konfigurácia zostáva zachovaná ako
+`docs/retrieval/ollama_embeddings.md`. Pôvodná Jina konfigurácia zostáva zachovaná ako
 `legacy_not_final` a nie je predvoleným finálnym baseline.
 
 Spoločné retrieval nastavenia:

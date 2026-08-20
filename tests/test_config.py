@@ -28,8 +28,8 @@ data:
   test_file: data/processed/combined/test.jsonl
 
 output:
-  adapter_dir: artifacts/adapters/sample_ft
-  checkpoint_dir: artifacts/checkpoints/sample_ft
+  adapter_dir: artifacts/finetuning/adapters/sample_ft
+  checkpoint_dir: artifacts/finetuning/checkpoints/sample_ft
   result_dir: results/sample_ft
 """.strip(),
         encoding="utf-8",

@@ -5,4 +5,4 @@ Tieto súbory evidujú root, očakávaný počet prípadov, task a execution pro
 package repair policy a názvy environment premenných pre JDK 8/17.
 
 Konfigurácia je experimentálny manifest; spustiteľné príkazy a canary postup sú
-v `docs/testbench_runbook.md`.
+v `docs/experiments/testbench_runbook.md`.

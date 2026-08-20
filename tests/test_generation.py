@@ -1,6 +1,6 @@
 from llm_ontology.inference.prompts import build_prompt, build_training_text
 from llm_ontology.finetuning.prompt_formatter import format_inference_prompt, format_training_prompt
-from llm_ontology.training.finetuning import apply_training_overrides, build_tokenized_training_example, dataset_sample_limits
+from llm_ontology.finetuning.training.finetuning import apply_training_overrides, build_tokenized_training_example, dataset_sample_limits
 from llm_ontology.evaluation.inference_eval import is_lora_model
 
 

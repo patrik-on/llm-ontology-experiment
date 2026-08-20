@@ -1,5 +1,10 @@
 # tests
 
+Testy sú podľa vlastníctva v `datasets/`, `finetuning/`, `retrieval/`,
+`inference/`, `evaluation/`, `experiments/` a `ui/`. Cross-area architektonické,
+config, import a compatibility kontrakty zostávajú v root `tests/`, aby sa im
+nepriradilo zavádzajúce jediné vlastníctvo.
+
 Automatizované testy pokrývajú:
 
 - YAML config merging a modelové odkazy,

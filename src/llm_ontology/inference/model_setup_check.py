@@ -9,8 +9,8 @@ from urllib.request import urlopen
 from llm_ontology.core.config import read_yaml
 
 
-HF_CONFIG = Path("configs/models/qwen25_coder_7b_hf.yaml")
-OLLAMA_CONFIG = Path("configs/models/qwen25_coder_7b_ollama.yaml")
+HF_CONFIG = Path("configs/shared/models/qwen25_coder_7b_hf.yaml")
+OLLAMA_CONFIG = Path("configs/shared/models/qwen25_coder_7b_ollama.yaml")
 
 
 def ok(message: str) -> None:

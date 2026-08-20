@@ -7,6 +7,31 @@
 
 This is internal technical context, not a replacement for `README.md`.
 
+## PROJECT AREA OWNERSHIP
+
+- Fine-tuning: **ACTIVE**
+- Retrieval/RAG/MultiRAG: **ACTIVE**
+- Inference: **ACTIVE**
+- Evaluation: **ACTIVE**
+- Experiments: **ACTIVE**
+- UI: **ACTIVE**
+
+Do not treat a module as legacy only because it is not used by the current
+smoke experiment. Fine-tuning, retrieval, inference, evaluation, and experiment
+execution are separate active research areas.
+
+Do not delete project-area functionality during organizational refactors.
+Before deleting any module in a dedicated cleanup task:
+
+1. Identify its owning project area.
+2. Search all code, config, script, test, documentation, and external CLI references.
+3. Verify replacement functionality and result equivalence.
+4. Document the deletion reason and migration impact.
+
+The repository ownership map is `docs/architecture/project_map.md`; the
+pre-reorganization inventory is
+`docs/architecture/repository_map_before.md`.
+
 ## Project Goal
 
 The project compares Direct LLM, RAG, MultiRAG, and later ontology/GraphRAG
@@ -122,7 +147,8 @@ explicitly forbidden, and it must never be reused for retrieval or training.
 It is intended only for regression/debug checks, evaluator and prompt
 validation, manual pipeline checks, and small pilot experiments. Evaluator-only
 fields (`expected_process`, expected outputs, validation rules, and behavior
-tests) must not be exposed to the model prompt. See `docs/smoke_dataset.md`.
+tests) must not be exposed to the model prompt. See
+`docs/datasets/handcrafted_smoke.md`.
 
 ## Prompt Policy
 
