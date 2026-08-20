@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 
 from llm_ontology.benchmarks.contracts import BenchmarkCase
+from llm_ontology.benchmarks.smoke import DEFAULT_ROOT as SMOKE_ROOT
+from llm_ontology.benchmarks.smoke import load_smoke_benchmark
 from llm_ontology.benchmarks.swe_refactor import DEFAULT_ROOT as SWE_REFACTOR_ROOT
 from llm_ontology.benchmarks.swe_refactor import load_swe_refactor
 from llm_ontology.benchmarks.testbench import DEFAULT_ROOT as TESTBENCH_ROOT
@@ -10,7 +12,7 @@ from llm_ontology.benchmarks.testbench import load_testbench
 
 
 def available_benchmarks() -> tuple[str, ...]:
-    return ("testbench", "swe_refactor")
+    return ("testbench", "swe_refactor", "handcrafted_smoke_v1")
 
 
 def load_benchmark(
@@ -24,4 +26,6 @@ def load_benchmark(
         return load_testbench(root or TESTBENCH_ROOT, context_level=context_level)
     if normalized == "swe_refactor":
         return load_swe_refactor(root or SWE_REFACTOR_ROOT)
+    if normalized in {"handcrafted_smoke_v1", "smoke"}:
+        return load_smoke_benchmark(root or SMOKE_ROOT)
     raise ValueError(f"Unknown benchmark {name!r}; available: {', '.join(available_benchmarks())}")

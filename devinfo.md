@@ -116,6 +116,14 @@ is not automatically the same as an experiment usage role. Preserve provenance,
 group-safe splits, and leakage audits; do not bypass manifest or allowed-split
 checks.
 
+The versioned `handcrafted_smoke_v1` dataset lives in `data/smoke/` with 12
+testing and 12 refactoring cases. Its role is `smoke_evaluation`, indexing is
+explicitly forbidden, and it must never be reused for retrieval or training.
+It is intended only for regression/debug checks, evaluator and prompt
+validation, manual pipeline checks, and small pilot experiments. Evaluator-only
+fields (`expected_process`, expected outputs, validation rules, and behavior
+tests) must not be exposed to the model prompt. See `docs/smoke_dataset.md`.
+
 ## Prompt Policy
 
 Direct, RAG, and MultiRAG use the same task-specific prompt contract from
@@ -155,6 +163,10 @@ and random seed are part of the config and must also be preserved.
   `refactoring_db=1761`; collection manifests pin the bge-m3 digest.
 - Post-filter project/method and code-fingerprint audits are clean. The derived
   manifests record every excluded identity/fingerprint overlap.
+- `handcrafted_smoke_v1` has 24 balanced reference cases; all inputs and
+  reference refactorings compile, all behavior fixtures pass before/after, and
+  its stored audit has zero overlap with `mixed`, `testing_db`, and
+  `refactoring_db`.
 - MultiRAG RRF/fusion trace is exposed by the shared runner and UI.
 - The literature corpus is not finalized.
 - Jina and legacy Windows/Hugging Face configurations remain available but are
