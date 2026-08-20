@@ -28,8 +28,11 @@ def test_build_prompt_and_training_text() -> None:
     prompt = build_prompt(record)
     training_text = build_training_text(record)
 
-    assert "### Instruction:" in prompt
-    assert "### Response:" in prompt
+    assert "SYSTEM\n" in prompt
+    assert "TASK\n" in prompt
+    assert "INPUT\ncode" in prompt
+    assert "RETRIEVED EVIDENCE\nNone." in prompt
+    assert "OUTPUT REQUIREMENTS\n" in prompt
     assert training_text.endswith("answer")
 
 

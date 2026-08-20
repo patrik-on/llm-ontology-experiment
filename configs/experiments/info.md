@@ -6,6 +6,8 @@ task. Configs remain disabled until a batch run is intentionally approved. The
 runner never selects metadata RAG or task routing implicitly.
 Their current metadata baseline is WSL Ollama `bge-m3` plus
 `qwen2.5-coder:7b`; provider/model digests are resolved and stored at runtime.
+`baseline_v1.yaml` je canonical 24-case × 3-mode smoke matrix s explicitným
+prompt fairness preflightom, resume a report outputs.
 
 Experiment je kompozícia troch osí:
 

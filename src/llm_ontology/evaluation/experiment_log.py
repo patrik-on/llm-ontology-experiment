@@ -36,6 +36,10 @@ class ExperimentRecord(BaseModel):
     llm_digest: str | None = None
     prompt_artifact_path: str | None = None
     prompt_hash: str | None = None
+    prompt_template_version: str | None = None
+    prompt_template_sha256: str | None = None
+    normalized_prompt_sha256: str | None = None
+    full_prompt_sha256: str | None = None
     token_budget: dict[str, Any] = Field(default_factory=dict)
     structured_output_attempts: list[dict[str, Any]] = Field(default_factory=list)
     generation_provider: str = "unknown"

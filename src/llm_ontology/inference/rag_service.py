@@ -48,7 +48,10 @@ class RagGenerationService:
             )
             for document in retrieval.documents
         )
-        approach = "direct" if retrieval_request.mode == RetrievalMode.NO_RAG else "rag"
+        approach = {
+            RetrievalMode.NO_RAG: "direct",
+            RetrievalMode.MULTI_COLLECTION_RAG: "multi_rag",
+        }.get(retrieval_request.mode, "rag")
         prepared = self.prompt_builder.build(
             task=task,
             instruction=instruction,

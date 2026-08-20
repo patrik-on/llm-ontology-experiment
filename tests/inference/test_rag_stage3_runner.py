@@ -167,7 +167,7 @@ def test_runner_records_alias_canonical_task_prompt_and_budget(tmp_path: Path) -
         retriever=NoRagRetriever(),
         llm_provider=MockLLMProvider(response),
         token_counter=CharacterTokenCounter(),
-        total_context_tokens=512,
+        total_context_tokens=2048,
         reserved_output_tokens=64,
     )
     record = runner.run_case(
@@ -184,6 +184,10 @@ def test_runner_records_alias_canonical_task_prompt_and_budget(tmp_path: Path) -
     assert record.canonical_task == "refactoring"
     assert record.collection is None
     assert record.prompt_hash
+    assert record.prompt_template_version == "canonical-se-prompt-v2"
+    assert record.prompt_template_sha256
+    assert record.normalized_prompt_sha256
+    assert record.full_prompt_sha256 == record.prompt_hash
     assert Path(record.prompt_artifact_path or "").exists()
     assert record.token_budget["counting_method"] == "character_estimate_4_to_1"
     assert record.generation_provider == "mock"
@@ -237,7 +241,7 @@ def _config(
         tokenizer_model="character-estimate",
         tokenizer_revision="1",
         token_counting_method="character_estimate_4_to_1",
-        total_context_tokens=512,
+        total_context_tokens=2048,
         reserved_output_tokens=64,
         safety_margin_tokens=256,
         results_path=root / "records.jsonl",

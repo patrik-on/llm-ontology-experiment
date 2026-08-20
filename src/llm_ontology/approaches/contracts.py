@@ -21,6 +21,8 @@ class PromptRequest:
     instruction: str
     input_text: str
     contexts: tuple[RetrievedContext, ...] = ()
+    requirements: str = ""
+    project_context: str = ""
 
 
 @dataclass(frozen=True, slots=True)
@@ -28,6 +30,10 @@ class PreparedPrompt:
     approach: str
     text: str
     contexts: tuple[RetrievedContext, ...] = ()
+    prompt_template_version: str = ""
+    prompt_template_sha256: str = ""
+    normalized_prompt_sha256: str = ""
+    full_prompt_sha256: str = ""
 
 
 class GenerationApproach(Protocol):
@@ -46,5 +52,7 @@ class PromptBuilder(Protocol):
         input_text: str,
         contexts: tuple[RetrievedContext, ...] = (),
         approach: str = "direct",
+        requirements: str = "",
+        project_context: str = "",
     ) -> PreparedPrompt:
         """Build a prompt independently from retrieval and LLM providers."""
