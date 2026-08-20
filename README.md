@@ -105,6 +105,7 @@ python -m llm_ontology.cli.rag \
 - [Ollama embeddings](docs/ollama_embeddings.md)
 - [UI](docs/ui.md)
 - [Experiment design](docs/experiment_design.md)
+- [Handcrafted smoke dataset](docs/smoke_dataset.md)
 - [Commit and artifact policy](docs/git_commit_policy.md)
 
 Historický fine-tuning, HF/Jina a Windows provenance zostávajú zdokumentované,

@@ -10,6 +10,8 @@ Automatizované testy pokrývajú:
 - TestBench path safety, dry-run, Maven status a obnova kolidujúceho testu,
 - Ollama seed a HTTP error reporting,
 - SWE-Refactor whole-file fallback,
+- handcrafted smoke dataset schema, manifest, hashes, leakage and optional
+  JDK/JUnit compilation/behavior integration,
 - model loader compatibility importy,
 - inference helpery, metriky, reportovanie a legacy CLI navigáciu.
 
@@ -19,5 +21,7 @@ Spustenie:
 python -m pytest -q
 ```
 
-Unit testy nevyžadujú base model, CUDA, plné datasety, Java ani Maven.
+Unit testy nevyžadujú base model, CUDA ani plné datasety. Smoke integračná
+kontrola sa automaticky preskočí, ak lokálny JDK/JUnit Maven cache nie je
+dostupný.
 Skutočný TestBench Maven canary je samostatný integračný krok z runbooku.

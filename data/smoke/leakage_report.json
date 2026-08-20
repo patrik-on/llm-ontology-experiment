@@ -1,0 +1,71 @@
+{
+  "dataset_name": "handcrafted_smoke_v1",
+  "dataset_version": "1.0",
+  "smoke_manifest_id": "a1e68395741c9b7f9f0e099b9a5e4f7a8513369177a526a052545a0f9a9cad5a",
+  "usage_role": "smoke_evaluation",
+  "allowed_for_indexing": false,
+  "audited_at": "2026-08-20T17:24:34.566687+00:00",
+  "comparison_fields": [
+    "normalized input code",
+    "focal method code",
+    "normalized full document",
+    "structured identity when available"
+  ],
+  "fingerprint_sources": {
+    "testing": {
+      "path": "artifacts/split_audits/testing_retrieval_fingerprints.jsonl",
+      "records": 3986
+    },
+    "refactoring": {
+      "path": "artifacts/split_audits/refactoring_retrieval_fingerprints.jsonl",
+      "records": 2043
+    }
+  },
+  "collections": {
+    "testing_db": {
+      "document_count": 3978,
+      "retrieval_fingerprint_records": 3986,
+      "smoke_cases_compared": 12,
+      "tasks": [
+        "testing"
+      ],
+      "dataset_manifest_ids": [
+        "86640657b063d30c3274ed644a893c578a80acea6f47a6f04d34b24890cb6d85"
+      ],
+      "overlap_count": 0,
+      "safe": true,
+      "overlaps": []
+    },
+    "refactoring_db": {
+      "document_count": 1761,
+      "retrieval_fingerprint_records": 2043,
+      "smoke_cases_compared": 12,
+      "tasks": [
+        "refactoring"
+      ],
+      "dataset_manifest_ids": [
+        "6dcbeeff649b53529d735402b4e543a6abed8477831a78c50e90bb3ce01d3a1c"
+      ],
+      "overlap_count": 0,
+      "safe": true,
+      "overlaps": []
+    },
+    "mixed": {
+      "document_count": 5739,
+      "retrieval_fingerprint_records": 6029,
+      "smoke_cases_compared": 24,
+      "tasks": [
+        "testing",
+        "refactoring"
+      ],
+      "dataset_manifest_ids": [
+        "6dcbeeff649b53529d735402b4e543a6abed8477831a78c50e90bb3ce01d3a1c",
+        "86640657b063d30c3274ed644a893c578a80acea6f47a6f04d34b24890cb6d85"
+      ],
+      "overlap_count": 0,
+      "safe": true,
+      "overlaps": []
+    }
+  },
+  "overall_safe": true
+}
