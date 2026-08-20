@@ -40,6 +40,25 @@ python -m pytest -q
 python scripts/benchmarks/inspect_benchmarks.py
 ```
 
+## Lokálne experimentálne UI
+
+Tenká Gradio vrstva umožňuje manuálne spúšťať Direct LLM a nakonfigurovaný
+single-collection RAG, kontrolovať finálny prompt, retrieval trace, technické
+metriky, logy a stav Ollama/Chroma prostredia. MultiRAG je viditeľný, ale zostáva
+vypnutý, kým ho nepodporuje spoločný runner.
+
+Odporúčané je samostatné prostredie, aby sa nezmenil zmrazený benchmark runtime:
+
+```powershell
+python -m venv --system-site-packages .venv-ui
+.\.venv-ui\Scripts\Activate.ps1
+python -m pip install -e ".[rag,ui]"
+python -m llm_ontology.ui
+```
+
+Predvolená adresa je `http://127.0.0.1:7860`. Konfigurácia je v
+`configs/ui/local.yaml` a kompletný popis v [UI dokumentácii](docs/ui.md).
+
 Očakávaný inventár je 108 TestBench a 1 099 SWE-Refactor prípadov.
 
 ## Štruktúra

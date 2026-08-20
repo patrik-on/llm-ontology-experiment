@@ -26,6 +26,9 @@ rag = [
   "tree-sitter>=0.25,<0.27",
   "tree-sitter-java==0.23.5",
 ]
+ui = [
+  "gradio>=5.0,<6",
+]
 training = [
   "transformers>=4.40",
   "datasets>=2.18",
