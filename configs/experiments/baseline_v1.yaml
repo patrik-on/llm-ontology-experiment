@@ -1,7 +1,25 @@
 experiment_name: baseline_v1
+baseline_id: baseline_v1
+baseline_contract_version: "1"
+baseline_fingerprint: 74cc0a39be0c4d7f193fc749d8a40d448e4c364bef0b2c9eca19190c8db79e8f
 dataset_root: data/smoke
 retrieval_config: configs/retrieval/ollama_bge_m3.yaml
 output_dir: artifacts/experiments/smoke/baseline_v1
+
+runtime_environment: wsl
+ollama_base_url: http://localhost:11434
+
+generation_provider: ollama
+generation_model: qwen2.5-coder:7b
+generation_model_digest: dae161e27b0e90dd1856c8bb3209201fd6736d8eb66298e75ed87571486f4364
+generation_temperature: 0.0
+generation_top_p: 0.9
+
+embedding_provider: ollama
+embedding_model: bge-m3
+embedding_dimension: 1024
+embedding_model_digest: 7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab
+embedding_normalized: true
 
 modes:
   - no_rag
@@ -16,14 +34,46 @@ allowed_splits: [train]
 top_k: 5
 rrf_k: 60
 per_collection_top_k: 5
+retrieval_token_budget: 12000
+fusion_strategy: rrf
 tokenizer_model: Qwen/Qwen2.5-Coder-7B-Instruct
 tokenizer_revision: c03e6d358207e414f1eca0bb1891e29f1db0e242
 total_context_tokens: 32768
 reserved_output_tokens: 2048
 safety_margin_tokens: 256
 structured_retries: 2
+structured_output_enabled: true
+structured_output_format: json_schema
+structured_output_schema_version: task-specific-pydantic-v1
 generation_max_tokens: 4096
 random_seed: 42
+
+prompt_template_version: canonical-se-prompt-v2
+testing_prompt_template_sha256: cfcd5f889c413fac5a75a69482b1dafc27a558334ce72463f0a1a82aa9c9d034
+refactoring_prompt_template_sha256: f61cd1f944ac312414f6b2c1ccf1759b66e73fe23bc79b43fcdbc9ec02a9fde9
+
+smoke_dataset_manifest_id: a1e68395741c9b7f9f0e099b9a5e4f7a8513369177a526a052545a0f9a9cad5a
+smoke_dataset_content_hash: 69273a1a5242a540060bfb191ab1ce8f15b1b5643f351d16dbe2cb4f8403c49b
+collection_manifests:
+  mixed:
+    manifest_id: 18774f2a5a18f6c98cd0a69bed572dbc9dc079c499e5e93178e878ca9af4c029
+    content_hash: 2f07ebff77775c418757bda002d5ecc5fd053ef5cbbf998dc4c0efbe2474c3d2
+    document_count: 5739
+    dataset_manifest_ids:
+      - 6dcbeeff649b53529d735402b4e543a6abed8477831a78c50e90bb3ce01d3a1c
+      - 86640657b063d30c3274ed644a893c578a80acea6f47a6f04d34b24890cb6d85
+  testing_db:
+    manifest_id: 765bc53bc741f78525d52148f91fd38984578cd042b1e07eba67c5fea9d9a681
+    content_hash: 921592f25033cd861b408c56d4cc6ea20a8e8a18b35d2dcd58db2b3923d5e171
+    document_count: 3978
+    dataset_manifest_ids:
+      - 86640657b063d30c3274ed644a893c578a80acea6f47a6f04d34b24890cb6d85
+  refactoring_db:
+    manifest_id: 30b8f729fd65cd9cbb095fa75f6ee512c9bf1c0648788ced661d119c6020aba5
+    content_hash: 598ff0e4b1a1a8b439a13f6a7e40fdb99452dc55addb21669bdd866459d5df25
+    document_count: 1761
+    dataset_manifest_ids:
+      - 6dcbeeff649b53529d735402b4e543a6abed8477831a78c50e90bb3ce01d3a1c
 retrieval_dataset_manifest_ids:
   - 86640657b063d30c3274ed644a893c578a80acea6f47a6f04d34b24890cb6d85
   - 6dcbeeff649b53529d735402b4e543a6abed8477831a78c50e90bb3ce01d3a1c

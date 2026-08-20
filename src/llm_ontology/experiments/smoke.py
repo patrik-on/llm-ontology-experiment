@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from llm_ontology.experiments.baseline import BaselineMismatchError
 from llm_ontology.experiments.smoke_models import (
     SmokeSelection,
     load_smoke_experiment_config,
@@ -64,9 +65,20 @@ def main(argv: list[str] | None = None) -> int:
         retry_failed=args.retry_failed,
         force=args.force,
     )
-    result = SmokeExperimentRunner(config).run(selection, dry_run=args.dry_run)
+    try:
+        result = SmokeExperimentRunner(config).run(selection, dry_run=args.dry_run)
+    except BaselineMismatchError as exc:
+        print("Preflight: FAIL")
+        print("Baseline fingerprint: MISMATCH")
+        print(str(exc))
+        return 2
     print(f"Preflight: {'PASS' if result.preflight_passed else 'FAIL'}")
     print(f"Fairness: {'PASS' if result.fairness_passed else 'FAIL'}")
+    print(
+        "Baseline fingerprint: "
+        f"{'MATCH' if result.baseline_fingerprint_matched else 'MISMATCH'} "
+        f"({result.baseline_fingerprint})"
+    )
     print(f"Planned runs: {result.planned_runs}")
     if not args.dry_run:
         print(f"Executed runs: {result.executed_runs}")

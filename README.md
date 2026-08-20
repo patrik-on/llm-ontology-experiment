@@ -192,9 +192,11 @@ Training Dataset
 | MultiRAG | `testing_db` + `refactoring_db` |
 | Fusion | Reciprocal Rank Fusion (`k=60`) |
 | Top-k | 5 |
+| Baseline fingerprint | `74cc0a39be0c4d7f193fc749d8a40d448e4c364bef0b2c9eca19190c8db79e8f` |
 
 Windows je iba hostiteľský OS. Windows Ollama ani výsledky z iného runtime sa
-nemajú miešať s finálnymi experimentmi; detailné digesty sú v `devinfo.md`.
+nemajú miešať s finálnymi experimentmi. Immutable kontrakt, digesty, prompt
+hashe a corpus identity sú v `docs/experiments/baseline_v1.md`.
 
 ## Project Status
 
@@ -209,6 +211,7 @@ nemajú miešať s finálnymi experimentmi; detailné digesty sú v `devinfo.md`
 | Prompt fairness | Implemented; audit PASS |
 | `SmokeExperimentRunner` | Implemented |
 | Six-run mini pilot | Completed; 6/6 latest runs successful |
+| `baseline_v1` freeze | Complete; preflight and fingerprint enforcement active |
 | Full benchmark evaluation | Pending |
 | Ontology / GraphRAG | Future |
 
@@ -227,10 +230,12 @@ spustený.
 
 ## Next Steps
 
-1. Manuálne skontrolovať šesť-runový Direct/RAG/MultiRAG pilot a retrieval trace.
-2. Až po schválení spustiť celý 72-run smoke matrix.
-3. Zmraziť baseline a pokračovať plnou TestBench/SWE-Refactor evaluáciou.
-4. Ontology/GraphRAG zaradiť až ako samostatnú budúcu experimentálnu vetvu.
+1. Manuálne skontrolovať frozen config a šesť-runový pilot/retrieval trace.
+2. Až po schválení spustiť celý 72-run `baseline_v1` smoke matrix.
+3. Pokračovať plnou TestBench/SWE-Refactor evaluáciou pod tým istým freeze
+   kontraktom.
+4. Každú zmenu promptu/modelu/retrievalu zaviesť ako `baseline_v2`.
+5. Ontology/GraphRAG zaradiť až ako samostatnú budúcu experimentálnu vetvu.
 
 ## Quick start
 
@@ -311,7 +316,9 @@ python -m llm_ontology.cli.rag \
 - [Ollama embeddings](docs/retrieval/ollama_embeddings.md)
 - [UI](docs/ui/overview.md)
 - [Experiment design](docs/experiments/design.md)
+- [Frozen baseline_v1 contract](docs/experiments/baseline_v1.md)
 - [Handcrafted smoke dataset](docs/datasets/handcrafted_smoke.md)
+- [Legacy cleanup report](docs/architecture/legacy_cleanup_report.md)
 - [Commit and artifact policy](docs/architecture/git_commit_policy.md)
 
 Fine-tuning, retrieval, inference, evaluation, benchmark execution a UI sú

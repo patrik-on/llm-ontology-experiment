@@ -167,7 +167,11 @@ canonical prompt fairness audit, report aggregation, and the
 `configs/experiments/baseline_v1.yaml`: 24 handcrafted cases across Direct,
 Single RAG, and MultiRAG (72 planned cells). The runner delegates retrieval,
 structured generation, prompt artifacts, and metrics to the existing shared
-inference/retrieval/evaluation components.
+inference/retrieval/evaluation components. `baseline_v1` is immutable and
+preflight-protected by a portable fingerprint, live model digests, prompt
+hashes, dataset identity, and collection manifest identities. Each invocation
+writes immutable `effective_config.yaml` and `environment.json` snapshots; raw
+run history is aggregated only for the active baseline fingerprint.
 
 ## UI
 
@@ -193,5 +197,6 @@ scripts/experiments/         benchmark/experiment orchestration commands
 src/llm_ontology/ui/         interactive presentation and diagnostics
 ```
 
-Potential consolidations are intentionally not performed here. See
-`cleanup_candidates.md` for candidates and their risks.
+Potential consolidations are intentionally conservative. See
+`cleanup_candidates.md` for retained candidates and
+`legacy_cleanup_report.md` for the dedicated cleanup result.

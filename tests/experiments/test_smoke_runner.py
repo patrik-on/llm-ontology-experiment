@@ -3,8 +3,15 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from llm_ontology.evaluation.experiment_log import ExperimentRecord
+from llm_ontology.experiments.baseline import (
+    BaselineMismatchError,
+    compute_baseline_fingerprint,
+)
 from llm_ontology.experiments.smoke_models import (
+    SmokeRunRecord,
     SmokeSelection,
     load_smoke_experiment_config,
 )
@@ -23,6 +30,8 @@ REQUIRED_OUTPUTS = {
     "failure_analysis.json",
     "fairness_audit.json",
     "report.md",
+    "effective_config.yaml",
+    "environment.json",
 }
 
 
@@ -86,6 +95,11 @@ def test_dry_run_validates_default_72_cell_matrix_and_writes_reports(tmp_path: P
     fairness = json.loads((tmp_path / "fairness_audit.json").read_text(encoding="utf-8"))
     assert fairness["passed"] is True
     assert fairness["cases_checked"] == 24
+    assert result.baseline_fingerprint_matched is True
+    effective = (tmp_path / "effective_config.yaml").read_text(encoding="utf-8")
+    assert f"baseline_fingerprint: {result.baseline_fingerprint}" in effective
+    environment = json.loads((tmp_path / "environment.json").read_text(encoding="utf-8"))
+    assert environment["chroma_path"] == "data/chroma/ollama_bge_m3"
 
 
 def test_six_run_pilot_is_resumable_and_uses_all_three_modes(tmp_path: Path) -> None:
@@ -144,3 +158,50 @@ def test_retry_failed_appends_new_attempt_without_restarting_successes(tmp_path:
     failures = json.loads((tmp_path / "failure_analysis.json").read_text(encoding="utf-8"))
     assert failures["failure_count"] == 0
     assert failures["historical_failure_attempt_count"] == 1
+
+
+def test_baseline_fingerprint_is_portable_but_changes_with_contract() -> None:
+    config = load_smoke_experiment_config("configs/experiments/baseline_v1.yaml")
+
+    assert compute_baseline_fingerprint(config) == config.baseline_fingerprint
+    moved_output = config.model_copy(
+        update={"output_dir": Path("some/other/machine/output"), "require_runtime_assets": False}
+    )
+    assert compute_baseline_fingerprint(moved_output) == config.baseline_fingerprint
+    changed_top_k = config.model_copy(update={"top_k": 6})
+    assert compute_baseline_fingerprint(changed_top_k) != config.baseline_fingerprint
+
+
+def test_current_prompt_must_match_the_frozen_hash(tmp_path: Path) -> None:
+    config = _config(tmp_path).model_copy(
+        update={"testing_prompt_template_sha256": "0" * 64}
+    )
+    config = config.model_copy(
+        update={"baseline_fingerprint": compute_baseline_fingerprint(config)}
+    )
+
+    with pytest.raises(BaselineMismatchError, match="prompt.testing_sha256"):
+        SmokeExperimentRunner(config, case_executor=_success).run(dry_run=True)
+
+
+def test_reports_exclude_historical_runs_from_another_fingerprint(tmp_path: Path) -> None:
+    legacy = SmokeRunRecord(
+        baseline_id="baseline_v1",
+        baseline_fingerprint="old-fingerprint",
+        run_id="testing_easy_001::no_rag",
+        case_id="testing_easy_001",
+        task="testing",
+        difficulty="easy",
+        mode=RetrievalMode.NO_RAG,
+        status="success",
+        attempt=1,
+    )
+    (tmp_path / "runs.jsonl").write_text(legacy.model_dump_json() + "\n", encoding="utf-8")
+
+    SmokeExperimentRunner(_config(tmp_path), case_executor=_success).run(dry_run=True)
+
+    summary = json.loads((tmp_path / "summary.json").read_text(encoding="utf-8"))
+    assert summary["recorded_run_ids"] == 0
+    assert summary["history_records"] == 0
+    assert summary["raw_history_records"] == 1
+    assert summary["excluded_history_records"] == 1

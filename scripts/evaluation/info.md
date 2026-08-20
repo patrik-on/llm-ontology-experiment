@@ -9,8 +9,7 @@ CLI vrstva aktuálnej baseline/LoRA evaluation pipeline.
 - `smoke_eval_metrics.py`: model-free end-to-end smoke test,
 - `check_v2_adapters.py`: kontrola súborov adapterov,
 - `analyze_interference.py`: cross-task/interference analýza,
-- `analyze_lora_adapters.py`: normy a podobnosť LoRA váh,
-- `evaluate.py`: legacy navigácia; nepoužívať na nové behy.
+- `analyze_lora_adapters.py`: normy a podobnosť LoRA váh.
 
 Proxy metriky nenahrádzajú Java kompiláciu, test execution, JaCoCo ani
 behavior preservation. Budúci RAG report navyše potrebuje retrieval trace,

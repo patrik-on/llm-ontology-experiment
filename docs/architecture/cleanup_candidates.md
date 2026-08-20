@@ -1,8 +1,9 @@
-# Cleanup candidates (documentation only)
+# Cleanup candidates
 
-No item in this report is deleted or behaviorally changed by the repository
-reorganization. Each candidate requires a separate reference audit, replacement
-proof, migration plan, and explicit cleanup task.
+The original reorganization did not delete these candidates. The dedicated
+`baseline_v1` cleanup resolved only the explicit failing compatibility
+entrypoints documented below. Every remaining candidate still requires
+reference proof and is intentionally kept.
 
 ## Compatibility model loader
 
@@ -33,20 +34,21 @@ Recommended future action: define the supported CLI surface first; only then
 deprecate wrappers with an announced migration window.  
 Confidence: high duplication, high removal risk.
 
-## Explicit compatibility entrypoints
+## Resolved: explicit compatibility entrypoints
 
-Module: `scripts/inference/generate.py`, `src/llm_ontology/inference/generate.py`,
-and `scripts/evaluation/evaluate.py`  
+Removed module: `scripts/inference/generate.py`,
+`src/llm_ontology/inference/generate.py`, and
+`scripts/evaluation/evaluate.py`
 Area: inference / evaluation  
 Why it looks duplicated: the files identify themselves as compatibility or
 navigation entrypoints and direct users to newer commands.  
 Possible replacement: `scripts/evaluation/run_inference_eval.py` and
 `scripts/evaluation/run_full_evaluation.py`.  
-Risk: tests intentionally verify their guidance and external callers may rely on
-their failure messages.  
-Recommended future action: keep until a dedicated CLI cleanup explicitly drops
-backward compatibility.  
-Confidence: high.
+Resolution: the dedicated CLI cleanup removed these always-failing pointers and
+their pointer-only test. Canonical replacements remain
+`python -m llm_ontology.experiments.smoke` for Direct/RAG/MultiRAG and the
+area-owned evaluation commands for HF evaluation. See
+`legacy_cleanup_report.md` for reference evidence and retained risks.
 
 ## Evaluation compatibility metrics/report path
 

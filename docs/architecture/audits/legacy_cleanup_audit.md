@@ -36,8 +36,10 @@ and `docs/`. Classification reflects methodological value, not filename age.
   namespaced `scripts/` subdirectories.
 - `llm_ontology.finetuning`: compatibility package still imported by training,
   evaluation, scripts, and tests.
-- `scripts/inference/generate.py` and `scripts/evaluation/evaluate.py`: explicit
-  failing legacy pointers tested by `tests/test_legacy_entrypoints.py`.
+- The formerly listed `scripts/inference/generate.py`,
+  `src/llm_ontology/inference/generate.py`, and
+  `scripts/evaluation/evaluate.py` were removed by the later dedicated cleanup;
+  see `../legacy_cleanup_report.md`.
 
 ## REMOVE
 
