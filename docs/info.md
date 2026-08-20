@@ -12,6 +12,11 @@ Metodická, architektonická a prevádzková dokumentácia projektu.
 - `reproducible_handoff.md`: minimálny reprodukovateľný handoff,
 - `download_links.md`: externé modely, datasety a adaptéry,
 - `git_commit_policy.md`: čo patrí a nepatrí do Gitu.
+- `rag_phase2.md`: aktuálny produkčný RAG/MultiRAG baseline,
+- `ollama_embeddings.md`: Ollama embedding a index lifecycle,
+- `ui.md`: spoločné Gradio UI a environment kontrola,
+- `legacy_cleanup_audit.md`: rozhodnutia KEEP/LEGACY/REMOVE,
+- `commit_readiness.md`: stav poslednej pre-commit validácie.
 
 Root README je rýchly vstup. Rozhodnutia, predpoklady a limity experimentov
 majú byť vysvetlené v tomto priečinku.

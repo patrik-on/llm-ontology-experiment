@@ -1,3 +1,5 @@
+"""Check local prerequisites for a controlled benchmark run."""
+
 from __future__ import annotations
 
 import argparse

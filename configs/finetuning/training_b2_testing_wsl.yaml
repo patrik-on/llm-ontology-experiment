@@ -10,10 +10,10 @@ dataset:
   test_file: "data/processed/testing/test.jsonl"
 
 output:
-  output_dir: "/home/patrik/experiments/llm-ontology/b2_testing/checkpoints"
-  logging_dir: "/home/patrik/experiments/llm-ontology/b2_testing/logs"
-  results_dir: "/home/patrik/experiments/llm-ontology/b2_testing/results"
-  final_adapter_dir: "/home/patrik/experiments/llm-ontology/b2_testing/checkpoints/final_adapter"
+  output_dir: "~/experiments/llm-ontology/b2_testing/checkpoints"
+  logging_dir: "~/experiments/llm-ontology/b2_testing/logs"
+  results_dir: "~/experiments/llm-ontology/b2_testing/results"
+  final_adapter_dir: "~/experiments/llm-ontology/b2_testing/checkpoints/final_adapter"
 
 run:
   dry_run: false

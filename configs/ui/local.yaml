@@ -4,7 +4,7 @@ ui:
   default_task: testing
   default_mode: no_rag
   log_level: INFO
-  retrieval_config: configs/retrieval/jina_qwen_baseline.yaml
+  retrieval_config: configs/retrieval/ollama_bge_m3.yaml
   history_path: experiments/results/ui/interactive_runs.jsonl
   prompt_artifacts_dir: artifacts/prompts/ui
   max_input_chars: 100000
@@ -14,9 +14,11 @@ ui:
     testing:
       no_rag: configs/experiments/rag_v2/testing_no_rag.yaml
       single_collection_rag: configs/experiments/rag_v2/testing_mixed.yaml
+      multi_collection_rag: configs/experiments/rag_v2/testing_multi.yaml
     refactoring:
       no_rag: configs/experiments/rag_v2/refactoring_no_rag.yaml
       single_collection_rag: configs/experiments/rag_v2/refactoring_mixed.yaml
+      multi_collection_rag: configs/experiments/rag_v2/refactoring_multi.yaml
   default_instructions:
     testing: >-
       Generate meaningful JUnit 5 tests for the supplied Java code, including edge

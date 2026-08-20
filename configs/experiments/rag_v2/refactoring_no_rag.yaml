@@ -2,11 +2,12 @@ enabled: false
 requested_task: refactoring
 retrieval_mode: no_rag
 collection: null
-dataset_version: pending-approved-corpus
+dataset_version: evaluation-case-at-runtime
 dataset_manifest_ids: []
-embedding_model: jinaai/jina-embeddings-v2-base-code
-embedding_revision: 516f4baf13dec4ddddda8631e019b5737c8bc250
-embedding_remote_code_revision: 3baf9e3ac750e76e8edd3019170176884695fb94
+embedding_model: bge-m3
+embedding_revision: runtime_digest
+embedding_remote_code_revision: null
+generation_provider: ollama
 llm_model: qwen2.5-coder:7b
 llm_version: runtime_digest
 top_k: 5

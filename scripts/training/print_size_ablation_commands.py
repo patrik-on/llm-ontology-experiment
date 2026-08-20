@@ -1,3 +1,5 @@
+"""Print portable commands for the fine-tuning size ablation matrix."""
+
 from __future__ import annotations
 
 
@@ -7,7 +9,7 @@ EXPERIMENTS = {
 }
 TRAIN_SIZES = (500, 1000, 2000, 4000)
 SEEDS = (42, 43, 44)
-OUTPUT_ROOT = "/home/patrik/experiments/llm-ontology/size_ablation"
+OUTPUT_ROOT = "${LLM_ONTOLOGY_EXPERIMENTS_ROOT:-$HOME/experiments/llm-ontology}/size_ablation"
 
 
 def main() -> None:

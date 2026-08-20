@@ -1,0 +1,21 @@
+dataset_name: ml4refactoring_retrieval
+dataset_version: sha256-f70853aa924a9d21
+source_path: data/processed/refactoring/train.jsonl
+source_split: train
+usage_role: retrieval
+allowed_for_indexing: true
+sample_count: 4478
+content_hash: f70853aa924a9d212d5701f31af14f34b8e2f2232b61700a8c2590a13a64aabb
+created_at: 2026-08-20T00:00:00Z
+fingerprints_path: artifacts/split_audits/refactoring_retrieval_fingerprints.jsonl
+grouping_policy:
+  primary_group_level: method
+  group_fields: [repository, project, commit_sha, refactoring_id]
+  related_case_fields: [commit_sha, case_id]
+  require_cross_role_disjointness: true
+  audit_report_path: artifacts/split_audits/refactoring_retrieval_vs_benchmark_methods.json
+metadata:
+  task: refactoring
+  context_level: null
+  approval_status: approved_for_retrieval
+  notes: Approved train partition; exact refactoring identity plus conservative code fingerprints are required because source projects and commits span the official train/test partitions.

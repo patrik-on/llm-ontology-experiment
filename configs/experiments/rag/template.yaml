@@ -4,17 +4,18 @@ experiment:
   enabled: false
 
 model:
-  config: "configs/models/qwen25_coder_7b_hf_wsl.yaml"
+  config: "configs/models/qwen25_coder_7b_ollama.yaml"
 
 retrieval:
   mode: "single_collection_rag"
   allowed_splits:
     - "train"
-  collection: "test_examples"
+  collection: "mixed"
   metadata_filter: {}
-  top_k: 3
-  max_context_tokens: 2048
+  top_k: 5
+  max_context_tokens: 12000
 
 notes:
-  - "Phase-1 indexing and retrieval are implemented; experiment-runner wiring remains disabled."
-  - "Replace deterministic_mock embeddings before reporting research results."
+  - "Single-RAG uses the production mixed collection and the shared experiment runner."
+  - "Use the pinned Ollama bge-m3 embedding identity from the collection manifest."
+  - "Canonical experiment runtime is WSL Ollama at http://localhost:11434."

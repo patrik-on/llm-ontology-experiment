@@ -1,5 +1,5 @@
 from llm_ontology.ingestion.chunkers import PassthroughChunker, StructuredTextChunker
-from llm_ontology.ingestion.corpus import ThreeCollectionCorpusBuilder
+from llm_ontology.ingestion.corpus import ProductionCorpusBuilder, ThreeCollectionCorpusBuilder
 from llm_ontology.ingestion.documents import KnowledgeDocument
 from llm_ontology.ingestion.loaders import NormalizedJsonlLoader, TextDocumentLoader
 from llm_ontology.ingestion.manifest import DatasetManifest
@@ -12,6 +12,7 @@ __all__ = [
     "KnowledgeDocument",
     "NormalizedJsonlLoader",
     "PassthroughChunker",
+    "ProductionCorpusBuilder",
     "StructuredTextChunker",
     "TextDocumentLoader",
     "ThreeCollectionCorpusBuilder",

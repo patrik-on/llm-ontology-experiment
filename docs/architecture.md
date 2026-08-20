@@ -28,7 +28,11 @@ src/llm_ontology/
 ├── training/      fine-tuning workflow
 ├── inference/     modelové backendy a spoločné promptovanie
 ├── approaches/    direct, RAG a multi-RAG zostavenie kontextu
-├── retrieval/     budúce indexovanie a vyhľadávanie
+├── ingestion/     manifesty, leakage audit a pair-aware corpus
+├── providers/     Ollama, mock a legacy Sentence Transformers embeddings
+├── retrieval/     single/multi-collection retrieval, RRF a token budget
+├── vectorstore/   Chroma adaptér, lifecycle a sidecar manifesty
+├── ui/            tenká Gradio prezentačná vrstva
 └── evaluation/    task metriky, agregácie a reporty
 ```
 
@@ -47,14 +51,14 @@ vendored benchmark → read-only adapter → BenchmarkCase
 TestBench `source/simple/full context` je kontrolovaná vlastnosť vstupu úlohy.
 SWE-Refactor adaptér uchováva referenčný výstup a compile/project metadata.
 
-## Future retrieval safety
+## Retrieval safety
 
 - Retrieval index pre evaluáciu smie obsahovať iba train split.
-- Val split bude slúžiť na ladenie top-k, fusion a rerankingu.
+- Val split slúži na ladenie top-k a fusion pred baseline freeze.
 - Test split a benchmarkové prípady sa nesmú indexovať.
-- Každá budúca RAG predikcia musí obsahovať retrieval trace.
+- Každá RAG/MultiRAG predikcia obsahuje retrieval trace.
 
-## Implemented RAG phase-1 flow
+## Implemented RAG/MultiRAG flow
 
 RAG je zakomponovaný do pôvodných architektonických hraníc, nie ako druhá
 inference pipeline:
@@ -74,6 +78,7 @@ data -> ingestion -> vectorstore -> retrieval -> approaches -> inference
 - `evaluation/` ukladá reprodukovateľné experimentálne záznamy.
 
 Podrobný stav, CLI a explicitné obmedzenia sú v [RAG phase 1](rag_phase1.md).
+Aktuálny produkčný baseline, RRF a kolekcie sú v [RAG phase 2](rag_phase2.md).
 
 ## Compatibility
 

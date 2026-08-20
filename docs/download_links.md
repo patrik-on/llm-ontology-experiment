@@ -45,9 +45,9 @@ Tieto adaptery vznikli v projekte a nie su verejne dostupne cez upstream dataset
 
 | Adapter | Ocakavana cesta v aktualnom configu | Odporucany nazov ZIP suboru |
 |---|---|---|
-| `b2_testing_v2` | `/home/patrik/experiments/llm-ontology-v2/b2_testing/checkpoints/final_adapter` | `b2_testing_v2_final_adapter.zip` |
-| `b2_refactoring_v2` | `/home/patrik/experiments/llm-ontology-v2/b2_refactoring/checkpoints/final_adapter` | `b2_refactoring_v2_final_adapter.zip` |
-| `b1_shared_v2` | `/home/patrik/experiments/llm-ontology-v2/b1_shared/checkpoints/final_adapter` | `b1_shared_v2_final_adapter.zip` |
+| `b2_testing_v2` | `~/experiments/llm-ontology-v2/b2_testing/checkpoints/final_adapter` | `b2_testing_v2_final_adapter.zip` |
+| `b2_refactoring_v2` | `~/experiments/llm-ontology-v2/b2_refactoring/checkpoints/final_adapter` | `b2_refactoring_v2_final_adapter.zip` |
+| `b1_shared_v2` | `~/experiments/llm-ontology-v2/b1_shared/checkpoints/final_adapter` | `b1_shared_v2_final_adapter.zip` |
 
 Po rozbaleni musi kazdy adapter obsahovat:
 

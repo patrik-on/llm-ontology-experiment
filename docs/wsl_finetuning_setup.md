@@ -13,7 +13,7 @@ Tento dokument popisuje WSL2/Ubuntu setup pre QLoRA fine-tuning modelu Qwen2.5-C
 ## Kontrola kompatibility
 
 ```bash
-cd /mnt/c/Users/patri/OneDrive/Dokumenty/GitHub/llm-ontology-experiment
+cd /path/to/llm-ontology-experiment
 source .venv_wsl/bin/activate
 
 python scripts/training/check_transformers_compat.py
@@ -26,7 +26,7 @@ WSL fine-tuning outputs are stored outside the OneDrive-backed repository to avo
 Output root:
 
 ```text
-/home/patrik/experiments/llm-ontology
+~/experiments/llm-ontology
 ```
 
 The repository remains on `/mnt/c`, but checkpoints, logs, results and final adapters are written to the native WSL filesystem.
@@ -57,7 +57,7 @@ python scripts/training/train_finetuning.py --config configs/finetuning/training
 ```bash
 python scripts/training/train_finetuning.py \
   --config configs/finetuning/training_b1_shared_wsl.yaml \
-  --resume_from_checkpoint /home/patrik/experiments/llm-ontology/b1_shared/checkpoints/checkpoint-300
+  --resume_from_checkpoint ~/experiments/llm-ontology/b1_shared/checkpoints/checkpoint-300
 ```
 
 Odporúčané poradie spustenia:

@@ -1,3 +1,5 @@
+"""Verify that configured v2 LoRA adapter directories are complete."""
+
 from __future__ import annotations
 
 import argparse
@@ -9,9 +11,9 @@ import yaml
 
 REQUIRED_FILES = ("adapter_config.json", "adapter_model.safetensors", "tokenizer_config.json")
 V2_ADAPTERS = {
-    "b2_testing_v2": Path("/home/patrik/experiments/llm-ontology-v2/b2_testing/checkpoints/final_adapter"),
-    "b2_refactoring_v2": Path("/home/patrik/experiments/llm-ontology-v2/b2_refactoring/checkpoints/final_adapter"),
-    "b1_shared_v2": Path("/home/patrik/experiments/llm-ontology-v2/b1_shared/checkpoints/final_adapter"),
+    "b2_testing_v2": Path("~/experiments/llm-ontology-v2/b2_testing/checkpoints/final_adapter").expanduser(),
+    "b2_refactoring_v2": Path("~/experiments/llm-ontology-v2/b2_refactoring/checkpoints/final_adapter").expanduser(),
+    "b1_shared_v2": Path("~/experiments/llm-ontology-v2/b1_shared/checkpoints/final_adapter").expanduser(),
 }
 
 
@@ -25,7 +27,7 @@ def load_lora_adapters_from_config(config_path: str | Path) -> dict[str, Path]:
             continue
         adapter_path = model_config.get("adapter_path")
         if adapter_path:
-            adapters[str(model_config["name"])] = Path(str(adapter_path))
+            adapters[str(model_config["name"])] = Path(str(adapter_path)).expanduser()
     return adapters
 
 

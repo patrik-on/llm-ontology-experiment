@@ -1,3 +1,5 @@
+"""Inspect Methods2Test files before dataset preparation."""
+
 from __future__ import annotations
 
 import argparse

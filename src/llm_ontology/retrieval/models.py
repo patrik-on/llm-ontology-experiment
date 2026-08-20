@@ -108,6 +108,8 @@ class RetrievalRequest(BaseModel):
     allowed_splits: list[str] = Field(default_factory=lambda: ["train"])
     top_k: int = Field(default=3, ge=1, le=100)
     max_context_tokens: int = Field(default=2048, ge=1)
+    rrf_k: int = Field(default=60, ge=1)
+    per_collection_top_k: int | None = Field(default=None, ge=1, le=100)
 
     @field_validator("query")
     @classmethod
@@ -117,6 +119,12 @@ class RetrievalRequest(BaseModel):
         return value.strip()
 
 
+class FusionContribution(BaseModel):
+    collection: str
+    original_rank: int = Field(ge=1)
+    original_score: float
+
+
 class RetrievalHit(BaseModel):
     document_id: str
     collection: str
@@ -124,6 +132,9 @@ class RetrievalHit(BaseModel):
     score: float
     metadata: dict[str, Any] = Field(default_factory=dict)
     reranking_score: float | None = None
+    fusion_contributions: list[FusionContribution] = Field(default_factory=list)
+    rrf_score: float | None = None
+    final_rank: int | None = Field(default=None, ge=1)
 
 
 class RetrievalTrace(BaseModel):
@@ -132,6 +143,11 @@ class RetrievalTrace(BaseModel):
     selected_collections: list[str] = Field(default_factory=list)
     applied_filters: dict[str, Any] = Field(default_factory=dict)
     retrieved_documents: list[RetrievalHit] = Field(default_factory=list)
+    collection_results: dict[str, list[RetrievalHit]] = Field(default_factory=dict)
+    fusion_strategy: str | None = None
+    rrf_k: int | None = None
+    candidates_before_deduplication: int = 0
+    candidates_after_deduplication: int = 0
     prompt_document_ids: list[str] = Field(default_factory=list)
     ontology_concepts: list[str] = Field(default_factory=list)
     estimated_context_tokens: int = 0

@@ -21,9 +21,9 @@ Config: `configs/evaluation/eval_models.yaml`
 ## V2 adapter paths
 
 ```text
-/home/patrik/experiments/llm-ontology-v2/b2_testing/checkpoints/final_adapter
-/home/patrik/experiments/llm-ontology-v2/b2_refactoring/checkpoints/final_adapter
-/home/patrik/experiments/llm-ontology-v2/b1_shared/checkpoints/final_adapter
+~/experiments/llm-ontology-v2/b2_testing/checkpoints/final_adapter
+~/experiments/llm-ontology-v2/b2_refactoring/checkpoints/final_adapter
+~/experiments/llm-ontology-v2/b1_shared/checkpoints/final_adapter
 ```
 
 Každý v2 adaptér má obsahovať:
@@ -37,7 +37,7 @@ Každý v2 adaptér má obsahovať:
 Spúšťaj vo WSL v koreňovom priečinku projektu:
 
 ```bash
-cd /mnt/c/Users/patri/OneDrive/Dokumenty/GitHub/llm-ontology-experiment
+cd /path/to/llm-ontology-experiment
 source .venv_wsl/bin/activate
 ```
 

@@ -1,3 +1,5 @@
+"""Normalize ML4Refactoring archives into controlled JSONL splits."""
+
 from __future__ import annotations
 
 import argparse

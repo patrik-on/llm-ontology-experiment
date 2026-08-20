@@ -1,3 +1,8 @@
+runtime:
+  environment: legacy_windows
+  status: legacy_not_final
+  ollama_base_url: http://localhost:11434
+
 collections:
   refactor: refactor
   tests: tests
@@ -21,7 +26,7 @@ embeddings:
   max_sequence_length: 8192
   trust_remote_code: true
   deterministic: true
-  candidate_status: primary_baseline_candidate
+  candidate_status: legacy_not_final
 
 llm:
   provider: ollama

@@ -1,3 +1,5 @@
+"""Normalize and split the MaRV refactoring dataset."""
+
 from __future__ import annotations
 
 import argparse

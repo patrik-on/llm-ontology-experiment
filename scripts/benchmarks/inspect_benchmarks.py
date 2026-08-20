@@ -1,3 +1,5 @@
+"""Print a compact inventory of configured benchmark cases."""
+
 from __future__ import annotations
 
 import argparse

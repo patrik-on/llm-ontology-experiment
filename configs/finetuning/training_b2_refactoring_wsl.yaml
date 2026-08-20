@@ -10,10 +10,10 @@ dataset:
   test_file: "data/processed/refactoring/test.jsonl"
 
 output:
-  output_dir: "/home/patrik/experiments/llm-ontology/b2_refactoring/checkpoints"
-  logging_dir: "/home/patrik/experiments/llm-ontology/b2_refactoring/logs"
-  results_dir: "/home/patrik/experiments/llm-ontology/b2_refactoring/results"
-  final_adapter_dir: "/home/patrik/experiments/llm-ontology/b2_refactoring/checkpoints/final_adapter"
+  output_dir: "~/experiments/llm-ontology/b2_refactoring/checkpoints"
+  logging_dir: "~/experiments/llm-ontology/b2_refactoring/logs"
+  results_dir: "~/experiments/llm-ontology/b2_refactoring/results"
+  final_adapter_dir: "~/experiments/llm-ontology/b2_refactoring/checkpoints/final_adapter"
 
 run:
   dry_run: false

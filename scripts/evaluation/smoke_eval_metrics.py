@@ -1,3 +1,5 @@
+"""Run a small synthetic smoke check of evaluation metrics."""
+
 from __future__ import annotations
 
 import sys

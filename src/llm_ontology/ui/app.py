@@ -17,6 +17,10 @@ RETRIEVAL_HEADERS = [
     "rank",
     "document_id",
     "collection",
+    "source_collections",
+    "original_ranks",
+    "rrf_score",
+    "final_rank",
     "source_type",
     "dataset_name",
     "score",
@@ -30,8 +34,12 @@ RETRIEVAL_HEADERS = [
 COLLECTION_HEADERS = [
     "name",
     "document_count",
+    "embedding_provider",
     "embedding_model",
     "embedding_revision",
+    "embedding_model_digest",
+    "embedding_dimension",
+    "ollama_runtime",
     "chunker_version",
     "manifest_status",
 ]
@@ -66,8 +74,8 @@ def build_app(service: UIService):
     with gr.Blocks(title="LLM Ontology Experiment") as app:
         gr.Markdown(
             "# LLM Ontology Experiment\n"
-            "Local manual testing for Direct LLM and the configured RAG pipeline. "
-            "MultiRAG remains disabled until the shared runner implements fusion."
+            "Local manual testing for Direct LLM, RAG, and MultiRAG through the "
+            "same experiment runner."
         )
 
         with gr.Row():
@@ -149,6 +157,10 @@ def build_app(service: UIService):
                         "str",
                         "str",
                         "number",
+                        "number",
+                        "str",
+                        "str",
+                        "number",
                         "str",
                         "str",
                         "str",
@@ -164,6 +176,7 @@ def build_app(service: UIService):
                     lines=18,
                     interactive=False,
                 )
+                fusion_trace = gr.JSON(label="MultiRAG fusion trace")
 
             with gr.Tab("Prompt"):
                 final_prompt = gr.Textbox(
@@ -194,7 +207,7 @@ def build_app(service: UIService):
                 )
 
         def update_mode(task_label: str, mode_label: str):
-            retrieval_enabled = mode_label == "RAG"
+            retrieval_enabled = mode_label in {"RAG", "MultiRAG"}
             return (
                 gr.update(interactive=retrieval_enabled),
                 service.collection_for_label(task_label, mode_label),
@@ -243,6 +256,7 @@ def build_app(service: UIService):
                 retrieval_message,
                 retrieval_table,
                 retrieval_details,
+                fusion_trace,
                 final_prompt,
                 prompt_metadata,
                 metrics,
@@ -265,7 +279,10 @@ def _mode_note(mode_label: str) -> str:
         return "Retrieval is disabled; Top K is ignored."
     if mode_label == "RAG":
         return "The configured single Chroma collection is queried by the shared runner."
-    return "MultiRAG is visible for completeness but is not available yet."
+    return (
+        "All configured disjoint collections are queried in parallel, fused with "
+        "reciprocal-rank fusion, deduplicated, and trimmed to the shared token budget."
+    )
 
 
 def _render_run(view: UIRunView) -> tuple[Any, ...]:
@@ -293,6 +310,7 @@ def _render_run(view: UIRunView) -> tuple[Any, ...]:
         view.retrieval_message,
         rows,
         details,
+        view.fusion_trace,
         view.prompt.final_prompt,
         prompt_metadata,
         view.metrics.values,

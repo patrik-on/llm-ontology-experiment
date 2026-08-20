@@ -4,17 +4,21 @@ from llm_ontology.core.paths import resolve_path
 from llm_ontology.inference.ollama_client import OllamaProvider
 from llm_ontology.providers.contracts import EmbeddingProvider, LLMProvider
 from llm_ontology.providers.mock import DeterministicEmbeddingProvider, MockLLMProvider
+from llm_ontology.providers.ollama import OllamaEmbeddingProvider
 from llm_ontology.providers.sentence_transformers import SentenceTransformerEmbeddingProvider
 from llm_ontology.retrieval.config import EmbeddingSettings, LLMSettings, RagConfig
 from llm_ontology.vectorstore.chroma import ChromaVectorStore, create_chroma_client
+from llm_ontology.vectorstore.manifest import CollectionManifestStore
 
 
 def create_embedding_provider(settings: EmbeddingSettings) -> EmbeddingProvider:
     if settings.provider == "deterministic_mock":
-        return DeterministicEmbeddingProvider(dimension=settings.dimension)
+        return DeterministicEmbeddingProvider(dimension=settings.dimension or 64)
     if settings.provider == "sentence_transformers":
         if not settings.revision:
             raise ValueError("sentence_transformers provider requires a pinned revision.")
+        if settings.dimension is None:
+            raise ValueError("sentence_transformers provider requires dimension.")
         return SentenceTransformerEmbeddingProvider(
             model_identifier=settings.model,
             model_revision=settings.revision,
@@ -27,8 +31,18 @@ def create_embedding_provider(settings: EmbeddingSettings) -> EmbeddingProvider:
             trust_remote_code=settings.trust_remote_code,
             deterministic=settings.deterministic,
         )
+    if settings.provider == "ollama":
+        return OllamaEmbeddingProvider(
+            model_name=settings.model,
+            base_url=settings.base_url,
+            expected_dimension=settings.dimension,
+            batch_size=settings.batch_size,
+            timeout_seconds=settings.timeout_seconds,
+            runtime_environment=settings.ollama_runtime,
+        )
     raise NotImplementedError(
-        f"Embedding provider {settings.provider!r} is not implemented in phase 1."
+        f"Unsupported embedding provider {settings.provider!r}; "
+        "choose deterministic_mock, sentence_transformers, or ollama."
     )
 
 
@@ -45,7 +59,9 @@ def create_llm_provider(settings: LLMSettings) -> LLMProvider:
             seed=settings.seed,
             timeout_seconds=settings.timeout_seconds,
         )
-    raise NotImplementedError(f"LLM provider {settings.provider!r} is not implemented in phase 1.")
+    raise NotImplementedError(
+        f"Unsupported LLM provider {settings.provider!r}; choose mock or ollama."
+    )
 
 
 def create_vector_store(config: RagConfig) -> ChromaVectorStore:
@@ -54,5 +70,10 @@ def create_vector_store(config: RagConfig) -> ChromaVectorStore:
             f"Vector store {config.vector_store.provider!r} is not implemented."
         )
     embedding_provider = create_embedding_provider(config.embeddings)
-    client = create_chroma_client(resolve_path(config.vector_store.persist_path))
-    return ChromaVectorStore(client, embedding_provider)
+    persist_path = resolve_path(config.vector_store.persist_path)
+    client = create_chroma_client(persist_path)
+    return ChromaVectorStore(
+        client,
+        embedding_provider,
+        manifest_store=CollectionManifestStore(persist_path),
+    )

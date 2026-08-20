@@ -4,7 +4,7 @@ from pydantic import BaseModel, ConfigDict
 
 from llm_ontology.ingestion.chunkers import StructuredTextChunker
 from llm_ontology.ingestion.documents import KnowledgeDocument, materialize_for_collection
-from llm_ontology.ingestion.java import PairAwareJavaChunker
+from llm_ontology.ingestion.java import JavaParser, PairAwareJavaChunker
 from llm_ontology.retrieval.models import DocumentChunk, DocumentType
 
 
@@ -15,20 +15,31 @@ class CollectionCorpus(BaseModel):
     documents: list[DocumentChunk]
 
 
-class ThreeCollectionCorpusBuilder:
-    """Build the controlled specialized-vs-mixed experimental corpus matrix."""
+class ProductionCorpusBuilder:
+    """Build equivalent mixed and disjoint MultiRAG corpus views."""
 
     def __init__(
         self,
         *,
         pipeline_version: str = "rag-v2",
         literature_max_chars: int = 1800,
+        mixed_collection: str = "mixed",
+        testing_collection: str = "testing_db",
+        refactoring_collection: str = "refactoring_db",
+        literature_collection: str = "literature_db",
+        pair_parser: JavaParser | None = None,
     ) -> None:
-        self.pair_chunker = PairAwareJavaChunker(pipeline_version=pipeline_version)
+        self.pair_chunker = PairAwareJavaChunker(
+            pipeline_version=pipeline_version, parser=pair_parser
+        )
         self.literature_chunker = StructuredTextChunker(
             max_chars=literature_max_chars,
             pipeline_version=pipeline_version,
         )
+        self.mixed_collection = mixed_collection
+        self.testing_collection = testing_collection
+        self.refactoring_collection = refactoring_collection
+        self.literature_collection = literature_collection
 
     def build(
         self,
@@ -41,10 +52,12 @@ class ThreeCollectionCorpusBuilder:
         _require_document_types(testing, DocumentType.TEST_EXAMPLE)
         _require_document_types(literature, DocumentType.LITERATURE)
         contents = {
-            "refactor": [*refactoring, *literature],
-            "tests": [*testing, *literature],
-            "mixed": [*refactoring, *testing, *literature],
+            self.refactoring_collection: refactoring,
+            self.testing_collection: testing,
+            self.mixed_collection: [*refactoring, *testing, *literature],
         }
+        if literature:
+            contents[self.literature_collection] = literature
         return {
             collection: CollectionCorpus(
                 collection_name=collection,
@@ -66,6 +79,10 @@ class ThreeCollectionCorpusBuilder:
             )
             chunks.extend(chunker.chunk(source_document))
         return chunks
+
+
+class ThreeCollectionCorpusBuilder(ProductionCorpusBuilder):
+    """Legacy class name retained for compatibility; output is now disjoint."""
 
 
 def _require_document_types(

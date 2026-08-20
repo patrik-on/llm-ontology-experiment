@@ -4,18 +4,22 @@ experiment:
   enabled: false
 
 model:
-  config: "configs/models/qwen25_coder_7b_hf_wsl.yaml"
+  config: "configs/models/qwen25_coder_7b_ollama.yaml"
 
 retrieval:
   mode: "multi_collection_rag"
   allowed_splits:
     - "train"
   indexes:
-    - "test_examples"
-    - "refactoring_examples"
-    - "software_engineering_literature"
+    - "testing_db"
+    - "refactoring_db"
   fusion: "rrf"
-  top_k: 3
+  rrf_k: 60
+  per_collection_top_k: 5
+  global_top_k: 5
+  max_context_tokens: 12000
 
 notes:
-  - "Template only; multi-collection fusion and routing are explicitly not implemented in phase 1."
+  - "No router: every configured disjoint collection is queried in parallel."
+  - "Literature is optional and may be added only with an approved retrieval manifest."
+  - "Generation uses WSL Ollama at http://localhost:11434."

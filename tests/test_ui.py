@@ -53,7 +53,7 @@ class FakeRunner:
 
     def collection_for(self, task: str, mode: RetrievalMode) -> str | None:
         if mode == RetrievalMode.MULTI_COLLECTION_RAG:
-            raise NotImplementedError("MultiRAG is not available yet.")
+            return "testing_db, refactoring_db"
         return None if mode == RetrievalMode.NO_RAG else "mixed"
 
     def run(self, request: UIRunRequest) -> ExperimentRecord:
@@ -69,6 +69,7 @@ def test_ui_label_mapping_uses_canonical_project_values() -> None:
     assert task_from_label("Refactoring") == "refactoring"
     assert mode_from_label("Direct LLM") == RetrievalMode.NO_RAG
     assert mode_from_label("RAG") == RetrievalMode.SINGLE_COLLECTION_RAG
+    assert mode_from_label("MultiRAG") == RetrievalMode.MULTI_COLLECTION_RAG
     assert mode_from_label("MultiRAG (Not available yet)") == RetrievalMode.MULTI_COLLECTION_RAG
 
 
@@ -172,20 +173,21 @@ def test_metrics_view_uses_runner_metadata_and_na_for_missing_evaluation(tmp_pat
     assert result.metrics.values["compile_success"] == "N/A"
 
 
-def test_multirag_is_visible_but_returns_not_available(tmp_path: Path) -> None:
-    service = _service(tmp_path, FakeRunner())
+def test_multirag_uses_the_same_injected_runner(tmp_path: Path) -> None:
+    runner = FakeRunner(_record(tmp_path, mode=RetrievalMode.MULTI_COLLECTION_RAG))
+    service = _service(tmp_path, runner)
 
     result = service.run(
         task_label="Testing",
-        mode_label="MultiRAG (Not available yet)",
+        mode_label="MultiRAG",
         source_code="class A {}",
         requirements="",
         top_k=5,
         log_level="INFO",
     )
 
-    assert result.success is False
-    assert "not available" in (result.error or "").lower()
+    assert result.success is True
+    assert runner.requests[0].mode == RetrievalMode.MULTI_COLLECTION_RAG
 
 
 def test_log_buffers_are_isolated_and_secrets_are_redacted() -> None:

@@ -113,9 +113,9 @@ def test_marv_instruction_records_and_stratified_split() -> None:
     assert records[0]["source"] == "marv"
     assert records[0]["evaluation_votes"] == [1, -1]
     assert set().union(
-        *({record["refactoring_type"] for record in split_records} for split_records in splits.values())
+        *({record["refactoring_type"] for record in items} for items in splits.values())
     ) == set(data)
     commit_owners = {}
-    for split, split_records in splits.items():
-        for record in split_records:
+    for split, items in splits.items():
+        for record in items:
             assert commit_owners.setdefault(record["commit_sha"], split) == split

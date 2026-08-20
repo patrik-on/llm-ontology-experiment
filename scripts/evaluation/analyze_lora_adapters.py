@@ -1,3 +1,5 @@
+"""Compute diagnostic statistics for LoRA adapter weights."""
+
 from __future__ import annotations
 
 import argparse

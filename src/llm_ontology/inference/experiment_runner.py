@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-import json
 from pathlib import Path
 from time import perf_counter
 from typing import Any
@@ -21,9 +20,10 @@ from llm_ontology.retrieval.token_budget import ContextBudgeter, TokenCounter
 
 
 ALLOWED_EXPERIMENT_CELLS: dict[CanonicalTask, set[str | None]] = {
-    CanonicalTask.REFACTORING: {None, "refactor", "mixed"},
-    CanonicalTask.TESTING: {None, "tests", "mixed"},
+    CanonicalTask.REFACTORING: {None, "refactor", "refactoring_db", "mixed"},
+    CanonicalTask.TESTING: {None, "tests", "testing_db", "mixed"},
 }
+MULTIRAG_COLLECTIONS = {"testing_db", "refactoring_db", "literature_db"}
 
 
 class RagExperimentConfig(BaseModel):
@@ -32,6 +32,7 @@ class RagExperimentConfig(BaseModel):
     canonical_task: CanonicalTask | None = None
     retrieval_mode: RetrievalMode
     collection: str | None = None
+    collections: list[str] = Field(default_factory=list)
     dataset_version: str
     dataset_manifest_ids: list[str] = Field(default_factory=list)
     embedding_model: str
@@ -39,7 +40,10 @@ class RagExperimentConfig(BaseModel):
     embedding_remote_code_revision: str | None = None
     llm_model: str
     llm_version: str = "runtime_digest"
+    generation_provider: str = "ollama"
     top_k: int = Field(default=5, ge=1)
+    rrf_k: int = Field(default=60, ge=1)
+    per_collection_top_k: int = Field(default=5, ge=1, le=100)
     allowed_splits: list[str] = Field(default_factory=lambda: ["train"])
     tokenizer_model: str = "Qwen/Qwen2.5-Coder-7B-Instruct"
     tokenizer_revision: str = "c03e6d358207e414f1eca0bb1891e29f1db0e242"
@@ -59,16 +63,34 @@ class RagExperimentConfig(BaseModel):
         if self.retrieval_mode not in {
             RetrievalMode.NO_RAG,
             RetrievalMode.SINGLE_COLLECTION_RAG,
+            RetrievalMode.MULTI_COLLECTION_RAG,
         }:
             raise ValueError(
-                "The baseline runner supports only no_rag and single_collection_rag; "
-                "metadata RAG and MultiRAG are preserved but not selected automatically."
+                "The baseline runner supports no_rag, single_collection_rag and "
+                "multi_collection_rag; metadata RAG and ontology RAG are not selected."
             )
         if self.retrieval_mode == RetrievalMode.NO_RAG and self.collection is not None:
             raise ValueError("no_rag must not specify a collection.")
         if self.retrieval_mode == RetrievalMode.SINGLE_COLLECTION_RAG and self.collection is None:
             raise ValueError("single_collection_rag requires one collection.")
-        if self.collection not in ALLOWED_EXPERIMENT_CELLS[resolved.canonical]:
+        if self.retrieval_mode == RetrievalMode.MULTI_COLLECTION_RAG:
+            if self.collection is not None:
+                raise ValueError("multi_collection_rag must use collections, not collection.")
+            if len(self.collections) < 2 or not {"testing_db", "refactoring_db"}.issubset(
+                self.collections
+            ):
+                raise ValueError(
+                    "multi_collection_rag requires testing_db and refactoring_db."
+                )
+            unknown = set(self.collections) - MULTIRAG_COLLECTIONS
+            if unknown:
+                raise ValueError(f"Unsupported MultiRAG collections: {sorted(unknown)}")
+        elif self.collections:
+            raise ValueError("collections is reserved for multi_collection_rag.")
+        if (
+            self.retrieval_mode != RetrievalMode.MULTI_COLLECTION_RAG
+            and self.collection not in ALLOWED_EXPERIMENT_CELLS[resolved.canonical]
+        ):
             raise ValueError(
                 f"Collection {self.collection!r} is not a controlled cell for "
                 f"task {resolved.canonical.value!r}."
@@ -129,10 +151,16 @@ class RagExperimentRunner:
             RetrievalRequest(
                 query=case.input_text,
                 mode=config.retrieval_mode,
-                collections=[] if config.collection is None else [config.collection],
+                collections=(
+                    config.collections
+                    if config.retrieval_mode == RetrievalMode.MULTI_COLLECTION_RAG
+                    else [] if config.collection is None else [config.collection]
+                ),
                 allowed_splits=config.allowed_splits,
                 top_k=config.top_k,
                 max_context_tokens=self.budgeter.total_context_tokens,
+                rrf_k=config.rrf_k,
+                per_collection_top_k=config.per_collection_top_k,
             )
         )
         fixed_prompt = (
@@ -185,7 +213,10 @@ class RagExperimentRunner:
             retrieval_parameters={
                 "mode": config.retrieval_mode.value,
                 "collection": config.collection,
+                "collections": config.collections,
                 "top_k": config.top_k,
+                "rrf_k": config.rrf_k,
+                "per_collection_top_k": config.per_collection_top_k,
                 "allowed_splits": config.allowed_splits,
             },
             random_seed=config.random_seed,
@@ -208,6 +239,11 @@ class RagExperimentRunner:
             dataset_manifest_ids=config.dataset_manifest_ids,
             embedding_remote_code_revision=config.embedding_remote_code_revision,
             llm_digest=digest,
+            generation_provider=str(
+                getattr(self.llm_provider, "provider_name", config.generation_provider)
+            ),
+            generation_model=config.llm_model,
+            generation_model_digest=digest,
             prompt_artifact_path=str(prompt_path),
             prompt_hash=prompt_hash,
             token_budget=selection.model_dump(mode="json", exclude={"documents"}),
