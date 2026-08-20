@@ -4,7 +4,7 @@ experiment:
   enabled: false
 
 model:
-  config: "configs/models/qwen25_coder_7b_ollama.yaml"
+  config: "configs/shared/models/qwen25_coder_7b_ollama.yaml"
 
 retrieval:
   mode: "multi_collection_rag"

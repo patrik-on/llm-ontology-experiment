@@ -15,7 +15,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MODELS_CONFIG = ROOT / "configs" / "evaluation" / "eval_models_v2_only.yaml"
-DEFAULT_OUTPUT_DIR = ROOT / "artifacts" / "adapters"
+DEFAULT_OUTPUT_DIR = ROOT / "artifacts" / "finetuning" / "adapters"
 REQUIRED_FILES = ("adapter_config.json", "adapter_model.safetensors", "tokenizer_config.json")
 
 

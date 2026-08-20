@@ -11,6 +11,23 @@ porovnáva tri režimy pri rovnakom modeli, prompt contracte a evaluácii:
 Ontológia, GraphRAG, router, reranker a literárna kolekcia nie sú súčasťou
 aktuálneho baseline.
 
+## Project Structure
+
+Projekt je rozdelený podľa samostatných výskumných oblastí diplomovej práce:
+
+| Oblasť | Účel | Hlavné umiestnenie |
+|---|---|---|
+| Datasets | príprava Methods2Test, ML4Refactoring/MaRV, TestBench, SWE-Refactor a handcrafted smoke dát | `src/llm_ontology/datasets/`, `data/`, `configs/datasets/` |
+| Fine-tuning | aktívny LoRA/QLoRA tréning, readiness, adaptéry a training configy | `src/llm_ontology/finetuning/`, `scripts/finetuning/`, `configs/finetuning/` |
+| Retrieval | ingestion, leakage ochrana, embeddings, Chroma, RAG, MultiRAG a RRF | `src/llm_ontology/ingestion/`, `src/llm_ontology/vectorstore/`, `src/llm_ontology/retrieval/`, `scripts/retrieval/` |
+| Inference | spoločné promptovanie, model execution, structured output a Direct/RAG/MultiRAG runner | `src/llm_ontology/inference/`, `src/llm_ontology/approaches/` |
+| Evaluation | testing/refactoring metriky, executable checks, prediction IO a reporty | `src/llm_ontology/evaluation/`, `scripts/evaluation/` |
+| Experiments | výber prípadov, modelov a režimov; benchmark orchestration a porovnanie | `configs/experiments/`, `scripts/experiments/` |
+| UI | tenká Gradio prezentačná a debug vrstva nad spoločnými službami | `src/llm_ontology/ui/`, `configs/ui/` |
+
+Podrobná mapa, vlastníctvo balíkov a diagram sú v
+[Project map](docs/architecture/project_map.md).
+
 ## Runtime
 
 Finálne experimenty bežia výhradne v jednom WSL/Linux prostredí:
@@ -100,16 +117,18 @@ python -m llm_ontology.cli.rag \
 ## Documentation
 
 - [Developer/agent context](devinfo.md)
-- [Architecture](docs/architecture.md)
-- [RAG and MultiRAG baseline](docs/rag_phase2.md)
-- [Ollama embeddings](docs/ollama_embeddings.md)
-- [UI](docs/ui.md)
-- [Experiment design](docs/experiment_design.md)
-- [Handcrafted smoke dataset](docs/smoke_dataset.md)
-- [Commit and artifact policy](docs/git_commit_policy.md)
+- [Project map](docs/architecture/project_map.md)
+- [Architecture](docs/architecture/system_architecture.md)
+- [RAG and MultiRAG baseline](docs/retrieval/rag_phase2.md)
+- [Ollama embeddings](docs/retrieval/ollama_embeddings.md)
+- [UI](docs/ui/overview.md)
+- [Experiment design](docs/experiments/design.md)
+- [Handcrafted smoke dataset](docs/datasets/handcrafted_smoke.md)
+- [Commit and artifact policy](docs/architecture/git_commit_policy.md)
 
-Historický fine-tuning, HF/Jina a Windows provenance zostávajú zdokumentované,
-ale nie sú defaultným finálnym workflow.
+Fine-tuning, retrieval, inference, evaluation, benchmark execution a UI sú
+samostatné aktívne výskumné oblasti. Konkrétny baseline používa iba ich
+explicitne nakonfigurovanú kombináciu.
 
 ## Testing
 

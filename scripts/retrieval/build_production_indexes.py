@@ -33,7 +33,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--report",
-        default="artifacts/indexes/ollama_bge_m3_production_report.json",
+        default="artifacts/retrieval/indexes/ollama_bge_m3_production_report.json",
     )
     args = parser.parse_args()
     setup_logging()

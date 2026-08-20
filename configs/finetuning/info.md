@@ -8,7 +8,7 @@ LoRA/QLoRA tréningové konfigurácie.
 - `training_b1_shared*.yaml`: shared testing + refactoring model.
 
 Súbory s `_wsl` používajú lokálny model z
-`configs/models/qwen25_coder_7b_hf_wsl.yaml` a zapisujú veľké výstupy mimo
+`configs/shared/models/qwen25_coder_7b_hf_wsl.yaml` a zapisujú veľké výstupy mimo
 Windows/OneDrive filesystemu. Varianty bez `_wsl` zostávajú pre Windows
 readiness kontroly a kompatibilitu.
 

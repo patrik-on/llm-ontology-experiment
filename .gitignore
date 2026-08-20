@@ -72,8 +72,8 @@ artifacts/**
 !artifacts/**/
 !artifacts/**/.gitkeep
 !artifacts/**/info.md
-!artifacts/adapters/*.json
-!artifacts/adapters/*.sha256
+!artifacts/finetuning/adapters/*.json
+!artifacts/finetuning/adapters/*.sha256
 
 # Experiment artifacts
 experiments/**/checkpoints/

@@ -4,7 +4,7 @@ YAML konfigurácie sú rozdelené podľa nezávislých častí experimentu.
 
 | Priečinok | Účel |
 |---|---|
-| `models/` | modelové cesty a runtime nastavenia |
+| `shared/` | spoločný base config, modelové cesty a environment lock |
 | `embeddings/` | embedding provider/model kontrakty |
 | `finetuning/` | LoRA/QLoRA parametre a training runs |
 | `experiments/` | kompozície model × approach × task |
@@ -12,6 +12,7 @@ YAML konfigurácie sú rozdelené podľa nezávislých častí experimentu.
 | `evaluation/` | modely, datasety a generation parametre evaluácie |
 | `inference/` | samostatná Ollama baseline inferencia |
 | `datasets/` | dataset-specific spracovanie |
+| `benchmarks/` | TestBench a SWE-Refactor kontrakty |
 | `ui/` | lokálne Gradio UI nastavenia |
 
 Pre reálny CUDA tréning používaj `configs/finetuning/*_wsl.yaml`. Direct, RAG
