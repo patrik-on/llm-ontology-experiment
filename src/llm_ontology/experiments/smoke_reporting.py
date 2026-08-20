@@ -34,9 +34,21 @@ def read_run_history(path: Path) -> list[SmokeRunRecord]:
     return records
 
 
-def latest_run_records(records: Iterable[SmokeRunRecord]) -> dict[str, SmokeRunRecord]:
+def latest_run_records(
+    records: Iterable[SmokeRunRecord],
+    *,
+    baseline_id: str | None = None,
+    baseline_fingerprint: str | None = None,
+) -> dict[str, SmokeRunRecord]:
     latest: dict[str, SmokeRunRecord] = {}
     for record in records:
+        if baseline_id is not None and record.baseline_id != baseline_id:
+            continue
+        if (
+            baseline_fingerprint is not None
+            and record.baseline_fingerprint != baseline_fingerprint
+        ):
+            continue
         previous = latest.get(record.run_id)
         if previous is None or record.attempt >= previous.attempt:
             latest[record.run_id] = record
@@ -54,20 +66,36 @@ def write_smoke_reports(
     runs_path = output / "runs.jsonl"
     runs_path.touch(exist_ok=True)
     history = read_run_history(runs_path)
-    latest = list(latest_run_records(history).values())
+    baseline_history = [
+        record
+        for record in history
+        if record.baseline_id == config.baseline_id
+        and record.baseline_fingerprint == config.baseline_fingerprint
+    ]
+    latest = list(
+        latest_run_records(
+            baseline_history,
+            baseline_id=config.baseline_id,
+            baseline_fingerprint=config.baseline_fingerprint,
+        ).values()
+    )
     successes = [record for record in latest if record.status == "success"]
     failures = [record for record in latest if record.status == "failed"]
 
     summary_rows = _summary_rows(latest)
     summary = {
         "experiment_name": config.experiment_name,
+        "baseline_id": config.baseline_id,
+        "baseline_fingerprint": config.baseline_fingerprint,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "default_planned_runs": config.default_planned_runs,
         "planned_runs_current_selection": planned_runs,
         "recorded_run_ids": len(latest),
         "successful_run_ids": len(successes),
         "failed_run_ids": len(failures),
-        "history_records": len(history),
+        "history_records": len(baseline_history),
+        "raw_history_records": len(history),
+        "excluded_history_records": len(history) - len(baseline_history),
         "fairness_passed": bool(fairness_audit.get("passed")),
         "by_task_mode": summary_rows,
     }
@@ -101,7 +129,7 @@ def write_smoke_reports(
         output / "failure_analysis.json",
         _failure_analysis(
             failures,
-            [record for record in history if record.status == "failed"],
+            [record for record in baseline_history if record.status == "failed"],
         ),
     )
     _write_json(output / "fairness_audit.json", fairness_audit)
@@ -249,6 +277,7 @@ def _markdown_report(
         "# Smoke experiment report",
         "",
         f"- Experiment: `{summary['experiment_name']}`",
+        f"- Baseline fingerprint: `{summary['baseline_fingerprint']}`",
         f"- Default matrix: {summary['default_planned_runs']} runs",
         f"- Recorded run IDs: {summary['recorded_run_ids']}",
         f"- Successful: {summary['successful_run_ids']}",

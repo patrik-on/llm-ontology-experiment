@@ -27,6 +27,8 @@ MULTIRAG_COLLECTIONS = {"testing_db", "refactoring_db", "literature_db"}
 
 class RagExperimentConfig(BaseModel):
     enabled: bool = False
+    baseline_id: str | None = None
+    baseline_fingerprint: str | None = None
     requested_task: str
     canonical_task: CanonicalTask | None = None
     retrieval_mode: RetrievalMode

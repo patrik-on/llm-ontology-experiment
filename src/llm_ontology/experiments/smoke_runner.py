@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import hashlib
 import json
+import platform
+import sys
 from collections.abc import Callable
 from datetime import datetime, timezone
 from pathlib import Path
@@ -12,12 +15,21 @@ from llm_ontology.evaluation.experiment_log import ExperimentRecord
 from llm_ontology.evaluation.refactoring_metrics import compute_refactoring_metrics
 from llm_ontology.evaluation.test_metrics import compute_testing_metrics
 from llm_ontology.experiments.fairness import audit_prompt_fairness, smoke_project_context
+from llm_ontology.experiments.baseline import (
+    BaselineMismatchError,
+    collection_content_hash,
+    collection_manifest_id,
+    require_matching_fingerprint,
+    write_baseline_artifacts,
+)
 from llm_ontology.experiments.smoke_models import (
+    FrozenCollectionIdentity,
     SmokeExperimentConfig,
     SmokeRunRecord,
     SmokeRunResult,
     SmokeSelection,
 )
+from llm_ontology.ingestion.manifest import DatasetManifest
 from llm_ontology.experiments.smoke_reporting import (
     append_run_record,
     latest_run_records,
@@ -29,11 +41,25 @@ from llm_ontology.inference.experiment_runner import (
     RagExperimentConfig,
     RagExperimentRunner,
 )
+from llm_ontology.inference.prompting import (
+    PROMPT_TEMPLATE_VERSION,
+    canonical_prompt_template,
+)
+from llm_ontology.inference.structured_output import STRUCTURED_OUTPUT_SCHEMA_VERSION
 from llm_ontology.retrieval.config import RagConfig, load_rag_config
-from llm_ontology.retrieval.factory import create_llm_provider, create_vector_store
+from llm_ontology.retrieval.factory import (
+    create_embedding_provider,
+    create_llm_provider,
+    create_vector_store,
+)
 from llm_ontology.retrieval.models import RetrievalMode
 from llm_ontology.retrieval.pipeline import VectorRetriever
 from llm_ontology.retrieval.token_budget import HuggingFaceTokenCounter
+from llm_ontology.vectorstore.manifest import (
+    CollectionManifest,
+    CollectionManifestStore,
+    IncompatibleCollectionError,
+)
 
 
 CaseExecutor = Callable[[RagExperimentConfig, ExperimentCase], ExperimentRecord]
@@ -62,11 +88,13 @@ class SmokeExperimentRunner:
         selected = selection or SmokeSelection()
         cases = load_smoke_cases(self.config.dataset_root)
         manifest = load_smoke_manifest(self.config.dataset_root)
-        self._preflight(cases)
+        environment = self._preflight(cases, manifest)
         fairness = audit_prompt_fairness(cases)
         if not fairness["passed"]:
             write_smoke_reports(self.config, planned_runs=0, fairness_audit=fairness)
             raise RuntimeError("Canonical prompt fairness audit failed.")
+
+        write_baseline_artifacts(self.config, self._load_rag_config(), environment)
 
         planned = self._select_matrix(cases, selected)
         write_smoke_reports(
@@ -78,12 +106,18 @@ class SmokeExperimentRunner:
             return SmokeRunResult(
                 preflight_passed=True,
                 fairness_passed=True,
+                baseline_fingerprint=self.config.baseline_fingerprint,
+                baseline_fingerprint_matched=True,
                 planned_runs=len(planned),
                 output_dir=self.config.output_dir,
             )
 
         runs_path = self.config.output_dir / "runs.jsonl"
-        latest = latest_run_records(read_run_history(runs_path))
+        latest = latest_run_records(
+            read_run_history(runs_path),
+            baseline_id=self.config.baseline_id,
+            baseline_fingerprint=self.config.baseline_fingerprint,
+        )
         executed = skipped = succeeded = failed = 0
         for case, mode in planned:
             run_id = _run_id(case.id, mode)
@@ -109,6 +143,8 @@ class SmokeExperimentRunner:
         return SmokeRunResult(
             preflight_passed=True,
             fairness_passed=True,
+            baseline_fingerprint=self.config.baseline_fingerprint,
+            baseline_fingerprint_matched=True,
             planned_runs=len(planned),
             executed_runs=executed,
             skipped_runs=skipped,
@@ -188,6 +224,8 @@ class SmokeExperimentRunner:
             metrics = _evaluate(case, experiment)
             experiment = experiment.model_copy(update={"metrics": metrics})
             return SmokeRunRecord(
+                baseline_id=self.config.baseline_id,
+                baseline_fingerprint=self.config.baseline_fingerprint,
                 run_id=_run_id(case.id, mode),
                 case_id=case.id,
                 task=case.task,
@@ -203,6 +241,8 @@ class SmokeExperimentRunner:
             )
         except Exception as exc:  # one failed cell must not discard completed cells
             return SmokeRunRecord(
+                baseline_id=self.config.baseline_id,
+                baseline_fingerprint=self.config.baseline_fingerprint,
                 run_id=_run_id(case.id, mode),
                 case_id=case.id,
                 task=case.task,
@@ -257,6 +297,8 @@ class SmokeExperimentRunner:
         is_multi = mode == RetrievalMode.MULTI_COLLECTION_RAG
         return RagExperimentConfig(
             enabled=True,
+            baseline_id=self.config.baseline_id,
+            baseline_fingerprint=self.config.baseline_fingerprint,
             requested_task=case.task,
             retrieval_mode=mode,
             collection=self.config.single_collection if is_single else None,
@@ -288,33 +330,201 @@ class SmokeExperimentRunner:
             prompt_artifacts_dir=self.config.output_dir / "prompts" / case.id / mode.value,
         )
 
-    def _preflight(self, cases: list[SmokeCase]) -> None:
+    def _preflight(
+        self,
+        cases: list[SmokeCase],
+        manifest: DatasetManifest,
+    ) -> dict[str, Any]:
+        require_matching_fingerprint(self.config)
         if len(cases) != 24:
             raise ValueError(f"Smoke preflight expected 24 cases, found {len(cases)}.")
         rag = self._load_rag_config()
-        if rag.runtime.environment != "wsl" or rag.runtime.status != "current":
-            raise ValueError("Smoke baseline requires the current WSL retrieval runtime.")
-        if rag.llm.model != "qwen2.5-coder:7b" or rag.embeddings.model != "bge-m3":
-            raise ValueError("Smoke baseline model or embedding model differs from the frozen baseline.")
+        mismatches: list[str] = []
+
+        def check(name: str, actual: Any, expected: Any) -> None:
+            if actual != expected:
+                mismatches.append(f"{name}: expected={expected!r}, actual={actual!r}")
+
+        check("runtime.environment", rag.runtime.environment, self.config.runtime_environment)
+        check("runtime.status", rag.runtime.status, "current")
+        check("runtime.ollama_base_url", rag.runtime.ollama_base_url, self.config.ollama_base_url)
+        check("generation.provider", rag.llm.provider, self.config.generation_provider)
+        check("generation.model", rag.llm.model, self.config.generation_model)
+        check("generation.base_url", rag.llm.base_url, self.config.ollama_base_url)
+        check("generation.temperature", rag.llm.temperature, self.config.generation_temperature)
+        check("generation.top_p", rag.llm.top_p, self.config.generation_top_p)
+        check("generation.seed", rag.llm.seed, self.config.random_seed)
+        check("embeddings.provider", rag.embeddings.provider, self.config.embedding_provider)
+        check("embeddings.model", rag.embeddings.model, self.config.embedding_model)
+        check("embeddings.dimension", rag.embeddings.dimension, self.config.embedding_dimension)
+        check("embeddings.normalized", rag.embeddings.normalized, self.config.embedding_normalized)
+        check("embeddings.base_url", rag.embeddings.base_url, self.config.ollama_base_url)
+        check("retrieval.top_k", rag.retrieval.top_k, self.config.top_k)
+        check(
+            "retrieval.max_context_tokens",
+            rag.retrieval.max_context_tokens,
+            self.config.retrieval_token_budget,
+        )
+        check("retrieval.rrf_k", rag.retrieval.rrf_k, self.config.rrf_k)
+        check(
+            "retrieval.per_collection_top_k",
+            rag.retrieval.per_collection_top_k,
+            self.config.per_collection_top_k,
+        )
+        check(
+            "retrieval.allowed_splits",
+            tuple(rag.retrieval.allowed_splits),
+            self.config.allowed_splits,
+        )
+        check("retrieval.collections", tuple(rag.retrieval.collections), ("mixed",))
+        check("retrieval.mode", rag.retrieval.mode.value, "single_collection_rag")
+        check(
+            "ingestion.allowed_splits",
+            tuple(rag.ingestion.allowed_splits),
+            self.config.allowed_splits,
+        )
+        check("prompt.version", PROMPT_TEMPLATE_VERSION, self.config.prompt_template_version)
+        check(
+            "structured_output.schema_version",
+            STRUCTURED_OUTPUT_SCHEMA_VERSION,
+            self.config.structured_output_schema_version,
+        )
+        check(
+            "prompt.testing_sha256",
+            _prompt_template_hash("testing"),
+            self.config.testing_prompt_template_sha256,
+        )
+        check(
+            "prompt.refactoring_sha256",
+            _prompt_template_hash("refactoring"),
+            self.config.refactoring_prompt_template_sha256,
+        )
+        check("dataset.manifest_id", manifest.manifest_id, self.config.smoke_dataset_manifest_id)
+        check("dataset.content_hash", manifest.content_hash, self.config.smoke_dataset_content_hash)
         leakage_path = self.config.dataset_root / "leakage_report.json"
         leakage = json.loads(leakage_path.read_text(encoding="utf-8"))
         if leakage.get("overall_safe") is not True:
-            raise ValueError("Smoke leakage audit is not safe.")
+            raise BaselineMismatchError(
+                "BASELINE_MISMATCH: smoke leakage audit is not safe."
+            )
+
+        collection_metadata = {
+            name: identity.model_dump(mode="json")
+            for name, identity in sorted(self.config.collection_manifests.items())
+        }
+        actual_generation_digest = self.config.generation_model_digest
+        actual_embedding_digest = self.config.embedding_model_digest
+        runtime_validation = "skipped"
         if not self.config.require_runtime_assets:
-            return
+            if mismatches:
+                raise BaselineMismatchError(
+                    "BASELINE_MISMATCH: " + "; ".join(mismatches)
+                )
+            return _environment_metadata(
+                self.config,
+                rag,
+                generation_digest=actual_generation_digest,
+                embedding_digest=actual_embedding_digest,
+                collections=collection_metadata,
+                runtime_validation=runtime_validation,
+            )
+
         persist = Path(rag.vector_store.persist_path)
         if not persist.is_dir():
-            raise FileNotFoundError(f"Chroma persistence directory is missing: {persist}")
+            raise BaselineMismatchError(
+                "BASELINE_MISMATCH: Chroma persistence directory is missing: "
+                f"{persist.as_posix()}"
+            )
+        manifest_store = CollectionManifestStore(persist)
         for collection in (
             self.config.single_collection,
             *self.config.multi_collections,
         ):
-            manifest_path = persist / "manifests" / f"{collection}.json"
-            if not manifest_path.is_file():
-                raise FileNotFoundError(f"Collection manifest is missing: {manifest_path}")
-            payload = json.loads(manifest_path.read_text(encoding="utf-8"))
-            if int(payload.get("document_count", 0)) <= 0:
-                raise ValueError(f"Collection {collection!r} has no indexed documents.")
+            try:
+                collection_manifest = manifest_store.read(collection)
+            except IncompatibleCollectionError as exc:
+                raise BaselineMismatchError(f"BASELINE_MISMATCH: {exc}") from exc
+            _check_collection_identity(
+                collection,
+                collection_manifest,
+                self.config.collection_manifests[collection],
+                mismatches,
+            )
+            check(
+                f"collections.{collection}.embedding_provider",
+                collection_manifest.embedding_provider,
+                self.config.embedding_provider,
+            )
+            check(
+                f"collections.{collection}.embedding_model",
+                collection_manifest.embedding_model,
+                self.config.embedding_model,
+            )
+            check(
+                f"collections.{collection}.embedding_dimension",
+                collection_manifest.embedding_dimension,
+                self.config.embedding_dimension,
+            )
+            check(
+                f"collections.{collection}.embedding_model_digest",
+                collection_manifest.embedding_model_digest,
+                self.config.embedding_model_digest,
+            )
+            collection_metadata[collection] = {
+                "manifest_id": collection_manifest_id(collection_manifest),
+                "content_hash": collection_content_hash(collection_manifest),
+                "document_count": collection_manifest.document_count,
+                "dataset_manifest_ids": sorted(collection_manifest.dataset_manifests),
+            }
+
+        if mismatches:
+            raise BaselineMismatchError("BASELINE_MISMATCH: " + "; ".join(mismatches))
+
+        generation_provider = create_llm_provider(rag.llm)
+        generation_resolver = getattr(generation_provider, "resolve_model_digest", None)
+        if not callable(generation_resolver):
+            mismatches.append("generation model provider cannot resolve a runtime digest")
+        else:
+            try:
+                actual_generation_digest = str(generation_resolver())
+            except RuntimeError as exc:
+                raise BaselineMismatchError(
+                    "BASELINE_MISMATCH: generation model digest could not be verified: "
+                    f"{exc}"
+                ) from exc
+            check(
+                "generation.model_digest",
+                actual_generation_digest,
+                self.config.generation_model_digest,
+            )
+        embedding_provider = create_embedding_provider(rag.embeddings)
+        embedding_resolver = getattr(embedding_provider, "resolve_model_digest", None)
+        if not callable(embedding_resolver):
+            mismatches.append("embedding provider cannot resolve a runtime digest")
+        else:
+            try:
+                actual_embedding_digest = str(embedding_resolver())
+            except RuntimeError as exc:
+                raise BaselineMismatchError(
+                    "BASELINE_MISMATCH: embedding model digest could not be verified: "
+                    f"{exc}"
+                ) from exc
+            check(
+                "embeddings.model_digest",
+                actual_embedding_digest,
+                self.config.embedding_model_digest,
+            )
+
+        if mismatches:
+            raise BaselineMismatchError("BASELINE_MISMATCH: " + "; ".join(mismatches))
+        return _environment_metadata(
+            self.config,
+            rag,
+            generation_digest=actual_generation_digest,
+            embedding_digest=actual_embedding_digest,
+            collections=collection_metadata,
+            runtime_validation="passed",
+        )
 
     def _load_rag_config(self) -> RagConfig:
         if self._rag_config is None:
@@ -345,3 +555,59 @@ def _evaluate(case: SmokeCase, experiment: ExperimentRecord) -> dict[str, Any]:
 
 def _run_id(case_id: str, mode: RetrievalMode) -> str:
     return f"{case_id}::{mode.value}"
+
+
+def _prompt_template_hash(task: str) -> str:
+    template = canonical_prompt_template(task)
+    return hashlib.sha256(template.encode("utf-8")).hexdigest()
+
+
+def _check_collection_identity(
+    name: str,
+    manifest: CollectionManifest,
+    expected: FrozenCollectionIdentity,
+    mismatches: list[str],
+) -> None:
+    checks = {
+        "manifest_id": collection_manifest_id(manifest),
+        "content_hash": collection_content_hash(manifest),
+        "document_count": manifest.document_count,
+        "dataset_manifest_ids": tuple(sorted(manifest.dataset_manifests)),
+    }
+    expected_values = {
+        "manifest_id": expected.manifest_id,
+        "content_hash": expected.content_hash,
+        "document_count": expected.document_count,
+        "dataset_manifest_ids": tuple(sorted(expected.dataset_manifest_ids)),
+    }
+    for field, actual in checks.items():
+        wanted = expected_values[field]
+        if actual != wanted:
+            mismatches.append(
+                f"collections.{name}.{field}: expected={wanted!r}, actual={actual!r}"
+            )
+
+
+def _environment_metadata(
+    config: SmokeExperimentConfig,
+    rag: RagConfig,
+    *,
+    generation_digest: str,
+    embedding_digest: str,
+    collections: dict[str, Any],
+    runtime_validation: str,
+) -> dict[str, Any]:
+    return {
+        "baseline_id": config.baseline_id,
+        "baseline_fingerprint": config.baseline_fingerprint,
+        "os_runtime": platform.platform(),
+        "configured_runtime": config.runtime_environment,
+        "runtime_validation": runtime_validation,
+        "python_version": sys.version.split()[0],
+        "generation_model": config.generation_model,
+        "generation_digest": generation_digest,
+        "embedding_model": config.embedding_model,
+        "embedding_digest": embedding_digest,
+        "chroma_path": Path(rag.vector_store.persist_path).as_posix(),
+        "collection_ids": collections,
+    }

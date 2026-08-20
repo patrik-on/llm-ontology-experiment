@@ -11,6 +11,9 @@ from llm_ontology.providers.contracts import LLMProvider
 from llm_ontology.retrieval.models import RetrievedEvidence
 
 
+STRUCTURED_OUTPUT_SCHEMA_VERSION = "task-specific-pydantic-v1"
+
+
 class RefactoringAnswer(BaseModel):
     task_type: Literal["refactoring"] = "refactoring"
     analysis_summary: str

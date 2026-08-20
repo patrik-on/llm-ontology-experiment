@@ -3,8 +3,8 @@
 Samostatné inference utility mimo hlavného Hugging Face evaluation runnera.
 
 - `check_model_setup.py`: overí Windows HF config, modelové súbory a Ollama,
-- `run_ollama_baseline.py`: limitovaný Ollama baseline nad nakonfigurovanými dátami,
-- `generate.py`: legacy wrapper s navigáciou na aktuálnu evaluation pipeline.
+- `run_ollama_baseline.py`: limitovaný Ollama baseline nad nakonfigurovanými dátami.
 
-Na hlavné baseline/LoRA porovnanie používaj `scripts/evaluation/`. Na budúce
-direct/RAG/multi-RAG porovnanie bude slúžiť `scripts/experiments/`.
+Canonical Direct/RAG/MultiRAG experiment sa spúšťa cez
+`python -m llm_ontology.experiments.smoke`. Samostatná HF/LoRA evaluation má
+vlastné príkazy pod `scripts/evaluation/`.
