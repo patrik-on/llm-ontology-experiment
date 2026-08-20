@@ -1,3 +1,5 @@
+"""Run LoRA/QLoRA fine-tuning from a controlled YAML configuration."""
+
 from __future__ import annotations
 
 import argparse

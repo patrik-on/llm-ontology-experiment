@@ -1,0 +1,8 @@
+embedding:
+  provider: ollama
+  model: bge-m3
+  base_url: http://localhost:11434
+  dimension: 1024
+  ollama_runtime: wsl
+  batch_size: 16
+  timeout_seconds: 120

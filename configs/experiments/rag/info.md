@@ -1,12 +1,7 @@
 # configs/experiments/rag
 
 Konfigurácie pre jeden zjednotený retrieval tok. Aktuálny `template.yaml` je
-zámerne vypnutý a povoľuje iba `train` split.
-
-Pred aktiváciou treba implementovať:
-
-- leakage audit a corpus builder,
-- embedding/index backend,
-- retrieval trace,
-- validation-only ladenie `top_k`,
-- spustiteľný experiment runner.
+zámerne vypnutý proti náhodnému batch behu a povoľuje iba `train` split.
+Leakage audit, produkčný corpus builder, Ollama embedding backend, Chroma
+lifecycle, retrieval trace aj spoločný runner sú implementované. Pred baseline
+freeze sa smie na validation dátach doladiť iba vopred deklarované `top_k`.

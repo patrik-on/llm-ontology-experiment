@@ -1,9 +1,10 @@
+"""Package v2 LoRA adapters with manifests and SHA-256 checksums."""
+
 from __future__ import annotations
 
 import argparse
 import hashlib
 import json
-import sys
 import zipfile
 from datetime import datetime, timezone
 from pathlib import Path

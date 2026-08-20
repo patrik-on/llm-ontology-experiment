@@ -1,3 +1,5 @@
+"""Build the canonical human-readable evaluation report."""
+
 from __future__ import annotations
 
 import argparse

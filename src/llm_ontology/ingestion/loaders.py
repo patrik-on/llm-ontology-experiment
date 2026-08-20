@@ -203,7 +203,12 @@ def _case_identity(
 ) -> CaseIdentity:
     return CaseIdentity(
         dataset=dataset,
-        case_id=str(record.get("id") or record.get("case_id") or f"record-{index}"),
+        case_id=str(
+            record.get("id")
+            or record.get("case_id")
+            or record.get("refactoring_id")
+            or f"record-{index}"
+        ),
         repository=str(record.get("repository") or record.get("project") or ""),
         commit=str(record.get("commit_sha") or record.get("commit") or ""),
         file_path=str(record.get("file_path") or record.get("source_file") or source_uri),

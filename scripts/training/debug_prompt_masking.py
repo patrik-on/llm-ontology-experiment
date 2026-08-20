@@ -1,3 +1,5 @@
+"""Diagnose response-only prompt masking on small training samples."""
+
 from __future__ import annotations
 
 import argparse

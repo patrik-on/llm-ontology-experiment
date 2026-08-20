@@ -18,7 +18,7 @@ Tento dokument pripravuje ručné spustenie tréningu. Reálny tréning spúšť
 Tréning spúšťaj vo WSL v koreňovom priečinku projektu:
 
 ```bash
-cd /mnt/c/Users/patri/OneDrive/Dokumenty/GitHub/llm-ontology-experiment
+cd /path/to/llm-ontology-experiment
 source .venv_wsl/bin/activate
 ```
 
@@ -42,23 +42,23 @@ python scripts/check_finetuning_ready.py --config configs/finetuning/training_b1
 V2 výstupy patria pod:
 
 ```text
-/home/patrik/experiments/llm-ontology-v2
+~/experiments/llm-ontology-v2
 ```
 
 Očakávaná štruktúra:
 
 ```text
-/home/patrik/experiments/llm-ontology-v2/b2_testing/checkpoints
-/home/patrik/experiments/llm-ontology-v2/b2_testing/logs
-/home/patrik/experiments/llm-ontology-v2/b2_testing/results
+~/experiments/llm-ontology-v2/b2_testing/checkpoints
+~/experiments/llm-ontology-v2/b2_testing/logs
+~/experiments/llm-ontology-v2/b2_testing/results
 
-/home/patrik/experiments/llm-ontology-v2/b2_refactoring/checkpoints
-/home/patrik/experiments/llm-ontology-v2/b2_refactoring/logs
-/home/patrik/experiments/llm-ontology-v2/b2_refactoring/results
+~/experiments/llm-ontology-v2/b2_refactoring/checkpoints
+~/experiments/llm-ontology-v2/b2_refactoring/logs
+~/experiments/llm-ontology-v2/b2_refactoring/results
 
-/home/patrik/experiments/llm-ontology-v2/b1_shared/checkpoints
-/home/patrik/experiments/llm-ontology-v2/b1_shared/logs
-/home/patrik/experiments/llm-ontology-v2/b1_shared/results
+~/experiments/llm-ontology-v2/b1_shared/checkpoints
+~/experiments/llm-ontology-v2/b1_shared/logs
+~/experiments/llm-ontology-v2/b1_shared/results
 ```
 
 ## Training commands
@@ -70,7 +70,7 @@ Tieto príkazy sú pripravené na ručné spustenie. Nespúšťaj ich ako súča
 ```bash
 python scripts/train_finetuning.py \
   --config configs/finetuning/training_b2_testing_wsl.yaml \
-  --output-root /home/patrik/experiments/llm-ontology-v2/b2_testing
+  --output-root ~/experiments/llm-ontology-v2/b2_testing
 ```
 
 ### B2-R v2
@@ -78,7 +78,7 @@ python scripts/train_finetuning.py \
 ```bash
 python scripts/train_finetuning.py \
   --config configs/finetuning/training_b2_refactoring_wsl.yaml \
-  --output-root /home/patrik/experiments/llm-ontology-v2/b2_refactoring
+  --output-root ~/experiments/llm-ontology-v2/b2_refactoring
 ```
 
 ### B1 shared v2
@@ -86,7 +86,7 @@ python scripts/train_finetuning.py \
 ```bash
 python scripts/train_finetuning.py \
   --config configs/finetuning/training_b1_shared_wsl.yaml \
-  --output-root /home/patrik/experiments/llm-ontology-v2/b1_shared
+  --output-root ~/experiments/llm-ontology-v2/b1_shared
 ```
 
 ## Resume commands
@@ -98,8 +98,8 @@ Nahraď `checkpoint-XXX` konkrétnym checkpointom, napríklad `checkpoint-300`.
 ```bash
 python scripts/train_finetuning.py \
   --config configs/finetuning/training_b2_testing_wsl.yaml \
-  --output-root /home/patrik/experiments/llm-ontology-v2/b2_testing \
-  --resume_from_checkpoint /home/patrik/experiments/llm-ontology-v2/b2_testing/checkpoints/checkpoint-XXX
+  --output-root ~/experiments/llm-ontology-v2/b2_testing \
+  --resume_from_checkpoint ~/experiments/llm-ontology-v2/b2_testing/checkpoints/checkpoint-XXX
 ```
 
 ### B2-R v2 resume
@@ -107,8 +107,8 @@ python scripts/train_finetuning.py \
 ```bash
 python scripts/train_finetuning.py \
   --config configs/finetuning/training_b2_refactoring_wsl.yaml \
-  --output-root /home/patrik/experiments/llm-ontology-v2/b2_refactoring \
-  --resume_from_checkpoint /home/patrik/experiments/llm-ontology-v2/b2_refactoring/checkpoints/checkpoint-XXX
+  --output-root ~/experiments/llm-ontology-v2/b2_refactoring \
+  --resume_from_checkpoint ~/experiments/llm-ontology-v2/b2_refactoring/checkpoints/checkpoint-XXX
 ```
 
 ### B1 shared v2 resume
@@ -116,8 +116,8 @@ python scripts/train_finetuning.py \
 ```bash
 python scripts/train_finetuning.py \
   --config configs/finetuning/training_b1_shared_wsl.yaml \
-  --output-root /home/patrik/experiments/llm-ontology-v2/b1_shared \
-  --resume_from_checkpoint /home/patrik/experiments/llm-ontology-v2/b1_shared/checkpoints/checkpoint-XXX
+  --output-root ~/experiments/llm-ontology-v2/b1_shared \
+  --resume_from_checkpoint ~/experiments/llm-ontology-v2/b1_shared/checkpoints/checkpoint-XXX
 ```
 
 ## Monitoring
@@ -139,22 +139,22 @@ Pre každý model skontroluj summary a final adapter.
 ### B2-T v2
 
 ```bash
-cat /home/patrik/experiments/llm-ontology-v2/b2_testing/results/training_summary.json
-ls /home/patrik/experiments/llm-ontology-v2/b2_testing/checkpoints/final_adapter
+cat ~/experiments/llm-ontology-v2/b2_testing/results/training_summary.json
+ls ~/experiments/llm-ontology-v2/b2_testing/checkpoints/final_adapter
 ```
 
 ### B2-R v2
 
 ```bash
-cat /home/patrik/experiments/llm-ontology-v2/b2_refactoring/results/training_summary.json
-ls /home/patrik/experiments/llm-ontology-v2/b2_refactoring/checkpoints/final_adapter
+cat ~/experiments/llm-ontology-v2/b2_refactoring/results/training_summary.json
+ls ~/experiments/llm-ontology-v2/b2_refactoring/checkpoints/final_adapter
 ```
 
 ### B1 shared v2
 
 ```bash
-cat /home/patrik/experiments/llm-ontology-v2/b1_shared/results/training_summary.json
-ls /home/patrik/experiments/llm-ontology-v2/b1_shared/checkpoints/final_adapter
+cat ~/experiments/llm-ontology-v2/b1_shared/results/training_summary.json
+ls ~/experiments/llm-ontology-v2/b1_shared/checkpoints/final_adapter
 ```
 
 Skontroluj:
@@ -169,7 +169,7 @@ Skontroluj:
 - V1/pilotné adaptéry neprepisovať:
   - `experiments/b2_testing/checkpoints/final_adapter`
   - `experiments/b2_refactoring/checkpoints/final_adapter`
-  - `/home/patrik/experiments/llm-ontology/b1_shared/checkpoints/final_adapter`
+  - `~/experiments/llm-ontology/b1_shared/checkpoints/final_adapter`
 - V2 adaptéry budú neskôr pridané do `configs/evaluation/eval_models.yaml` ako nové modely.
 - Evaluation sa spustí až po dokončení v2 tréningu.
 - Nemeň datasety ani LoRA/QLoRA hyperparametre počas prípravy v2 setupu.

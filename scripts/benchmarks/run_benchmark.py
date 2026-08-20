@@ -1,3 +1,5 @@
+"""Generate controlled direct-model predictions for a configured benchmark."""
+
 from __future__ import annotations
 
 import argparse
@@ -39,15 +41,16 @@ def main() -> None:
     )[: args.limit]
     generator = None
     if args.backend == "ollama":
-        generator = lambda prompt: generate_with_ollama(
-            prompt=prompt,
-            model_name=args.model_name,
-            base_url=args.base_url,
-            temperature=args.temperature,
-            top_p=args.top_p,
-            max_tokens=args.max_tokens,
-            seed=args.seed,
-        )
+        def generator(prompt: str) -> str:
+            return generate_with_ollama(
+                prompt=prompt,
+                model_name=args.model_name,
+                base_url=args.base_url,
+                temperature=args.temperature,
+                top_p=args.top_p,
+                max_tokens=args.max_tokens,
+                seed=args.seed,
+            )
 
     results = run_cases(cases, generator=generator)
     generation = {

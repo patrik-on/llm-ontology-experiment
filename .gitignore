@@ -1,14 +1,20 @@
 # Python
 __pycache__/
 *.pyc
-.venv/
 .venv*/
 venv/
-env/
+/.venv/
+/env/
 .env
+.env.*
+!.env.example
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
 
 # Model weights
 *.safetensors
@@ -16,13 +22,21 @@ env/
 *.pt
 *.gguf
 
-# External local models
-# Model files live outside this repository, for example under C:/models/.
-models/
-C:/models/
+# External local model cache; package/config directories with the same name
+# remain tracked because the pattern is anchored to the repository root.
+/models/
+.cache/huggingface/
+.cache/ollama/
 
 # Jupyter
 .ipynb_checkpoints/
+
+# Build and packaging output
+build/
+dist/
+*.egg-info/
+*.tmp
+*.temp
 
 # Raw and processed data
 data/raw/**
@@ -97,3 +111,10 @@ results/**
 # IDE
 .vscode/
 .idea/
+*.swp
+*.swo
+
+# OS metadata
+.DS_Store
+Thumbs.db
+Desktop.ini

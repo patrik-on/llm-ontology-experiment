@@ -1,5 +1,9 @@
 # RAG phase 1
 
+> **Archived implementation milestone.** This document records the original
+> provider-neutral foundation. For the current production Ollama/Chroma and
+> MultiRAG state, use [RAG phases 2 and 3](rag_phase2.md).
+
 Phase 1 adds an executable, provider-neutral RAG foundation without changing
 the existing direct inference, fine-tuning or evaluation workflows.
 
@@ -99,15 +103,16 @@ python -m llm_ontology.cli.rag --config configs/retrieval/base.yaml query `
 The command prints the retrieved documents together with the complete trace.
 Re-indexing the same source is idempotent by content hash.
 
-## Superseded limitations
+## Limitations at the end of phase 1 (superseded)
 
 - the mock embedding provider is not suitable for semantic evaluation;
 - HTML and ontology loaders are not implemented; the PDF loader and its synthetic
   fixture tests are implemented in phase 2, but no unapproved literature is indexed;
 - Java-aware parsing and pair-preserving chunking are implemented in phase 2;
-- query routing, multi-collection fusion, ontology expansion and reranking are
-  not implemented and raise explicit errors where applicable;
-- query routing, multi-collection fusion and ontology expansion remain future work.
+- multi-collection fusion was not implemented in phase 1; it is now implemented
+  as router-free RRF in the shared retrieval layer;
+- ontology expansion, GraphRAG, routing and reranking remain outside the current
+  production baseline.
 
 The current controlled baseline design is documented in
 [RAG phases 2 and 3](rag_phase2.md).

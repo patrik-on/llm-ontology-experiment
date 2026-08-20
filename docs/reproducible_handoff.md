@@ -66,9 +66,9 @@ V2 adaptery pouzite vo finalnej evaluacii:
 
 | Model | Adapter directory |
 |---|---|
-| `b2_testing_v2` | `/home/patrik/experiments/llm-ontology-v2/b2_testing/checkpoints/final_adapter` |
-| `b2_refactoring_v2` | `/home/patrik/experiments/llm-ontology-v2/b2_refactoring/checkpoints/final_adapter` |
-| `b1_shared_v2` | `/home/patrik/experiments/llm-ontology-v2/b1_shared/checkpoints/final_adapter` |
+| `b2_testing_v2` | `~/experiments/llm-ontology-v2/b2_testing/checkpoints/final_adapter` |
+| `b2_refactoring_v2` | `~/experiments/llm-ontology-v2/b2_refactoring/checkpoints/final_adapter` |
+| `b1_shared_v2` | `~/experiments/llm-ontology-v2/b1_shared/checkpoints/final_adapter` |
 
 Kazdy adapter directory ma obsahovat minimalne:
 

@@ -186,24 +186,33 @@ def test_runner_records_alias_canonical_task_prompt_and_budget(tmp_path: Path) -
     assert record.prompt_hash
     assert Path(record.prompt_artifact_path or "").exists()
     assert record.token_budget["counting_method"] == "character_estimate_4_to_1"
+    assert record.generation_provider == "mock"
+    assert record.generation_model == "fixture-llm"
+    assert record.generation_model_digest is None
 
 
-def test_six_controlled_matrix_configs_are_valid_and_disabled() -> None:
+def test_eight_controlled_matrix_configs_are_valid_and_disabled() -> None:
     root = Path("configs/experiments/rag_v2")
     configs = [load_experiment_config(path) for path in sorted(root.glob("*.yaml"))]
     cells = {
-        (config.canonical_task.value, config.collection)  # type: ignore[union-attr]
+        (
+            config.canonical_task.value,  # type: ignore[union-attr]
+            config.collection,
+            tuple(config.collections),
+        )
         for config in configs
     }
 
-    assert len(configs) == 6
+    assert len(configs) == 8
     assert cells == {
-        ("refactoring", None),
-        ("refactoring", "refactor"),
-        ("refactoring", "mixed"),
-        ("testing", None),
-        ("testing", "tests"),
-        ("testing", "mixed"),
+        ("refactoring", None, ()),
+        ("refactoring", "refactoring_db", ()),
+        ("refactoring", "mixed", ()),
+        ("refactoring", None, ("testing_db", "refactoring_db")),
+        ("testing", None, ()),
+        ("testing", "testing_db", ()),
+        ("testing", "mixed", ()),
+        ("testing", None, ("testing_db", "refactoring_db")),
     }
     assert all(not config.enabled for config in configs)
 

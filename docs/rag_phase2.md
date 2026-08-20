@@ -1,99 +1,96 @@
-# Controlled RAG baseline: phases 2 and 3
+# Production RAG and MultiRAG baseline
 
-This implementation keeps the repository's existing boundaries and adds the
-controlled baseline on top of them. Existing metadata-RAG and MultiRAG enums and
-templates remain available, but the new experiment runner accepts only `no_rag`
-and one explicitly named collection.
+The controlled baseline uses one WSL runtime, Ollama `bge-m3` embeddings,
+ChromaDB, and Qwen generation. Direct, Single RAG, and MultiRAG share
+`RagExperimentRunner`, prompt construction, structured-output repair, model
+configuration, logging, and output records.
 
-## Controlled corpora
+## Leakage-safe corpus
 
-`ThreeCollectionCorpusBuilder` constructs exactly these corpora:
+Source manifests under `configs/datasets/manifests/` pin the original train and
+benchmark files by SHA-256 and sample count. The production builder first
+reserves benchmark identities and conservative Java/full-document fingerprints.
+It creates derived retrieval manifests after excluding every overlap; benchmark
+records are never passed to the corpus builder or vector store.
 
-| Collection | Refactoring pairs | Testing pairs | Shared literature |
-|---|---:|---:|---:|
-| `refactor` | yes | no | yes |
-| `tests` | no | yes | yes |
-| `mixed` | yes | yes | yes |
+The official ML4Refactoring partitions share projects, commits, and some grouped
+refactoring identities. The builder therefore records the unsafe pre-filter
+audit and creates a method-identity-disjoint derived corpus. Methods2Test uses
+project identities. Both tasks then pass a second exact code-fingerprint audit.
 
-Literature is materialized from collection-independent `KnowledgeDocument`
-objects. Consequently, its document IDs, chunks, metadata, content hashes and
-embedding-template version are identical in all three collections. Collection
-membership is a storage concern and is excluded from document identity.
+Build command:
 
-Dataset manifests independently record `source_split`, `usage_role` and
-`allowed_for_indexing`. Indexing is refused unless a manifest is explicitly
-indexable and has retrieval usage. Literature paths and approval therefore live
-in the manifest; the repository currently contains no approved final PDF corpus.
+```bash
+source .venv_wsl/bin/activate
+python scripts/retrieval/build_production_indexes.py
+```
 
-Leakage checks compare the input-code hash, normalized focal-method hash,
-full-document hash and structured case identity. Methods2Test keeps its original
-context level in metadata. The baseline input field is `src_fm`; changing the
-loader configuration to `src_fm_fc` is an explicit ablation and requires no code
-change.
+2026-08-20 production inventory:
 
-## Parsing and ingestion
+| Collection | Received pairs | Unique vectors | Duplicates | Source types |
+|---|---:|---:|---:|---|
+| `testing_db` | 3,986 | 3,978 | 8 | testing |
+| `refactoring_db` | 2,043 | 1,761 | 282 | refactoring |
+| `mixed` | 6,029 | 5,739 | 290 | testing + refactoring |
 
-- Java parsing uses tree-sitter and records package, imports, classes, fields,
-  methods, constructors, annotations, comments and line spans.
-- Before/after and production/test pairs remain atomic retrieval examples.
-- Parse failures use a traceable whole-document fallback.
-- The page-aware PDF loader removes repeated headers and footers, preserves page
-  provenance, isolates corrupt documents and reports pages that require OCR.
-- PDF behavior is tested with small generated PDFs only. No final literature
-  index is created by tests or configuration loading.
+`mixed` is asserted equivalent to the union of the disjoint collections before
+and after indexing. Literature is not duplicated into specialized stores; an
+optional `literature_db` is created only when approved literature exists. No
+such source was available for this build.
 
-## Embeddings and index lifecycle
+## Pair-aware ingestion and lifecycle
 
-The primary baseline candidate is
-`jinaai/jina-embeddings-v2-base-code`, not a final choice for every experiment.
-Both model artifacts and the separate remote-code repository are pinned:
+`ProductionCorpusBuilder` keeps production/test and before/after pairs atomic,
+uses the versioned embedding-text builders, and records Java signature metadata.
+Untrusted diff or oversized inputs use an explicit auditable fallback. Native
+Tree-sitter remains available for ordinary Java ingestion; the production batch
+uses the non-native conservative Java signature parser to avoid a reproducible
+Tree-sitter crash on malformed diff records.
 
-- model revision: `516f4baf13dec4ddddda8631e019b5737c8bc250`;
-- remote-code revision: `3baf9e3ac750e76e8edd3019170176884695fb94`;
-- embedding dimension: 768;
-- normalized vectors: enabled.
+Every physical collection has a sidecar manifest containing provider, model,
+runtime digest, dimension, chunker/pipeline version, derived dataset manifest
+IDs, library versions, and final count. Rebuilds replace only the exact named
+collection. `mixed` reuses the already produced bge-m3 vectors from the
+disjoint stores and writes them in bounded Chroma batches; it does not create a
+different embedding space.
 
-The real CPU sanity test embeds two short documents and verifies that a
-refactoring query ranks the refactoring document above a testing document. It
-passed before any full-corpus indexing. The test also exposed that the model's
-remote code is incompatible with Transformers 5.x, so the RAG dependency is
-constrained to Transformers 4.x.
+## MultiRAG
 
-Every persistent collection has a sidecar manifest containing model and code
-revisions, dimension, normalization, embedding-template version, chunker and
-pipeline versions, dataset manifest IDs and runtime library versions. Querying
-through `CollectionIndexLifecycle` rejects a missing or stale manifest. Rebuild
-is explicit and replaces only the exactly named collection.
+MultiRAG has no router. Every configured collection is queried in parallel,
+then the shared retrieval layer performs:
 
-## Generation and reproducibility
+1. Reciprocal-rank fusion: `sum(1 / (rrf_k + rank))`, default `rrf_k=60`.
+2. Deduplication by document ID, normalized content hash, and pair identities.
+3. At most one RRF contribution per physical collection for each deduplicated
+   document.
+4. One global top-k and the same `ContextBudgeter` used by Single RAG.
+5. The normal RAG prompt and shared Ollama structured-output path.
 
-`OllamaProvider` records the installed model digest, seed, generation options,
-client latency and Ollama token/timing counters. It sends the task-specific
-Pydantic JSON Schema to Ollama and the structured-output layer performs only a
-bounded number of format-repair retries.
-
-Input context is budgeted with the pinned Qwen tokenizer:
-
-- tokenizer: `Qwen/Qwen2.5-Coder-7B-Instruct`;
-- revision: `c03e6d358207e414f1eca0bb1891e29f1db0e242`.
-
-The character-based counter remains available only as an explicitly labelled
-test/fallback method. Each record stores token method, tokenizer revision,
-fixed-prompt tokens, selected/truncated/dropped documents, retrieval tokens,
-output reserve and safety margin.
-
-The runner stores the requested task alias and canonical task, retrieval mode,
-collection, dataset manifest IDs, embedding/code revisions, LLM digest, prompt
-artifact path and hash, retrieval trace, structured attempts and response.
+The trace preserves collection-local rank/score, source collection, RRF score,
+final rank, candidate counts before/after deduplication, selected document IDs,
+token counts, and per-step latency. The UI only renders this trace; it contains
+no fusion logic.
 
 ## Experiment matrix
 
-The six configurations are under `configs/experiments/rag_v2/`:
+Eight disabled batch configurations live under `configs/experiments/rag_v2/`:
 
-- refactoring: `no_rag`, `refactor`, `mixed`;
-- testing: `no_rag`, `tests`, `mixed`.
+| Task | Direct | RAG mixed | MultiRAG all | Specialized ablation |
+|---|---|---|---|---|
+| testing | `testing_no_rag` | `testing_mixed` | `testing_multi` | `testing_tests` |
+| refactoring | `refactoring_no_rag` | `refactoring_mixed` | `refactoring_multi` | `refactoring_refactor` |
 
-They are intentionally `enabled: false` while dataset manifest IDs are empty.
-They must be populated from approved datasets and approved literature manifests
-before execution. This prevents a test PDF or an unreviewed document from being
-silently promoted into the research index.
+The main comparison is Direct vs `mixed` Single RAG vs all-collection
+MultiRAG. Specialized configurations remain explicit ablations. Batch configs
+stay disabled until an evaluation command intentionally enables a run; the UI
+copies the same configs and enables only the current interactive request.
+
+## Validation artifacts
+
+`scripts/retrieval/smoke_ui_rag_modes.py` exercises testing/refactoring with
+Single RAG and MultiRAG through the real UI service/shared runner. It records
+top-k evidence, source types, prompt hash/path, token counts, model digest,
+generation success, and the fusion trace under `artifacts/smoke/`.
+
+Ontology augmentation, GraphRAG, routers, rerankers, model changes, and
+benchmark composition changes are intentionally outside this baseline.

@@ -1,3 +1,5 @@
+"""Validate the preserved legacy Windows RAG environment lock."""
+
 from __future__ import annotations
 
 import argparse

@@ -1,3 +1,5 @@
+"""Compatibility entrypoint for configured inference evaluation."""
+
 from __future__ import annotations
 
 import sys

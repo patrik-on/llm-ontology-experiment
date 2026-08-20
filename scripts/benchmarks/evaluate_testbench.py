@@ -1,3 +1,5 @@
+"""Evaluate generated TestBench predictions with the controlled Maven runner."""
+
 from __future__ import annotations
 
 import argparse

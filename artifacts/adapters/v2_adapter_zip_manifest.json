@@ -5,7 +5,7 @@
   "adapters": [
     {
       "model_name": "b2_testing_v2",
-      "source_adapter_dir": "/home/patrik/experiments/llm-ontology-v2/b2_testing/checkpoints/final_adapter",
+      "source_adapter_dir": "~/experiments/llm-ontology-v2/b2_testing/checkpoints/final_adapter",
       "zip_file": "artifacts/adapters/b2_testing_v2_final_adapter.zip",
       "zip_file_name": "b2_testing_v2_final_adapter.zip",
       "sha256_file": "artifacts/adapters/b2_testing_v2_final_adapter.zip.sha256",
@@ -19,7 +19,7 @@
     },
     {
       "model_name": "b2_refactoring_v2",
-      "source_adapter_dir": "/home/patrik/experiments/llm-ontology-v2/b2_refactoring/checkpoints/final_adapter",
+      "source_adapter_dir": "~/experiments/llm-ontology-v2/b2_refactoring/checkpoints/final_adapter",
       "zip_file": "artifacts/adapters/b2_refactoring_v2_final_adapter.zip",
       "zip_file_name": "b2_refactoring_v2_final_adapter.zip",
       "sha256_file": "artifacts/adapters/b2_refactoring_v2_final_adapter.zip.sha256",
@@ -33,7 +33,7 @@
     },
     {
       "model_name": "b1_shared_v2",
-      "source_adapter_dir": "/home/patrik/experiments/llm-ontology-v2/b1_shared/checkpoints/final_adapter",
+      "source_adapter_dir": "~/experiments/llm-ontology-v2/b1_shared/checkpoints/final_adapter",
       "zip_file": "artifacts/adapters/b1_shared_v2_final_adapter.zip",
       "zip_file_name": "b1_shared_v2_final_adapter.zip",
       "sha256_file": "artifacts/adapters/b1_shared_v2_final_adapter.zip.sha256",

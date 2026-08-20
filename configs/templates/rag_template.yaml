@@ -1,3 +1,0 @@
-# Deprecated compatibility pointer. Use configs/experiments/rag/template.yaml.
-deprecated: true
-replacement: "configs/experiments/rag/template.yaml"

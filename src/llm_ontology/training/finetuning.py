@@ -10,7 +10,7 @@ from typing import Any
 from llm_ontology.core.config import read_yaml
 from llm_ontology.finetuning.dataset_loader import load_instruction_dataset
 from llm_ontology.finetuning.model_loader import apply_lora, load_base_model, load_tokenizer
-from llm_ontology.finetuning.prompt_formatter import format_prompt, format_training_prompt
+from llm_ontology.finetuning.prompt_formatter import format_prompt
 
 
 def ensure_output_dirs(output_config: dict[str, Any]) -> None:
@@ -249,7 +249,10 @@ def require_training_packages() -> None:
         except ImportError:
             missing.append(package_name)
     if missing:
-        raise ImportError(f"Missing fine-tuning dependencies: {', '.join(missing)}. Run: pip install -r requirements.txt")
+        raise ImportError(
+            f"Missing fine-tuning dependencies: {', '.join(missing)}. "
+            "Run: python -m pip install -e '.[training]'"
+        )
 
 
 def build_tokenized_training_example(record: dict[str, Any], tokenizer: Any, max_seq_length: int) -> dict[str, Any] | None:
@@ -343,7 +346,7 @@ def apply_training_overrides(
         training_config.setdefault("run", {})["seed"] = seed
     if output_root is not None:
         experiment_name = training_config["experiment"]["name"]
-        output_base = Path(output_root)
+        output_base = Path(output_root).expanduser()
         root = output_base if output_base.name == experiment_name else output_base / experiment_name
         training_config["output"] = {
             "output_dir": str(root / "checkpoints"),
@@ -351,6 +354,16 @@ def apply_training_overrides(
             "results_dir": str(root / "results"),
             "final_adapter_dir": str(root / "checkpoints" / "final_adapter"),
         }
+    return training_config
+
+
+def expand_training_output_paths(training_config: dict[str, Any]) -> dict[str, Any]:
+    """Expand user-relative output paths once before the training run starts."""
+
+    output = training_config.get("output", {})
+    for key in ("output_dir", "logging_dir", "results_dir", "final_adapter_dir"):
+        if key in output:
+            output[key] = str(Path(output[key]).expanduser())
     return training_config
 
 
@@ -400,17 +413,21 @@ def run_training(
     seed: int | None = None,
     output_root: str | Path | None = None,
 ) -> None:
-    if resume_from_checkpoint and not Path(resume_from_checkpoint).exists():
-        raise FileNotFoundError(f"Resume checkpoint does not exist: {resume_from_checkpoint}")
+    if resume_from_checkpoint:
+        resume_from_checkpoint = str(Path(resume_from_checkpoint).expanduser())
+        if not Path(resume_from_checkpoint).exists():
+            raise FileNotFoundError(f"Resume checkpoint does not exist: {resume_from_checkpoint}")
 
-    training_config = apply_training_overrides(
-        read_yaml(config_path),
-        dry_run=dry_run,
-        max_steps=max_steps,
-        max_train_samples=max_train_samples,
-        max_val_samples=max_val_samples,
-        seed=seed,
-        output_root=output_root,
+    training_config = expand_training_output_paths(
+        apply_training_overrides(
+            read_yaml(config_path),
+            dry_run=dry_run,
+            max_steps=max_steps,
+            max_train_samples=max_train_samples,
+            max_val_samples=max_val_samples,
+            seed=seed,
+            output_root=output_root,
+        )
     )
     model_config = read_yaml(training_config["experiment"]["model_config"])
     lora_config = apply_lora_training_overrides(read_yaml(training_config["experiment"]["lora_config"]), dry_run=dry_run, max_steps=max_steps)

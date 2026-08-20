@@ -1,3 +1,5 @@
+"""Compatibility entrypoint for the fine-tuning readiness check."""
+
 from __future__ import annotations
 
 import sys

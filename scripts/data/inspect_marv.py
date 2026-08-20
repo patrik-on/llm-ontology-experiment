@@ -1,3 +1,5 @@
+"""Inspect the local MaRV source dataset and print summary statistics."""
+
 from __future__ import annotations
 
 import argparse

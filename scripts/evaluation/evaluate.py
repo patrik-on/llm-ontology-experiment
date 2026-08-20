@@ -1,3 +1,5 @@
+"""Failing legacy pointer to the supported evaluation commands."""
+
 from __future__ import annotations
 
 import argparse

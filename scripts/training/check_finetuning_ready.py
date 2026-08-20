@@ -1,3 +1,5 @@
+"""Validate datasets, configs, models, and outputs before fine-tuning."""
+
 from __future__ import annotations
 
 import sys

@@ -1,3 +1,5 @@
+"""Analyze cross-task interference in evaluation summaries."""
+
 from __future__ import annotations
 
 import argparse

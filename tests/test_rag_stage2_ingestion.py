@@ -16,7 +16,7 @@ from llm_ontology.ingestion.identity import (
     detect_leakage,
     make_sample_fingerprint,
 )
-from llm_ontology.ingestion.java import JavaAwareChunker, JavaParser, PairAwareJavaChunker
+from llm_ontology.ingestion.java import JavaAwareChunker, PairAwareJavaChunker
 from llm_ontology.ingestion.loaders import NormalizedJsonlLoader, TextDocumentLoader
 from llm_ontology.ingestion.manifest import DatasetManifest, UsageRole
 from llm_ontology.ingestion.pdf_loader import PdfDocumentLoader
@@ -299,7 +299,7 @@ def test_pdf_loader_refuses_path_outside_manifest(tmp_path) -> None:
         list(loader.load())
 
 
-def test_three_collection_corpus_changes_only_cross_task_examples(tmp_path) -> None:
+def test_production_corpus_is_disjoint_and_equivalent(tmp_path) -> None:
     refactoring_path = tmp_path / "refactoring.jsonl"
     testing_path = tmp_path / "testing.jsonl"
     literature_path = tmp_path / "literature.md"
@@ -358,18 +358,26 @@ def test_three_collection_corpus_changes_only_cross_task_examples(tmp_path) -> N
         literature=literature,
     )
 
-    refactor_ids = {document.document_id for document in corpora["refactor"].documents}
-    tests_ids = {document.document_id for document in corpora["tests"].documents}
+    refactor_ids = {
+        document.document_id for document in corpora["refactoring_db"].documents
+    }
+    tests_ids = {
+        document.document_id for document in corpora["testing_db"].documents
+    }
+    literature_ids = {
+        document.document_id for document in corpora["literature_db"].documents
+    }
     mixed_ids = {document.document_id for document in corpora["mixed"].documents}
     literature_id = next(
         document.document_id
         for document in corpora["mixed"].documents
         if document.document_type == DocumentType.LITERATURE
     )
-    assert literature_id in refactor_ids
-    assert literature_id in tests_ids
-    assert refactor_ids < mixed_ids
-    assert tests_ids < mixed_ids
+    assert literature_ids == {literature_id}
+    assert not (refactor_ids & tests_ids)
+    assert not (refactor_ids & literature_ids)
+    assert not (tests_ids & literature_ids)
+    assert refactor_ids | tests_ids | literature_ids == mixed_ids
 
 
 def test_collection_manifest_rejects_stale_embedding_revision(tmp_path) -> None:

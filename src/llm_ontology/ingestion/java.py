@@ -3,7 +3,6 @@ from __future__ import annotations
 import hashlib
 import importlib.metadata
 import re
-from dataclasses import dataclass
 from typing import Any, Iterable
 
 from pydantic import BaseModel, Field
@@ -260,8 +259,8 @@ class PairAwareJavaChunker:
     def chunk(self, document: SourceDocument) -> Iterable[DocumentChunk]:
         input_code = str(document.metadata.get("_input_code", ""))
         output_code = str(document.metadata.get("_output_code", ""))
-        input_result = self.parser.parse(input_code, allow_method_wrapper=True)
-        output_result = self.parser.parse(output_code, allow_method_wrapper=True)
+        input_result = self._parse_pair_side(input_code)
+        output_result = self._parse_pair_side(output_code)
         input_method = input_result.methods[0] if input_result.methods else None
         output_method = output_result.methods[0] if output_result.methods else None
         parse_success = input_method is not None and output_method is not None
@@ -290,6 +289,74 @@ class PairAwareJavaChunker:
             pipeline_version=self.pipeline_version,
         )
 
+    def _parse_pair_side(self, code: str) -> JavaParseResult:
+        reason = _pair_parse_fallback_reason(code)
+        if reason:
+            return JavaParseResult(
+                parser=getattr(self.parser, "parser_name", "tree-sitter-java"),
+                parser_version=self.parser.parser_version,
+                grammar_version=self.parser.grammar_version,
+                parse_success=False,
+                failure_reason=reason,
+            )
+        return self.parser.parse(code, allow_method_wrapper=True)
+
+
+class SafeJavaSignatureParser:
+    """Non-native Java signature parser for untrusted large dataset batches."""
+
+    parser_name = "java-signature-regex"
+    parser_version = "1"
+    grammar_version = "java-signature-regex-v1"
+
+    _method_pattern = re.compile(
+        r"(?m)^\s*(?:@[A-Za-z_$][A-Za-z0-9_$.]*(?:\([^\n]*\))?\s*)*"
+        r"(?:(?:public|protected|private|static|final|abstract|synchronized|native|"
+        r"strictfp|default)\s+)*"
+        r"(?P<return>[A-Za-z_$][A-Za-z0-9_$<>,.?\[\] ]*)\s+"
+        r"(?P<name>[A-Za-z_$][A-Za-z0-9_$]*)\s*"
+        r"\((?P<parameters>[^)]*)\)\s*(?:throws\s+[^\{]+)?\{"
+    )
+
+    def parse(self, source: str, *, allow_method_wrapper: bool = False) -> JavaParseResult:
+        match = self._method_pattern.search(source)
+        if match is None:
+            return JavaParseResult(
+                parser="java-signature-regex",
+                parser_version=self.parser_version,
+                grammar_version=self.grammar_version,
+                parse_success=False,
+                failure_reason="No conservative Java method signature found.",
+            )
+        start_line = source.count("\n", 0, match.start()) + 1
+        class_match = re.search(
+            r"\b(?:class|interface|enum|record)\s+([A-Za-z_$][A-Za-z0-9_$]*)",
+            source[: match.start()],
+        )
+        parameters = [
+            part.strip().rsplit(" ", 1)[0]
+            for part in match.group("parameters").split(",")
+            if " " in part.strip()
+        ]
+        return JavaParseResult(
+            parser="java-signature-regex",
+            parser_version=self.parser_version,
+            grammar_version=self.grammar_version,
+            parse_success=True,
+            methods=[
+                JavaMethod(
+                    content=source.strip(),
+                    class_name=class_match.group(1) if class_match else "",
+                    method_name=match.group("name"),
+                    method_signature=match.group(0).rstrip("{"),
+                    return_type=match.group("return").strip(),
+                    parameter_types=parameters,
+                    start_line=start_line,
+                    end_line=max(start_line, source.count("\n") + 1),
+                    synthetic_wrapper=allow_method_wrapper and class_match is None,
+                )
+            ],
+        )
 
 def _method_metadata(method: JavaMethod) -> dict[str, Any]:
     return {
@@ -304,6 +371,15 @@ def _method_metadata(method: JavaMethod) -> dict[str, Any]:
         "end_line": method.end_line,
         "synthetic_wrapper": method.synthetic_wrapper,
     }
+
+
+def _pair_parse_fallback_reason(code: str) -> str:
+    if len(code) > 50_000:
+        return "Pair side exceeds the safe Java parser input limit."
+    stripped = code.lstrip()
+    if stripped.startswith("@@ ") or "\n@@ " in code:
+        return "Pair side is a unified diff rather than a Java compilation unit."
+    return ""
 
 
 def _node_text(node: Any, source_bytes: bytes) -> str:

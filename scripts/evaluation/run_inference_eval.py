@@ -1,3 +1,5 @@
+"""Generate evaluation predictions for configured Hugging Face models."""
+
 from __future__ import annotations
 
 import sys

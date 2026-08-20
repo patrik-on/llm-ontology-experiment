@@ -130,18 +130,25 @@ def detect_leakage(
 ) -> LeakageReport:
     indexed_items = list(indexed)
     benchmark_items = list(benchmark)
+    lookup: dict[tuple[str, str], set[int]] = {}
+    for benchmark_index, item in enumerate(benchmark_items):
+        for key in _fingerprint_keys(item):
+            lookup.setdefault(key, set()).add(benchmark_index)
     overlaps: list[LeakageMatch] = []
     for indexed_item in indexed_items:
-        for benchmark_item in benchmark_items:
+        candidate_indexes: set[int] = set()
+        for key in _fingerprint_keys(indexed_item):
+            candidate_indexes.update(lookup.get(key, ()))
+        for benchmark_index in sorted(candidate_indexes):
+            benchmark_item = benchmark_items[benchmark_index]
             matched_by = _matching_fields(indexed_item, benchmark_item)
-            if matched_by:
-                overlaps.append(
-                    LeakageMatch(
-                        indexed_identity=indexed_item.identity,
-                        benchmark_identity=benchmark_item.identity,
-                        matched_by=matched_by,
-                    )
+            overlaps.append(
+                LeakageMatch(
+                    indexed_identity=indexed_item.identity,
+                    benchmark_identity=benchmark_item.identity,
+                    matched_by=matched_by,
                 )
+            )
     return LeakageReport(
         indexed_manifest_id=indexed_manifest_id,
         benchmark_manifest_id=benchmark_manifest_id,
@@ -149,6 +156,17 @@ def detect_leakage(
         benchmark_samples=len(benchmark_items),
         overlaps=overlaps,
     )
+
+
+def _fingerprint_keys(item: SampleFingerprint) -> set[tuple[str, str]]:
+    keys = {
+        ("input_code_hash", item.input_code_hash),
+        ("focal_method_hash", item.focal_method_hash),
+        ("full_document_hash", item.full_document_hash),
+    }
+    if _identity_is_specific(item.identity):
+        keys.add(("structured_identity", item.identity.canonical_key))
+    return keys
 
 
 def _matching_fields(left: SampleFingerprint, right: SampleFingerprint) -> list[str]:

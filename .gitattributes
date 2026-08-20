@@ -1,0 +1,13 @@
+# Keep source and configuration files stable in the canonical WSL/Linux runtime.
+* text=auto eol=lf
+
+# Binary artifacts must never be line-ending normalized.
+*.zip binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.pdf binary
+*.safetensors binary
+*.bin binary
+*.pt binary
+*.gguf binary

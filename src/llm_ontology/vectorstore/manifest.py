@@ -13,8 +13,11 @@ class CollectionManifest(BaseModel):
     model_config = ConfigDict(frozen=True)
 
     collection_name: str
+    embedding_provider: str = "unknown"
     embedding_model: str
     embedding_revision: str | None
+    embedding_model_digest: str | None = None
+    ollama_runtime: str = "unspecified"
     embedding_remote_code_revision: str | None = None
     embedding_dimension: int
     embedding_normalized: bool
@@ -37,8 +40,11 @@ class CollectionManifestStore:
 
     COMPATIBILITY_FIELDS = (
         "collection_name",
+        "embedding_provider",
         "embedding_model",
         "embedding_revision",
+        "embedding_model_digest",
+        "ollama_runtime",
         "embedding_remote_code_revision",
         "embedding_dimension",
         "embedding_normalized",
@@ -89,6 +95,47 @@ class CollectionManifestStore:
             )
         return actual
 
+    def require_embedding_compatible(
+        self, collection_name: str, embedding_provider: EmbeddingProvider
+    ) -> CollectionManifest:
+        """Validate provider identity on ordinary persistent-store read paths."""
+
+        actual = self.read(collection_name)
+        runtime = dict(getattr(embedding_provider, "runtime_metadata", {}))
+        expected_values = {
+            "embedding_provider": runtime.get(
+                "embedding_provider",
+                getattr(embedding_provider, "provider_name", "unknown"),
+            ),
+            "embedding_model": embedding_provider.model_identifier,
+            "embedding_revision": embedding_provider.model_revision,
+            "embedding_model_digest": runtime.get(
+                "embedding_model_digest",
+                getattr(embedding_provider, "model_digest", None),
+            ),
+            "embedding_dimension": int(
+                runtime.get(
+                    "embedding_dimension", embedding_provider.embedding_dimension
+                )
+            ),
+            "ollama_runtime": runtime.get("ollama_runtime", "unspecified"),
+        }
+        mismatches = {
+            field: (getattr(actual, field), expected)
+            for field, expected in expected_values.items()
+            if getattr(actual, field) != expected
+        }
+        if mismatches:
+            details = "; ".join(
+                f"{field}: index={values[0]!r}, configured={values[1]!r}"
+                for field, values in mismatches.items()
+            )
+            raise IncompatibleCollectionError(
+                f"Collection {collection_name!r} uses stale embeddings: {details}. "
+                "Rebuild explicitly through CollectionIndexLifecycle.rebuild()."
+            )
+        return actual
+
     def remove(self, collection_name: str) -> None:
         path = self.path_for(collection_name)
         if path.exists():
@@ -107,15 +154,32 @@ def create_collection_manifest(
     dataset_manifests: list[str],
     document_count: int = 0,
 ) -> CollectionManifest:
+    runtime_metadata = dict(getattr(embedding_provider, "runtime_metadata", {}))
     library_versions = getattr(embedding_provider, "library_versions", {})
     return CollectionManifest(
         collection_name=collection_name,
+        embedding_provider=str(
+            runtime_metadata.get(
+                "embedding_provider",
+                getattr(embedding_provider, "provider_name", "unknown"),
+            )
+        ),
         embedding_model=embedding_provider.model_identifier,
         embedding_revision=embedding_provider.model_revision,
+        embedding_model_digest=(
+            str(runtime_metadata["embedding_model_digest"])
+            if runtime_metadata.get("embedding_model_digest")
+            else getattr(embedding_provider, "model_digest", None)
+        ),
+        ollama_runtime=str(runtime_metadata.get("ollama_runtime", "unspecified")),
         embedding_remote_code_revision=getattr(
             embedding_provider, "remote_code_revision", None
         ),
-        embedding_dimension=embedding_provider.embedding_dimension,
+        embedding_dimension=int(
+            runtime_metadata.get(
+                "embedding_dimension", embedding_provider.embedding_dimension
+            )
+        ),
         embedding_normalized=embedding_normalized,
         embedding_template_version=embedding_template_version,
         chunker_name=chunker_name,

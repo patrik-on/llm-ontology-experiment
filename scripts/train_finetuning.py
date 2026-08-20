@@ -1,3 +1,5 @@
+"""Compatibility entrypoint for the canonical fine-tuning command."""
+
 from __future__ import annotations
 
 import sys

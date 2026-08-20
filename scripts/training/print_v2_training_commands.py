@@ -1,7 +1,9 @@
+"""Print portable commands for the historical v2 fine-tuning runs."""
+
 from __future__ import annotations
 
 
-OUTPUT_ROOT = "/home/patrik/experiments/llm-ontology-v2"
+OUTPUT_ROOT = "${LLM_ONTOLOGY_EXPERIMENTS_ROOT:-$HOME/experiments/llm-ontology-v2}"
 EXPERIMENTS = (
     ("B2-T v2", "b2_testing", "configs/finetuning/training_b2_testing_wsl.yaml"),
     ("B2-R v2", "b2_refactoring", "configs/finetuning/training_b2_refactoring_wsl.yaml"),

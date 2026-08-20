@@ -1,3 +1,5 @@
+"""Check the installed Transformers stack for training compatibility."""
+
 from __future__ import annotations
 
 import sys

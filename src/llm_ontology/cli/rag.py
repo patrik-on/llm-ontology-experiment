@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import json
 from pathlib import Path
 from typing import Any
 
@@ -17,6 +16,10 @@ from llm_ontology.retrieval.config import RagConfig, load_rag_config
 from llm_ontology.retrieval.factory import create_vector_store
 from llm_ontology.retrieval.models import RetrievalMode, RetrievalRequest
 from llm_ontology.retrieval.pipeline import VectorRetriever
+from llm_ontology.vectorstore.manifest import (
+    IncompatibleCollectionError,
+    create_collection_manifest,
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -34,6 +37,11 @@ def build_parser() -> argparse.ArgumentParser:
     query_parser = subparsers.add_parser("query", help="Run vector retrieval and print its trace.")
     query_parser.add_argument("--query", required=True)
     query_parser.add_argument("--collection", help="Logical collection name from config.")
+    query_parser.add_argument(
+        "--collections",
+        nargs="+",
+        help="Logical collection names for MultiRAG (default: tests refactor).",
+    )
     query_parser.add_argument("--mode", choices=tuple(mode.value for mode in RetrievalMode))
     query_parser.add_argument("--top-k", type=int)
     query_parser.add_argument("--filter", action="append", default=[], metavar="KEY=VALUE")
@@ -61,30 +69,76 @@ def run_index(args: argparse.Namespace, config: RagConfig) -> int:
             config.ingestion.literature_max_chars,
             config.ingestion.pipeline_version,
         )
+    vector_store = create_vector_store(config)
     pipeline = IndexingPipeline(
-        create_vector_store(config),
+        vector_store,
         allowed_splits=config.ingestion.allowed_splits,
     )
     report = pipeline.run(loader, chunker)
+    manifest_store = vector_store.manifest_store
+    if manifest_store is not None:
+        try:
+            previous = manifest_store.read(collection)
+        except IncompatibleCollectionError:
+            previous = None
+        dataset_manifests = sorted(
+            {
+                *(previous.dataset_manifests if previous else []),
+                args.dataset,
+            }
+        )
+        manifest_store.write(
+            create_collection_manifest(
+                collection_name=collection,
+                embedding_provider=vector_store.embedding_provider,
+                embedding_normalized=config.embeddings.normalized,
+                embedding_template_version="1",
+                chunker_name=(
+                    "passthrough"
+                    if args.loader == "dataset"
+                    else "structured_text"
+                ),
+                chunker_version=config.ingestion.pipeline_version,
+                ingestion_pipeline_version=config.ingestion.pipeline_version,
+                dataset_manifests=dataset_manifests,
+                document_count=(previous.document_count if previous else 0)
+                + report.indexed,
+            )
+        )
     print(report.model_dump_json(indent=2))
     return 0
 
 
 def run_query(args: argparse.Namespace, config: RagConfig) -> int:
     mode = RetrievalMode(args.mode) if args.mode else config.retrieval.mode
-    collection = (
-        config.collections.resolve(args.collection)
-        if args.collection
-        else _configured_collection(config)
-    )
+    if mode == RetrievalMode.MULTI_COLLECTION_RAG:
+        if args.collection:
+            raise ValueError("Use --collections, not --collection, for MultiRAG.")
+        logical_collections = getattr(args, "collections", None) or [
+            "tests",
+            "refactor",
+        ]
+        collections = [
+            config.collections.resolve(name) for name in logical_collections
+        ]
+    elif mode == RetrievalMode.NO_RAG:
+        collections = []
+    else:
+        collections = [
+            config.collections.resolve(args.collection)
+            if args.collection
+            else _configured_collection(config)
+        ]
     request = RetrievalRequest(
         query=args.query,
         mode=mode,
-        collections=[] if mode == RetrievalMode.NO_RAG else [collection],
+        collections=collections,
         metadata_filter={**config.retrieval.metadata_filter, **parse_filters(args.filter)},
         allowed_splits=config.retrieval.allowed_splits,
         top_k=args.top_k or config.retrieval.top_k,
         max_context_tokens=config.retrieval.max_context_tokens,
+        rrf_k=config.retrieval.rrf_k,
+        per_collection_top_k=config.retrieval.per_collection_top_k,
     )
     result = VectorRetriever(create_vector_store(config)).retrieve(request)
     print(result.model_dump_json(indent=2))

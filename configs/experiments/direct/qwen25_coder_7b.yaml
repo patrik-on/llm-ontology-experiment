@@ -4,7 +4,7 @@ experiment:
   enabled: true
 
 model:
-  config: "configs/models/qwen25_coder_7b_hf_wsl.yaml"
+  config: "configs/models/qwen25_coder_7b_ollama.yaml"
 
 generation:
   max_new_tokens: 512

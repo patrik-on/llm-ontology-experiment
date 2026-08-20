@@ -33,6 +33,23 @@ class CollectionIndexLifecycle:
         self.manifest_store.write(completed)
         return result, completed
 
+    def rebuild_precomputed(
+        self,
+        manifest: CollectionManifest,
+        documents: list[DocumentChunk],
+        embeddings_by_document_id: dict[str, list[float]],
+    ) -> tuple[IndexWriteResult, CollectionManifest]:
+        if any(document.collection != manifest.collection_name for document in documents):
+            raise ValueError("Every document must target the rebuilt collection.")
+        self.manifest_store.remove(manifest.collection_name)
+        self._delete_exact_collection(manifest.collection_name)
+        result = self.vector_store.add_precomputed(
+            manifest.collection_name, documents, embeddings_by_document_id
+        )
+        completed = manifest.model_copy(update={"document_count": result.indexed})
+        self.manifest_store.write(completed)
+        return result, completed
+
     def query(
         self,
         expected_manifest: CollectionManifest,

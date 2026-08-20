@@ -1,3 +1,5 @@
+"""Failing legacy pointer to the supported inference commands."""
+
 from __future__ import annotations
 
 import argparse

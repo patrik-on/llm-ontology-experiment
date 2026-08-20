@@ -7,6 +7,7 @@ from typing import Any
 from llm_ontology.providers.contracts import EmbeddingProvider
 from llm_ontology.retrieval.models import DocumentChunk, RetrievalHit
 from llm_ontology.vectorstore.contracts import IndexWriteResult
+from llm_ontology.vectorstore.manifest import CollectionManifestStore
 
 LOGGER = logging.getLogger(__name__)
 
@@ -29,9 +30,15 @@ def create_chroma_client(persist_path: str | Path | None = None) -> Any:
 class ChromaVectorStore:
     """Thin ChromaDB adapter; embeddings remain owned by our provider boundary."""
 
-    def __init__(self, client: Any, embedding_provider: EmbeddingProvider) -> None:
+    def __init__(
+        self,
+        client: Any,
+        embedding_provider: EmbeddingProvider,
+        manifest_store: CollectionManifestStore | None = None,
+    ) -> None:
         self.client = client
         self.embedding_provider = embedding_provider
+        self.manifest_store = manifest_store
 
     def _collection(self, name: str) -> Any:
         return self.client.get_or_create_collection(
@@ -46,6 +53,10 @@ class ChromaVectorStore:
         return self.client.get_collection(name=name, embedding_function=None)
 
     def add(self, collection_name: str, documents: list[DocumentChunk]) -> IndexWriteResult:
+        if self.manifest_store is not None and self._collection_exists(collection_name):
+            self.manifest_store.require_embedding_compatible(
+                collection_name, self.embedding_provider
+            )
         collection = self._collection(collection_name)
         unique: list[DocumentChunk] = []
         seen_hashes: set[str] = set()
@@ -67,12 +78,7 @@ class ChromaVectorStore:
             embeddings = self.embedding_provider.embed_documents(
                 [document.embedding_text for document in unique]
             )
-            collection.upsert(
-                ids=[document.document_id for document in unique],
-                embeddings=embeddings,
-                documents=[document.content for document in unique],
-                metadatas=[document.chroma_metadata() for document in unique],
-            )
+            _upsert_batches(collection, unique, embeddings)
         LOGGER.info(
             "Indexed collection=%s received=%d indexed=%d duplicates=%d",
             collection_name,
@@ -95,6 +101,10 @@ class ChromaVectorStore:
         top_k: int,
         where: dict[str, Any] | None = None,
     ) -> list[RetrievalHit]:
+        if self.manifest_store is not None:
+            self.manifest_store.require_embedding_compatible(
+                collection_name, self.embedding_provider
+            )
         collection = self._existing_collection(collection_name)
         kwargs: dict[str, Any] = {
             "query_embeddings": [self.embedding_provider.embed_query(query)],
@@ -137,3 +147,74 @@ class ChromaVectorStore:
             include=[],
         )
         return bool(result.get("ids"))
+
+    def add_precomputed(
+        self,
+        collection_name: str,
+        documents: list[DocumentChunk],
+        embeddings_by_document_id: dict[str, list[float]],
+    ) -> IndexWriteResult:
+        """Index provider-produced vectors reused from an equivalent collection."""
+
+        collection = self._collection(collection_name)
+        unique: list[DocumentChunk] = []
+        seen_hashes: set[str] = set()
+        duplicates = 0
+        for document in documents:
+            if document.collection != collection_name:
+                raise ValueError(
+                    f"Document targets {document.collection!r}, not {collection_name!r}."
+                )
+            if document.content_hash in seen_hashes:
+                duplicates += 1
+                continue
+            if document.document_id not in embeddings_by_document_id:
+                raise ValueError(
+                    f"No reusable embedding for document {document.document_id!r}."
+                )
+            seen_hashes.add(document.content_hash)
+            unique.append(document)
+        if unique:
+            _upsert_batches(
+                collection,
+                unique,
+                [
+                    embeddings_by_document_id[document.document_id]
+                    for document in unique
+                ],
+            )
+        LOGGER.info(
+            "Indexed precomputed collection=%s received=%d indexed=%d duplicates=%d",
+            collection_name,
+            len(documents),
+            len(unique),
+            duplicates,
+        )
+        return IndexWriteResult(
+            collection=collection_name,
+            received=len(documents),
+            indexed=len(unique),
+            duplicates=duplicates,
+        )
+    def _collection_exists(self, collection_name: str) -> bool:
+        return collection_name in {
+            getattr(collection, "name", str(collection))
+            for collection in self.client.list_collections()
+        }
+
+
+def _upsert_batches(
+    collection: Any,
+    documents: list[DocumentChunk],
+    embeddings: list[list[float]],
+    *,
+    batch_size: int = 1000,
+) -> None:
+    for start in range(0, len(documents), batch_size):
+        batch = documents[start : start + batch_size]
+        collection.upsert(
+            ids=[document.document_id for document in batch],
+            embeddings=embeddings[start : start + batch_size],
+            documents=[document.content for document in batch],
+            metadatas=[document.chroma_metadata() for document in batch],
+        )

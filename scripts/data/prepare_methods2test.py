@@ -1,3 +1,5 @@
+"""Normalize Methods2Test into the repository JSONL contract."""
+
 from __future__ import annotations
 
 import argparse

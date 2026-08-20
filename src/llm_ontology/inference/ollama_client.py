@@ -28,6 +28,7 @@ class OllamaProvider:
     """Reproducible Ollama generation boundary with optional JSON schema output."""
 
     model_version = "runtime_digest"
+    provider_name = "ollama"
 
     def __init__(
         self,

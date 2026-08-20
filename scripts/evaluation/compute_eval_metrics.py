@@ -1,3 +1,5 @@
+"""Compute task-specific metrics for generated prediction files."""
+
 from __future__ import annotations
 
 import sys

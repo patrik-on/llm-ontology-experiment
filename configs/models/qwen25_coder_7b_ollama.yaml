@@ -1,0 +1,17 @@
+model:
+  provider: "ollama"
+  name: "qwen2.5-coder:7b"
+  primary_use: "baseline_inference"
+  language_focus: "code"
+
+runtime:
+  environment: "wsl"
+  base_url: "http://localhost:11434"
+  temperature: 0.0
+  top_p: 0.9
+  max_tokens: 1024
+  seed: 42
+
+notes:
+  - "This is the current WSL-only generation baseline for Direct, RAG and future MultiRAG."
+  - "Fine-tuning is not performed through Ollama."

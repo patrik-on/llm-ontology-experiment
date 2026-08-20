@@ -1,5 +1,6 @@
 from llm_ontology.providers.contracts import EmbeddingProvider, LLMProvider
 from llm_ontology.providers.mock import DeterministicEmbeddingProvider, MockLLMProvider
+from llm_ontology.providers.ollama import OllamaEmbeddingProvider
 from llm_ontology.providers.sentence_transformers import SentenceTransformerEmbeddingProvider
 
 __all__ = [
@@ -7,5 +8,6 @@ __all__ = [
     "EmbeddingProvider",
     "LLMProvider",
     "MockLLMProvider",
+    "OllamaEmbeddingProvider",
     "SentenceTransformerEmbeddingProvider",
 ]

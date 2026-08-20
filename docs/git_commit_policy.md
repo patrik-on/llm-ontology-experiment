@@ -66,7 +66,8 @@ Tréningové artefakty:
 - `experiments/**/checkpoints/`
 - `experiments/**/logs/`
 - `experiments/**/results/*` okrem `.gitkeep`
-- WSL výstupy v `/home/patrik/experiments/llm-ontology`
+- WSL výstupy v `~/experiments/llm-ontology` alebo v ceste určenej cez
+  `LLM_ONTOLOGY_EXPERIMENTS_ROOT`
 
 Evaluation výstupy:
 
@@ -88,6 +89,15 @@ Cache a dočasné súbory:
 - `wandb/`
 - `runs/`
 - `*.log`
+
+## Artefaktová politika
+
+- Commitujú sa malé auditovateľné manifesty, checksumy, metodické reporty,
+  dokumentácia a `.gitkeep` súbory.
+- Necommitujú sa Chroma indexy, datasety, modely, adapter ZIPy, checkpointy,
+  smoke/sanity výstupy, UI history ani priebežne generované benchmark výsledky.
+- Väčšie výsledky určené na odovzdanie sa publikujú ako externý release/handoff
+  artefakt a v Gite sa ponechá jeho manifest a SHA-256.
 
 ## Odporúčaný postup pred commitom
 

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-import json
 from datetime import datetime, timezone
 from enum import StrEnum
 from pathlib import Path
@@ -81,6 +80,26 @@ class DatasetManifest(BaseModel):
             raise ValueError(
                 f"Dataset role {self.usage_role.value!r} is not indexable; expected 'retrieval'."
             )
+
+    def require_source_matches(self, *, root: str | Path | None = None) -> Path:
+        source = Path(self.source_path)
+        if root is not None and not source.is_absolute():
+            source = Path(root) / source
+        actual_hash = _source_digest(source)
+        if actual_hash != self.content_hash:
+            raise ValueError(
+                f"Dataset source hash mismatch for {self.dataset_name!r}: "
+                f"expected {self.content_hash}, got {actual_hash}."
+            )
+        if self.sample_count is not None and source.is_file():
+            with source.open("r", encoding="utf-8") as handle:
+                actual_count = sum(1 for line in handle if line.strip())
+            if actual_count != self.sample_count:
+                raise ValueError(
+                    f"Dataset sample count mismatch for {self.dataset_name!r}: "
+                    f"expected {self.sample_count}, got {actual_count}."
+                )
+        return source
 
 
 def create_dataset_manifest(

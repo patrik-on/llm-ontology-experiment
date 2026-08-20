@@ -10,10 +10,10 @@ dataset:
   test_file: "data/processed/combined/test.jsonl"
 
 output:
-  output_dir: "/home/patrik/experiments/llm-ontology/b1_shared/checkpoints"
-  logging_dir: "/home/patrik/experiments/llm-ontology/b1_shared/logs"
-  results_dir: "/home/patrik/experiments/llm-ontology/b1_shared/results"
-  final_adapter_dir: "/home/patrik/experiments/llm-ontology/b1_shared/checkpoints/final_adapter"
+  output_dir: "~/experiments/llm-ontology/b1_shared/checkpoints"
+  logging_dir: "~/experiments/llm-ontology/b1_shared/logs"
+  results_dir: "~/experiments/llm-ontology/b1_shared/results"
+  final_adapter_dir: "~/experiments/llm-ontology/b1_shared/checkpoints/final_adapter"
 
 run:
   dry_run: false

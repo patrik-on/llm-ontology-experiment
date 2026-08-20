@@ -6,33 +6,31 @@ structured-output parsing, Ollama access, or evaluation logic.
 
 ## Installation
 
-Use a separate environment for the manual UI so the frozen benchmark runtime
-remains unchanged:
+Run the UI in the same canonical WSL environment as ingestion, Chroma,
+retrieval, generation, and evaluation:
 
-```powershell
-python -m venv --system-site-packages .venv-ui
-.\.venv-ui\Scripts\Activate.ps1
+```bash
+source .venv_wsl/bin/activate
 python -m pip install -e ".[rag,ui]"
+python -m llm_ontology.env check
 ```
 
-`--system-site-packages` reuses the frozen RAG packages already installed on the
-machine while allowing the UI environment to isolate Gradio's narrower
-Pydantic/Pillow constraints. The `ui` extra installs Gradio 5.x. The `rag`
-extra supplies any missing ChromaDB, embedding, tokenization, and ingestion
-dependencies.
+The `ui` extra installs Gradio 5.x. The `rag` extra supplies ChromaDB,
+embedding, tokenization, and ingestion dependencies. Windows virtualenvs and
+Windows Ollama are not valid final-experiment UI runtimes.
 
 ## Launch
 
 Start the application from the repository root:
 
-```powershell
+```bash
 python -m llm_ontology.ui
 ```
 
 The default address is `http://127.0.0.1:7860`. The UI never binds to
 `0.0.0.0` unless explicitly configured. Host and port can be overridden:
 
-```powershell
+```bash
 python -m llm_ontology.ui --host 127.0.0.1 --port 7861 --in-browser
 ```
 
@@ -72,9 +70,9 @@ Retrieval settings: Top K, configured collection, log level
   and Top K is ignored.
 - **RAG** maps to `single_collection_rag`. The task-specific `*_mixed.yaml`
   experiment configuration selects the controlled `mixed` collection.
-- **MultiRAG (Not available yet)** is deliberately visible but disabled at the
-  service boundary. The UI will not invent fusion while the shared runner does
-  not implement `multi_collection_rag`.
+- **MultiRAG** maps to `multi_collection_rag`. The shared runner queries
+  `testing_db` and `refactoring_db` in parallel, performs RRF and global token
+  selection, and returns the complete fusion trace to the UI.
 
 Interactive runs explicitly reuse disabled controlled-experiment templates as
 configuration sources, but enabling an interactive run does not mark a batch
@@ -84,9 +82,8 @@ experiment or its datasets as approved. Batch configurations remain disabled.
 
 - **Output** shows generated Java plus the structured summary, assumptions,
   warnings, smells, and recommended refactorings when supplied by the runner.
-- **Retrieval** shows raw ranks and scores, collection, dataset/type metadata,
-  source identifiers, previews, full retrieved text, and whether each document
-  entered the final prompt. Scores are never converted to percentages.
+- **Retrieval** shows per-collection ranks/scores, source collections, RRF score,
+  final rank, dataset/type metadata, previews, full text, and prompt selection.
 - **Prompt** shows the exact prompt artifact and its hash, token estimate,
   retrieval tokens, and counting method.
 - **Metrics** shows only data returned by the shared runner/provider. Missing
@@ -94,8 +91,10 @@ experiment or its datasets as approved. Batch configurations remain disabled.
 - **Logs** captures one request through an isolated in-memory logging handler.
   INFO is the default; DEBUG includes the technical exception trace. Common
   secret/token patterns are redacted.
-- **Environment** performs read-only Ollama and Chroma checks and lists
-  collection counts plus available sidecar manifest metadata.
+- **Environment** performs read-only WSL/Ollama/Chroma checks. It shows runtime
+  OS, fixed base URL, embedding provider/model/digest/dimension, generation
+  provider/model/digest, Python/dependencies, Chroma path, collection counts,
+  and sidecar manifest metadata.
 
 Successful interactive runs are appended to
 `experiments/results/ui/interactive_runs.jsonl`; exact prompts are stored under
@@ -104,8 +103,6 @@ artifact ignore policy.
 
 ## Current limitations
 
-- MultiRAG remains unavailable until multi-collection retrieval, deduplication,
-  and fusion exist in the shared runner.
 - RAG needs a previously built compatible Chroma `mixed` collection. The UI
   does not create, rebuild, or delete indexes.
 - Environment collection status reports a missing manifest when an index was

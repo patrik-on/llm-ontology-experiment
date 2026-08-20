@@ -38,6 +38,9 @@ class ExperimentRecord(BaseModel):
     prompt_hash: str | None = None
     token_budget: dict[str, Any] = Field(default_factory=dict)
     structured_output_attempts: list[dict[str, Any]] = Field(default_factory=list)
+    generation_provider: str = "unknown"
+    generation_model: str | None = None
+    generation_model_digest: str | None = None
 
 
 class JsonlExperimentWriter:

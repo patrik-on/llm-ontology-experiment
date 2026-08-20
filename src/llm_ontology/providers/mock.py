@@ -12,6 +12,7 @@ class DeterministicEmbeddingProvider:
     must not be used for reported experiment results.
     """
 
+    provider_name = "deterministic_mock"
     model_name = "deterministic-hash-embedding"
     model_version = "1"
 
@@ -31,6 +32,15 @@ class DeterministicEmbeddingProvider:
     @property
     def embedding_dimension(self) -> int:
         return self.dimension
+
+    @property
+    def runtime_metadata(self) -> dict[str, str | int]:
+        return {
+            "embedding_provider": self.provider_name,
+            "embedding_model": self.model_identifier,
+            "embedding_model_digest": self.model_revision,
+            "embedding_dimension": self.embedding_dimension,
+        }
 
     def embed_documents(
         self, texts: list[str], batch_size: int | None = None
@@ -57,6 +67,7 @@ class DeterministicEmbeddingProvider:
 class MockLLMProvider:
     """Predictable LLM substitute used by automated tests and examples."""
 
+    provider_name = "mock"
     model_name = "mock-llm"
     model_version = "1"
 

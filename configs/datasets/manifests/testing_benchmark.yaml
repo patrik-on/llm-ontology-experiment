@@ -1,0 +1,22 @@
+dataset_name: methods2test_testing_benchmark
+dataset_version: sha256-18dd06494f8ebc6f
+source_path: data/processed/testing/test.jsonl
+source_split: test
+usage_role: benchmark
+allowed_for_indexing: false
+sample_count: 500
+content_hash: 18dd06494f8ebc6fc26b6f330930637446d4f78aac2e10b36b581ade6a91be68
+created_at: 2026-08-20T00:00:00Z
+fingerprints_path: artifacts/split_audits/testing_benchmark_fingerprints.jsonl
+grouping_policy:
+  primary_group_level: project
+  group_fields: [repository, project]
+  related_case_fields: [commit_sha, case_id]
+  require_cross_role_disjointness: true
+  audit_report_path: artifacts/split_audits/retrieval_vs_benchmark_groups.json
+metadata:
+  task: testing
+  context_level: src_fm
+  approval_status: approved_for_final_evaluation_only
+  tuning_allowed: false
+  notes: Final benchmark; indexing is forbidden.

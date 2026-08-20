@@ -1,3 +1,5 @@
+"""Compatibility entrypoint for the canonical evaluation report builder."""
+
 from __future__ import annotations
 
 import sys

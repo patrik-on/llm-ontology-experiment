@@ -4,6 +4,7 @@ from llm_ontology.retrieval.contracts import Reranker, Retriever
 from llm_ontology.retrieval.models import (
     DocumentChunk,
     DocumentType,
+    FusionContribution,
     RetrievalHit,
     RetrievalMode,
     RetrievalRequest,
@@ -11,11 +12,12 @@ from llm_ontology.retrieval.models import (
     RetrievalTrace,
     SourceDocument,
 )
-from llm_ontology.retrieval.pipeline import NoOpReranker, VectorRetriever
+from llm_ontology.retrieval.pipeline import NoOpReranker, VectorRetriever, reciprocal_rank_fusion
 
 __all__ = [
     "DocumentChunk",
     "DocumentType",
+    "FusionContribution",
     "NoOpReranker",
     "Reranker",
     "Retriever",
@@ -26,4 +28,5 @@ __all__ = [
     "RetrievalTrace",
     "SourceDocument",
     "VectorRetriever",
+    "reciprocal_rank_fusion",
 ]

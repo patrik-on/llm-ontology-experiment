@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "llm-ontology-experiment"
 version = "0.1.0"
-description = "Fine-tuning experiment pipeline for LLMs in software engineering."
+description = "Controlled Direct, RAG, and MultiRAG experiments for Java software engineering tasks."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -17,7 +17,9 @@ dependencies = [
 dev = [
   "pytest>=8.0",
   "reportlab>=4,<5",
+  "ruff>=0.12,<1",
 ]
+
 rag = [
   "chromadb>=1.0,<2",
   "pypdf>=5,<7",
@@ -38,6 +40,14 @@ training = [
   "bitsandbytes>=0.43; platform_system != 'Windows'",
   "tqdm>=4.66",
 ]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+ignore = ["E402"]
 
 [tool.setuptools.packages.find]
 where = ["src"]

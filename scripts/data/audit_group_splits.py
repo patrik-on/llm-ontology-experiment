@@ -1,3 +1,5 @@
+"""Audit dataset splits for cross-split group leakage."""
+
 from __future__ import annotations
 
 import argparse
