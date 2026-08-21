@@ -18,3 +18,16 @@ latency, token counts a retrieval metriky.
 ```bash
 python scripts/evaluation/smoke_eval_metrics.py
 ```
+
+Plný beh vždy používa stabilný identifikátor, nie vlastnú output cestu:
+
+```bash
+python scripts/evaluation/run_full_evaluation.py \
+  --run-id v2_final \
+  --models-config configs/evaluation/eval_models_v2_only.yaml \
+  --limit 50 \
+  --overwrite
+```
+
+Výstupy sú v `artifacts/evaluation/runs/v2_final/`. Nový top-level priečinok
+`evaluation_*` sa nemá vytvárať.

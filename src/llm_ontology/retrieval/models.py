@@ -110,6 +110,8 @@ class RetrievalRequest(BaseModel):
     max_context_tokens: int = Field(default=2048, ge=1)
     rrf_k: int = Field(default=60, ge=1)
     per_collection_top_k: int | None = Field(default=None, ge=1, le=100)
+    candidate_pool_size: int | None = Field(default=None, ge=1, le=100)
+    reranking_strategy: str = "none"
 
     @field_validator("query")
     @classmethod
@@ -117,6 +119,23 @@ class RetrievalRequest(BaseModel):
         if not value.strip():
             raise ValueError("Query must not be blank.")
         return value.strip()
+
+    @field_validator("reranking_strategy")
+    @classmethod
+    def supported_reranking_strategy(cls, value: str) -> str:
+        if value not in {"none", "code_aware_v1"}:
+            raise ValueError(f"Unsupported reranking strategy: {value!r}")
+        return value
+
+    def model_post_init(self, __context: Any) -> None:
+        if self.candidate_pool_size is not None and self.candidate_pool_size < self.top_k:
+            raise ValueError("candidate_pool_size cannot be smaller than top_k.")
+        if self.reranking_strategy != "none" and (
+            self.candidate_pool_size is None or self.candidate_pool_size <= self.top_k
+        ):
+            raise ValueError(
+                "A reranking strategy requires candidate_pool_size larger than top_k."
+            )
 
 
 class FusionContribution(BaseModel):
@@ -142,10 +161,13 @@ class RetrievalTrace(BaseModel):
     transformed_queries: list[str] = Field(default_factory=list)
     selected_collections: list[str] = Field(default_factory=list)
     applied_filters: dict[str, Any] = Field(default_factory=dict)
+    candidate_documents: list[RetrievalHit] = Field(default_factory=list)
     retrieved_documents: list[RetrievalHit] = Field(default_factory=list)
     collection_results: dict[str, list[RetrievalHit]] = Field(default_factory=dict)
     fusion_strategy: str | None = None
     rrf_k: int | None = None
+    reranking_strategy: str | None = None
+    candidate_pool_size: int | None = None
     candidates_before_deduplication: int = 0
     candidates_after_deduplication: int = 0
     prompt_document_ids: list[str] = Field(default_factory=list)

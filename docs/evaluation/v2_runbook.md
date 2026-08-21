@@ -68,7 +68,7 @@ Malý smoke beh overí načítanie modelov, adaptérov, generovanie predikcií, 
 python scripts/run_full_evaluation.py \
   --models-config configs/evaluation/eval_models.yaml \
   --limit 5 \
-  --output-root evaluation_v2 \
+  --run-id v1_v2_pilot \
   --overwrite
 ```
 
@@ -80,7 +80,7 @@ Finálny porovnávací beh s limitom 100 spusti až po úspešnom smoke behu.
 python scripts/run_full_evaluation.py \
   --models-config configs/evaluation/eval_models.yaml \
   --limit 100 \
-  --output-root evaluation_v2 \
+  --run-id v1_v2_final \
   --overwrite
 ```
 
@@ -89,34 +89,28 @@ python scripts/run_full_evaluation.py \
 ## Check aggregate metrics
 
 ```bash
-cat evaluation_v2/metrics/testing/aggregate_metrics.json
-cat evaluation_v2/metrics/refactoring/aggregate_metrics.json
-cat evaluation_v2/reports/evaluation_report.md
+cat artifacts/evaluation/runs/v1_v2_final/metrics/testing/aggregate_metrics.json
+cat artifacts/evaluation/runs/v1_v2_final/metrics/refactoring/aggregate_metrics.json
+cat artifacts/evaluation/runs/v1_v2_final/reports/evaluation_report.md
 ```
 
 CSV tabuľky sú v:
 
 ```text
-evaluation_v2/metrics/testing/aggregate_metrics.csv
-evaluation_v2/metrics/refactoring/aggregate_metrics.csv
+artifacts/evaluation/runs/v1_v2_final/metrics/testing/aggregate_metrics.csv
+artifacts/evaluation/runs/v1_v2_final/metrics/refactoring/aggregate_metrics.csv
 ```
 
-## Save limit100 reports
+## Run identity
 
-Po dokončení finálneho limit 100 behu ulož reporty s názvom `limit100`, aby sa nepoplietli so smoke výstupmi:
-
-```bash
-mkdir -p evaluation_v2/reports/limit100
-cp evaluation_v2/reports/evaluation_report.md evaluation_v2/reports/limit100/evaluation_report_limit100.md
-cp evaluation_v2/metrics/testing/aggregate_metrics.json evaluation_v2/reports/limit100/testing_aggregate_metrics_limit100.json
-cp evaluation_v2/metrics/refactoring/aggregate_metrics.json evaluation_v2/reports/limit100/refactoring_aggregate_metrics_limit100.json
-cp evaluation_v2/metrics/testing/aggregate_metrics.csv evaluation_v2/reports/limit100/testing_aggregate_metrics_limit100.csv
-cp evaluation_v2/metrics/refactoring/aggregate_metrics.csv evaluation_v2/reports/limit100/refactoring_aggregate_metrics_limit100.csv
-```
+Pilot a finálny beh majú samostatné stabilné `run_id`, preto sa reporty
+nekopírujú ani ručne nepremenúvajú. Každý adresár obsahuje `run_manifest.json`
+s modelmi, limitom, stavom a časmi behu.
 
 ## Notes
 
 - Nespúšťaj fine-tuning počas evaluation prípravy.
 - Nemeň datasety medzi v1/v2 porovnaním.
 - V2 adaptéry sú len pridané ako nové modely; v1 adaptéry ostávajú dostupné pre porovnanie.
-- `evaluation_v2/` je lokálny výstupný priečinok a nemá sa commitovať ako veľký artefakt.
+- Všetky výstupy patria pod `artifacts/evaluation/runs/<run_id>/` a necommitujú
+  sa ako veľké artefakty.

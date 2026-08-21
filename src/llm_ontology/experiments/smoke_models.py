@@ -43,6 +43,9 @@ class SmokeExperimentConfig(BaseModel):
     top_k: int = Field(default=5, ge=1)
     rrf_k: int = Field(default=60, ge=1)
     per_collection_top_k: int = Field(default=5, ge=1)
+    retrieval_query_strategy: Literal["task_aware_v1"] | None = None
+    retrieval_reranking_strategy: Literal["code_aware_v1"] | None = None
+    retrieval_candidate_pool_size: int | None = Field(default=None, ge=1, le=100)
     retrieval_token_budget: int = Field(default=12000, ge=1)
     fusion_strategy: Literal["rrf"] = "rrf"
     tokenizer_model: str = "Qwen/Qwen2.5-Coder-7B-Instruct"
@@ -106,6 +109,23 @@ class SmokeExperimentConfig(BaseModel):
             raise ValueError("total_context_tokens cannot exceed ollama_num_ctx.")
         if self.fail_on_prompt_budget_exceeded and self.ollama_num_ctx is None:
             raise ValueError("fail_on_prompt_budget_exceeded requires an explicit ollama_num_ctx.")
+        retrieval_v3_fields = (
+            self.retrieval_query_strategy,
+            self.retrieval_reranking_strategy,
+            self.retrieval_candidate_pool_size,
+        )
+        if any(value is not None for value in retrieval_v3_fields) and any(
+            value is None for value in retrieval_v3_fields
+        ):
+            raise ValueError(
+                "V3 retrieval query, reranking, and candidate-pool settings must be "
+                "configured together."
+            )
+        if (
+            self.retrieval_candidate_pool_size is not None
+            and self.retrieval_candidate_pool_size <= self.top_k
+        ):
+            raise ValueError("retrieval_candidate_pool_size must be larger than top_k.")
         frozen_dataset_ids = {
             manifest_id
             for identity in self.collection_manifests.values()

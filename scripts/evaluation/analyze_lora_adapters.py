@@ -14,6 +14,8 @@ from typing import Any
 
 import torch
 
+from llm_ontology.evaluation.run_layout import EvaluationRunLayout
+
 
 MODEL_ORDER = ("b2_testing_v2", "b2_refactoring_v2", "b1_shared_v2")
 PAIR_ORDER = (
@@ -566,7 +568,7 @@ def main() -> None:
     parser.add_argument("--b2-testing", required=True)
     parser.add_argument("--b2-refactoring", required=True)
     parser.add_argument("--b1-shared", required=True)
-    parser.add_argument("--output-dir", default="evaluation_v2_only/lora_analysis")
+    parser.add_argument("--run-id", required=True)
     args = parser.parse_args()
 
     adapter_paths = {
@@ -574,7 +576,7 @@ def main() -> None:
         "b2_refactoring_v2": Path(args.b2_refactoring),
         "b1_shared_v2": Path(args.b1_shared),
     }
-    output_dir = Path(args.output_dir)
+    output_dir = EvaluationRunLayout(args.run_id).analysis / "lora"
     output_dir.mkdir(parents=True, exist_ok=True)
 
     modules_by_model = {model: collect_modules(path) for model, path in adapter_paths.items()}

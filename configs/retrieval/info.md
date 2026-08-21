@@ -12,6 +12,12 @@ Príprava modelu, produkčný leakage-safe builder a smoke validácia sú popís
 `docs/retrieval/ollama_embeddings.md`. Pôvodná Jina konfigurácia zostáva zachovaná ako
 `legacy_not_final` a nie je predvoleným finálnym baseline.
 
+`ollama_bge_m3_v3.yaml` je kandidát ďalšieho experimentu. Opravuje nesúlad medzi
+query a indexom: embeduje iba vstupnú stranu páru, tvorí task-aware query a z 12
+kandidátov deterministicky vyberá finálne `top_k=3`. Používa samostatný Chroma
+adresár, takže nemení zmrazené V1/V2 indexy. Postup je v
+`docs/retrieval/rag_v3.md`.
+
 Spoločné retrieval nastavenia:
 
 - embedding model a batch size,

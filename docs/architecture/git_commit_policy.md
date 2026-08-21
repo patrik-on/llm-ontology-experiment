@@ -71,13 +71,15 @@ Tréningové artefakty:
 
 Evaluation výstupy:
 
-- `evaluation/predictions/**`
-- `evaluation/metrics/**`
-- `evaluation/reports/**`
-- `evaluation/samples/**`
-- `evaluation_smoke/**`
+- `artifacts/evaluation/runs/<run_id>/predictions/**`
+- `artifacts/evaluation/runs/<run_id>/metrics/**`
+- `artifacts/evaluation/runs/<run_id>/reports/**`
+- `artifacts/evaluation/runs/<run_id>/samples/**`
+- `artifacts/evaluation/runs/<run_id>/analysis/**`
+- `artifacts/evaluation/runs/<run_id>/run_manifest.json`
 
-Výnimka: `info.md` súbory v `evaluation/` sa môžu commitovať.
+Výnimka: `artifacts/evaluation/info.md` a `.gitkeep` sa commitujú ako kontrakt
+a placeholder. Samotné runy ostávajú lokálne.
 
 Cache a dočasné súbory:
 
@@ -127,4 +129,3 @@ Typický commit pre aktuálnu fázu má obsahovať:
 - `src/**/*.py`
 - `**/info.md`
 - `requirements.txt`
-

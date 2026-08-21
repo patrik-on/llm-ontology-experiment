@@ -133,6 +133,15 @@ def baseline_contract_payload(config: SmokeExperimentConfig) -> dict[str, Any]:
     if config.max_retrieved_document_tokens is not None:
         single_rag["max_document_tokens"] = config.max_retrieved_document_tokens
         multi_rag["max_document_tokens"] = config.max_retrieved_document_tokens
+    if config.retrieval_query_strategy is not None:
+        single_rag["query_strategy"] = config.retrieval_query_strategy
+        multi_rag["query_strategy"] = config.retrieval_query_strategy
+    if config.retrieval_reranking_strategy is not None:
+        single_rag["reranking_strategy"] = config.retrieval_reranking_strategy
+        multi_rag["reranking_strategy"] = config.retrieval_reranking_strategy
+    if config.retrieval_candidate_pool_size is not None:
+        single_rag["candidate_pool_size"] = config.retrieval_candidate_pool_size
+        multi_rag["candidate_pool_size"] = config.retrieval_candidate_pool_size
     return payload
 
 
@@ -161,6 +170,18 @@ def effective_config_payload(
         exclude_none=True,
     )
     resolved_retrieval = rag.model_dump(mode="json")
+    legacy_retrieval_contract = all(
+        value is None
+        for value in (
+            config.retrieval_query_strategy,
+            config.retrieval_reranking_strategy,
+            config.retrieval_candidate_pool_size,
+        )
+    )
+    if legacy_retrieval_contract:
+        resolved_retrieval["ingestion"].pop("embedding_template_version", None)
+        for key in ("query_strategy", "reranking_strategy", "candidate_pool_size"):
+            resolved_retrieval["retrieval"].pop(key, None)
     if resolved_retrieval["llm"].get("context_window_tokens") is None:
         resolved_retrieval["llm"].pop("context_window_tokens", None)
     resolved_retrieval["llm"]["max_tokens"] = config.generation_max_tokens
@@ -173,6 +194,14 @@ def effective_config_payload(
             "rrf_k": config.rrf_k,
             "per_collection_top_k": config.per_collection_top_k,
         }
+    )
+    optional_retrieval = {
+        "query_strategy": config.retrieval_query_strategy,
+        "reranking_strategy": config.retrieval_reranking_strategy,
+        "candidate_pool_size": config.retrieval_candidate_pool_size,
+    }
+    resolved_retrieval["retrieval"].update(
+        {key: value for key, value in optional_retrieval.items() if value is not None}
     )
     return {
         "baseline_id": config.baseline_id,

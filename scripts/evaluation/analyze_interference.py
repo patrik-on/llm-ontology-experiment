@@ -8,6 +8,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from llm_ontology.evaluation.run_layout import EvaluationRunLayout
+
 
 MODELS = ("baseline_qwen25_coder_7b", "b2_testing_v2", "b2_refactoring_v2", "b1_shared_v2")
 TESTING_METRIC = "avg_test_quality_score"
@@ -291,12 +293,12 @@ def latex_tables(analysis: dict[str, Any]) -> str:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Analyze interference and cross-task behavior from aggregate metrics.")
-    parser.add_argument("--evaluation-root", default="evaluation_v2_only")
-    parser.add_argument("--output-dir", default="evaluation_v2_only/analysis")
+    parser.add_argument("--run-id", required=True)
     args = parser.parse_args()
 
-    evaluation_root = Path(args.evaluation_root)
-    output_dir = Path(args.output_dir)
+    layout = EvaluationRunLayout(args.run_id)
+    evaluation_root = layout.root
+    output_dir = layout.analysis
     analysis = build_analysis(evaluation_root)
 
     cross_task_rows = analysis["cross_task_scores"]

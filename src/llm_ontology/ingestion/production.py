@@ -224,6 +224,7 @@ def build_production_indexes(
         refactoring_collection=config.collections.refactor,
         literature_collection=config.collections.software_engineering_literature,
         pair_parser=SafeJavaSignatureParser(),
+        embedding_template_version=config.ingestion.embedding_template_version,
     )
     corpora = builder.build(
         refactoring=knowledge["refactoring_retrieval"],
@@ -265,7 +266,7 @@ def build_production_indexes(
             collection_name=collection_name,
             embedding_provider=vector_store.embedding_provider,
             embedding_normalized=config.embeddings.normalized,
-            embedding_template_version="1",
+            embedding_template_version=config.ingestion.embedding_template_version,
             chunker_name="pair_aware_java",
             chunker_version=config.ingestion.pipeline_version,
             ingestion_pipeline_version=config.ingestion.pipeline_version,

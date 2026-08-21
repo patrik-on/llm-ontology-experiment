@@ -85,6 +85,7 @@ class VectorStoreSettings(BaseModel):
 class IngestionSettings(BaseModel):
     allowed_splits: list[str] = Field(default_factory=lambda: ["train"])
     pipeline_version: str = "rag-v1"
+    embedding_template_version: Literal["1", "2"] = "1"
     literature_max_chars: int = Field(default=1800, ge=200)
 
 
@@ -97,6 +98,21 @@ class RetrievalSettings(BaseModel):
     metadata_filter: dict[str, Scalar | list[Scalar]] = Field(default_factory=dict)
     rrf_k: int = Field(default=60, ge=1)
     per_collection_top_k: int = Field(default=5, ge=1, le=100)
+    query_strategy: Literal["raw_input", "task_aware_v1"] = "raw_input"
+    reranking_strategy: Literal["none", "code_aware_v1"] = "none"
+    candidate_pool_size: int | None = Field(default=None, ge=1, le=100)
+
+    @model_validator(mode="after")
+    def candidate_pool_supports_reranking(self) -> RetrievalSettings:
+        if self.candidate_pool_size is not None and self.candidate_pool_size < self.top_k:
+            raise ValueError("candidate_pool_size cannot be smaller than top_k.")
+        if self.reranking_strategy != "none" and (
+            self.candidate_pool_size is None or self.candidate_pool_size <= self.top_k
+        ):
+            raise ValueError(
+                "A reranking strategy requires candidate_pool_size larger than top_k."
+            )
+        return self
 
 
 class ExperimentSettings(BaseModel):

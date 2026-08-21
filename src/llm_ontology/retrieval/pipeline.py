@@ -15,6 +15,7 @@ from llm_ontology.retrieval.models import (
     RetrievalResult,
     RetrievalTrace,
 )
+from llm_ontology.retrieval.reranking import CodeAwareReranker, query_method_name
 from llm_ontology.vectorstore.contracts import VectorStore
 
 
@@ -26,11 +27,55 @@ class NoOpReranker:
         return documents
 
 
+def _rerank(
+    strategy: str,
+    query: str,
+    documents: list[RetrievalHit],
+) -> list[RetrievalHit]:
+    if strategy == "none":
+        return NoOpReranker().rerank(query, documents)
+    if strategy == CodeAwareReranker.strategy_name:
+        return CodeAwareReranker().rerank(query, documents)
+    raise ValueError(f"Unsupported reranking strategy: {strategy!r}")
+
+
 class VectorRetriever:
     """Shared retrieval pipeline for direct, single RAG and MultiRAG."""
 
     def __init__(self, vector_store: VectorStore) -> None:
         self.vector_store = vector_store
+
+    def _query_candidates(
+        self,
+        request: RetrievalRequest,
+        collection: str,
+        where: dict[str, Any],
+        candidate_k: int,
+    ) -> tuple[list[RetrievalHit], int]:
+        dense = self.vector_store.query(
+            collection,
+            request.query,
+            top_k=candidate_k,
+            where=where,
+        )
+        if request.reranking_strategy != CodeAwareReranker.strategy_name:
+            return dense, len(dense)
+
+        method_name = query_method_name(request.query)
+        if not method_name or "method_name" in request.metadata_filter:
+            return _deduplicate_candidates(dense), len(dense)
+        method_where = build_chroma_where(
+            {**request.metadata_filter, "method_name": method_name},
+            request.allowed_splits,
+        )
+        exact_method = self.vector_store.query(
+            collection,
+            request.query,
+            top_k=candidate_k,
+            where=method_where,
+        )
+        combined = [*dense, *exact_method]
+        return _deduplicate_candidates(combined), len(combined)
 
     def retrieve(self, request: RetrievalRequest) -> RetrievalResult:
         started = perf_counter()
@@ -53,32 +98,49 @@ class VectorRetriever:
             raise ValueError(f"{request.mode.value} requires exactly one collection.")
 
         where = build_chroma_where(request.metadata_filter, request.allowed_splits)
+        candidate_k = request.candidate_pool_size or request.top_k
         search_started = perf_counter()
-        hits = self.vector_store.query(
+        hits, candidates_before = self._query_candidates(
+            request,
             request.collections[0],
-            request.query,
-            top_k=request.top_k,
-            where=where,
+            where,
+            candidate_k,
         )
         search_ms = (perf_counter() - search_started) * 1000
-        selected, estimated_tokens = fit_context_budget(hits, request.max_context_tokens)
+        rerank_started = perf_counter()
+        ranked = _rerank(request.reranking_strategy, request.query, hits)
+        rerank_ms = (perf_counter() - rerank_started) * 1000
+        top_ranked = ranked[: request.top_k]
+        selected, estimated_tokens = fit_context_budget(
+            top_ranked,
+            request.max_context_tokens,
+        )
         total_ms = (perf_counter() - started) * 1000
         trace = RetrievalTrace(
             query=request.query,
             transformed_queries=[request.query],
             selected_collections=request.collections,
             applied_filters=where,
-            retrieved_documents=hits,
+            candidate_documents=ranked,
+            retrieved_documents=top_ranked,
+            reranking_strategy=(
+                request.reranking_strategy
+                if request.reranking_strategy != "none"
+                else None
+            ),
+            candidate_pool_size=candidate_k,
+            candidates_before_deduplication=candidates_before,
+            candidates_after_deduplication=len(ranked),
             prompt_document_ids=[document.document_id for document in selected],
             estimated_context_tokens=estimated_tokens,
-            step_latency_ms={"vector_search": search_ms},
+            step_latency_ms={"vector_search": search_ms, "reranking": rerank_ms},
             total_latency_ms=total_ms,
         )
         LOGGER.info(
             "Retrieval complete mode=%s collection=%s hits=%d selected=%d latency_ms=%.3f",
             request.mode.value,
             request.collections[0],
-            len(hits),
+            len(ranked),
             len(selected),
             total_ms,
         )
@@ -92,28 +154,46 @@ class VectorRetriever:
         if len(request.collections) != len(set(request.collections)):
             raise ValueError("multi_collection_rag collections must be unique.")
         where = build_chroma_where(request.metadata_filter, request.allowed_splits)
-        candidate_k = request.per_collection_top_k or request.top_k
+        candidate_k = (
+            request.candidate_pool_size
+            or request.per_collection_top_k
+            or request.top_k
+        )
 
-        def query_collection(collection: str) -> tuple[str, list[RetrievalHit], float]:
+        def query_collection(
+            collection: str,
+        ) -> tuple[str, list[RetrievalHit], int, float]:
             search_started = perf_counter()
-            hits = self.vector_store.query(
+            hits, candidates_before = self._query_candidates(
+                request,
                 collection,
-                request.query,
-                top_k=candidate_k,
-                where=where,
+                where,
+                candidate_k,
             )
-            return collection, hits, (perf_counter() - search_started) * 1000
+            return (
+                collection,
+                hits,
+                candidates_before,
+                (perf_counter() - search_started) * 1000,
+            )
 
         with ThreadPoolExecutor(
             max_workers=len(request.collections), thread_name_prefix="multirag"
         ) as executor:
             results = list(executor.map(query_collection, request.collections))
 
-        collection_results = {collection: hits for collection, hits, _ in results}
-        fused, candidates_before = reciprocal_rank_fusion(
+        collection_results = {
+            collection: hits for collection, hits, _, _ in results
+        }
+        fusion_started = perf_counter()
+        fused, _ = reciprocal_rank_fusion(
             collection_results, rrf_k=request.rrf_k
         )
-        globally_ranked = fused[: request.top_k]
+        fusion_ms = (perf_counter() - fusion_started) * 1000
+        rerank_started = perf_counter()
+        reranked = _rerank(request.reranking_strategy, request.query, fused)
+        rerank_ms = (perf_counter() - rerank_started) * 1000
+        globally_ranked = reranked[: request.top_k]
         selected, estimated_tokens = fit_context_budget(
             globally_ranked, request.max_context_tokens
         )
@@ -123,20 +203,30 @@ class VectorRetriever:
             transformed_queries=[request.query],
             selected_collections=request.collections,
             applied_filters=where,
+            candidate_documents=reranked,
             retrieved_documents=globally_ranked,
             collection_results=collection_results,
             fusion_strategy="rrf",
             rrf_k=request.rrf_k,
-            candidates_before_deduplication=candidates_before,
-            candidates_after_deduplication=len(fused),
+            reranking_strategy=(
+                request.reranking_strategy
+                if request.reranking_strategy != "none"
+                else None
+            ),
+            candidate_pool_size=candidate_k,
+            candidates_before_deduplication=sum(
+                candidates_before for _, _, candidates_before, _ in results
+            ),
+            candidates_after_deduplication=len(reranked),
             prompt_document_ids=[document.document_id for document in selected],
             estimated_context_tokens=estimated_tokens,
             step_latency_ms={
                 **{
                     f"vector_search:{collection}": latency
-                    for collection, _, latency in results
+                    for collection, _, _, latency in results
                 },
-                "fusion": max(0.0, total_ms - max(latency for _, _, latency in results)),
+                "fusion": fusion_ms,
+                "reranking": rerank_ms,
             },
             total_latency_ms=total_ms,
         )
@@ -144,13 +234,27 @@ class VectorRetriever:
             "MultiRAG complete collections=%s candidates=%d deduplicated=%d "
             "selected=%d rrf_k=%d latency_ms=%.3f",
             request.collections,
-            candidates_before,
+            sum(candidates_before for _, _, candidates_before, _ in results),
             len(fused),
             len(selected),
             request.rrf_k,
             total_ms,
         )
         return RetrievalResult(documents=selected, trace=trace)
+
+
+def _deduplicate_candidates(documents: list[RetrievalHit]) -> list[RetrievalHit]:
+    """Keep the best-ranked representative for equivalent input-side evidence."""
+
+    deduplicated: list[RetrievalHit] = []
+    seen_keys: set[str] = set()
+    for document in documents:
+        keys = _deduplication_keys(document)
+        if keys & seen_keys:
+            continue
+        seen_keys.update(keys)
+        deduplicated.append(document)
+    return deduplicated
 
 
 def reciprocal_rank_fusion(

@@ -89,7 +89,7 @@ def write_examples(task: str, predictions_dir: Path, metrics_path: Path, output_
     output_path.write_text("\n".join(lines), encoding="utf-8")
 
 
-def write_evaluation_report(output_root: str | Path = "evaluation") -> Path:
+def write_evaluation_report(output_root: str | Path) -> Path:
     root = Path(output_root)
     testing = load_aggregate(root / "metrics" / "testing" / "aggregate_metrics.json")
     refactoring = load_aggregate(root / "metrics" / "refactoring" / "aggregate_metrics.json")

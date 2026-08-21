@@ -145,7 +145,9 @@ Status: **ACTIVE**
 evaluation, testing/refactoring metrics, code/text proxies, coverage integration,
 aggregation, and report generation. Commands and configs remain under
 `scripts/evaluation/` and `configs/evaluation/`; tests are under
-`tests/evaluation/`; runbooks are under `docs/evaluation/`.
+`tests/evaluation/`; runbooks are under `docs/evaluation/`. Generated runs use
+the single validated namespace `artifacts/evaluation/runs/<run_id>/`; CLI
+output guards reject new root-level `evaluation*` directories.
 
 Testing and refactoring have separate task metrics. Compile/test execution and
 behavior-preservation checks are part of their benchmark/smoke evaluators; proxy
