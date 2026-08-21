@@ -41,6 +41,12 @@ def _config(tmp_path: Path):
     )
 
 
+def _v2_config(tmp_path: Path):
+    return load_smoke_experiment_config("configs/experiments/baseline_v2.yaml").model_copy(
+        update={"output_dir": tmp_path, "require_runtime_assets": False}
+    )
+
+
 def _success(config: RagExperimentConfig, case: ExperimentCase) -> ExperimentRecord:
     task = config.canonical_task.value  # type: ignore[union-attr]
     answer = (
@@ -110,9 +116,7 @@ def test_six_run_pilot_is_resumable_and_uses_all_three_modes(tmp_path: Path) -> 
         return _success(config, case)
 
     runner = SmokeExperimentRunner(_config(tmp_path), case_executor=execute)
-    selection = SmokeSelection(
-        case_ids=("testing_easy_001", "refactoring_easy_001")
-    )
+    selection = SmokeSelection(case_ids=("testing_easy_001", "refactoring_easy_001"))
     first = runner.run(selection)
     second = runner.run(selection)
 
@@ -172,10 +176,59 @@ def test_baseline_fingerprint_is_portable_but_changes_with_contract() -> None:
     assert compute_baseline_fingerprint(changed_top_k) != config.baseline_fingerprint
 
 
-def test_current_prompt_must_match_the_frozen_hash(tmp_path: Path) -> None:
-    config = _config(tmp_path).model_copy(
-        update={"testing_prompt_template_sha256": "0" * 64}
+def test_v2_filters_task_shortens_documents_and_uses_top_k_three(
+    tmp_path: Path,
+) -> None:
+    captured: list[RagExperimentConfig] = []
+
+    def execute(config: RagExperimentConfig, case: ExperimentCase) -> ExperimentRecord:
+        captured.append(config)
+        return _success(config, case)
+
+    result = SmokeExperimentRunner(_v2_config(tmp_path), case_executor=execute).run(
+        SmokeSelection(
+            case_ids=("testing_easy_001", "refactoring_easy_001"),
+        )
     )
+
+    assert result.executed_runs == 6
+    assert all(config.top_k == 3 for config in captured)
+    assert all(config.per_collection_top_k == 3 for config in captured)
+    assert all(config.max_retrieved_document_tokens == 768 for config in captured)
+    for config in captured:
+        expected_filter = (
+            {}
+            if config.retrieval_mode == RetrievalMode.NO_RAG
+            else {"task": config.canonical_task.value}  # type: ignore[union-attr]
+        )
+        assert config.metadata_filter == expected_filter
+
+    summary = json.loads((tmp_path / "summary.json").read_text(encoding="utf-8"))
+    assert summary["evaluation_metric_contract"] == "canonical_finetuning_eval_metrics"
+    testing = next(row for row in summary["by_task_mode"] if row["task"] == "testing")
+    refactoring = next(row for row in summary["by_task_mode"] if row["task"] == "refactoring")
+    assert "avg_test_quality_score" in testing
+    assert "avg_coverage_proxy_score" in testing
+    assert "avg_code_health_delta_score" in refactoring
+    assert "avg_cohesion_proxy_score" in refactoring
+    assert "avg_coupling_proxy_score" in refactoring
+    report = (tmp_path / "report.md").read_text(encoding="utf-8")
+    assert "Code health" in report
+
+
+def test_v2_context_contract_and_fingerprint_are_valid() -> None:
+    config = load_smoke_experiment_config("configs/experiments/baseline_v2.yaml")
+
+    assert config.baseline_id == "baseline_v2"
+    assert config.ollama_num_ctx == 32768
+    assert config.reserved_output_tokens == 4096
+    assert config.enforce_retrieval_token_budget is True
+    assert config.fail_on_prompt_budget_exceeded is True
+    assert compute_baseline_fingerprint(config) == config.baseline_fingerprint
+
+
+def test_current_prompt_must_match_the_frozen_hash(tmp_path: Path) -> None:
+    config = _config(tmp_path).model_copy(update={"testing_prompt_template_sha256": "0" * 64})
     config = config.model_copy(
         update={"baseline_fingerprint": compute_baseline_fingerprint(config)}
     )

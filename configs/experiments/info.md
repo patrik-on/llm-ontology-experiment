@@ -9,6 +9,12 @@ Their current metadata baseline is WSL Ollama `bge-m3` plus
 `baseline_v1.yaml` je canonical 24-case × 3-mode smoke matrix s explicitným
 prompt fairness preflightom, resume a report outputs.
 
+`baseline_v2.yaml` je jediný canonical V2 kontrakt. Explicitne nastavuje
+Ollama context window, vynucuje retrieval budget, používa canonical-task
+metadata filter, limit 768 tokenov na jeden evidence dokument a `top_k=3`.
+Predvolený CLI config naďalej ostáva zmrazený `baseline_v1.yaml`; V2 sa spúšťa
+iba explicitným zadaním jeho configu.
+
 Experiment je kompozícia troch osí:
 
 ```text

@@ -56,6 +56,7 @@ def create_llm_provider(settings: LLMSettings) -> LLMProvider:
             temperature=settings.temperature,
             top_p=settings.top_p,
             max_tokens=settings.max_tokens,
+            context_window_tokens=settings.context_window_tokens,
             seed=settings.seed,
             timeout_seconds=settings.timeout_seconds,
         )

@@ -53,7 +53,7 @@ def collection_content_hash(manifest: CollectionManifest) -> str:
 def baseline_contract_payload(config: SmokeExperimentConfig) -> dict[str, Any]:
     """Build the path- and timestamp-free payload protected by the fingerprint."""
 
-    return {
+    payload = {
         "contract_version": config.baseline_contract_version,
         "baseline_id": config.baseline_id,
         "matrix": {"modes": [mode.value for mode in config.modes]},
@@ -105,9 +105,7 @@ def baseline_contract_payload(config: SmokeExperimentConfig) -> dict[str, Any]:
         "prompts": {
             "prompt_template_version": config.prompt_template_version,
             "testing_prompt_template_sha256": config.testing_prompt_template_sha256,
-            "refactoring_prompt_template_sha256": (
-                config.refactoring_prompt_template_sha256
-            ),
+            "refactoring_prompt_template_sha256": (config.refactoring_prompt_template_sha256),
         },
         "dataset": {
             "name": "handcrafted_smoke_v1",
@@ -119,6 +117,23 @@ def baseline_contract_payload(config: SmokeExperimentConfig) -> dict[str, Any]:
             for name, identity in sorted(config.collection_manifests.items())
         },
     }
+    generation = payload["generation"]
+    single_rag = payload["single_rag"]
+    multi_rag = payload["multi_rag"]
+    if config.ollama_num_ctx is not None:
+        generation["ollama_num_ctx"] = config.ollama_num_ctx
+    if config.fail_on_prompt_budget_exceeded is not None:
+        generation["fail_on_prompt_budget_exceeded"] = config.fail_on_prompt_budget_exceeded
+    if config.enforce_retrieval_token_budget is not None:
+        single_rag["retrieval_budget_enforced"] = config.enforce_retrieval_token_budget
+        multi_rag["retrieval_budget_enforced"] = config.enforce_retrieval_token_budget
+    if config.task_filter_enabled is not None:
+        single_rag["task_filter"] = "canonical_task" if config.task_filter_enabled else "disabled"
+        multi_rag["task_filter"] = "canonical_task" if config.task_filter_enabled else "disabled"
+    if config.max_retrieved_document_tokens is not None:
+        single_rag["max_document_tokens"] = config.max_retrieved_document_tokens
+        multi_rag["max_document_tokens"] = config.max_retrieved_document_tokens
+    return payload
 
 
 def compute_baseline_fingerprint(config: SmokeExperimentConfig) -> str:
@@ -140,8 +155,14 @@ def effective_config_payload(
 ) -> dict[str, Any]:
     """Return the fully resolved, portable snapshot written beside every run."""
 
-    experiment = config.model_dump(mode="json", exclude={"retrieval_config"})
+    experiment = config.model_dump(
+        mode="json",
+        exclude={"retrieval_config"},
+        exclude_none=True,
+    )
     resolved_retrieval = rag.model_dump(mode="json")
+    if resolved_retrieval["llm"].get("context_window_tokens") is None:
+        resolved_retrieval["llm"].pop("context_window_tokens", None)
     resolved_retrieval["llm"]["max_tokens"] = config.generation_max_tokens
     resolved_retrieval["llm"]["seed"] = config.random_seed
     resolved_retrieval["retrieval"].update(
@@ -179,12 +200,15 @@ def write_baseline_artifacts(
     except ImportError:  # pragma: no cover - PyYAML is a required dependency.
         effective_text = json.dumps(effective, ensure_ascii=False, indent=2, sort_keys=True)
         effective_text += "\n"
-    environment_text = json.dumps(
-        environment,
-        ensure_ascii=False,
-        indent=2,
-        sort_keys=True,
-    ) + "\n"
+    environment_text = (
+        json.dumps(
+            environment,
+            ensure_ascii=False,
+            indent=2,
+            sort_keys=True,
+        )
+        + "\n"
+    )
     _write_immutable(config.output_dir / "effective_config.yaml", effective_text)
     _write_immutable(config.output_dir / "environment.json", environment_text)
 

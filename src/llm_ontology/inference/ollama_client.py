@@ -38,6 +38,7 @@ class OllamaProvider:
         temperature: float = 0.0,
         top_p: float = 0.9,
         max_tokens: int = 1024,
+        context_window_tokens: int | None = None,
         seed: int | None = 42,
         timeout_seconds: float = 120.0,
         opener: Callable[..., Any] = urlopen,
@@ -47,6 +48,9 @@ class OllamaProvider:
         self.temperature = temperature
         self.top_p = top_p
         self.max_tokens = max_tokens
+        if context_window_tokens is not None and context_window_tokens < 1:
+            raise ValueError("Ollama context_window_tokens must be positive.")
+        self.context_window_tokens = context_window_tokens
         self.seed = seed
         self.timeout_seconds = timeout_seconds
         self._opener = opener
@@ -68,6 +72,8 @@ class OllamaProvider:
             "top_p": self.top_p,
             "num_predict": self.max_tokens,
         }
+        if self.context_window_tokens is not None:
+            options["num_ctx"] = self.context_window_tokens
         if self.seed is not None:
             options["seed"] = self.seed
         payload: dict[str, Any] = {
@@ -125,9 +131,7 @@ class OllamaProvider:
             with self._opener(request, timeout=self.timeout_seconds) as response:
                 parsed = json.loads(response.read().decode("utf-8"))
         except HTTPError as exc:
-            raise RuntimeError(
-                f"Ollama request failed with HTTP {exc.code}: {exc.reason}"
-            ) from exc
+            raise RuntimeError(f"Ollama request failed with HTTP {exc.code}: {exc.reason}") from exc
         except (URLError, TimeoutError, socket.timeout) as exc:
             raise RuntimeError(
                 f"Ollama is not reachable at {self.base_url}. "
@@ -148,6 +152,7 @@ def generate_with_ollama(
     top_p: float,
     max_tokens: int,
     seed: int | None = None,
+    context_window_tokens: int | None = None,
 ) -> str:
     provider = OllamaProvider(
         model_name=model_name,
@@ -155,6 +160,7 @@ def generate_with_ollama(
         temperature=temperature,
         top_p=top_p,
         max_tokens=max_tokens,
+        context_window_tokens=context_window_tokens,
         seed=seed,
         opener=urlopen,
     )
