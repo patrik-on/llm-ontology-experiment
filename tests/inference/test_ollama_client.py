@@ -37,6 +37,7 @@ def test_ollama_request_includes_reproducibility_seed(monkeypatch: pytest.Monkey
         top_p=0.9,
         max_tokens=512,
         seed=42,
+        context_window_tokens=32768,
     )
 
     request = captured["request"]
@@ -44,6 +45,7 @@ def test_ollama_request_includes_reproducibility_seed(monkeypatch: pytest.Monkey
     assert output == "generated"
     assert payload["options"]["seed"] == 42
     assert payload["options"]["temperature"] == 0.0
+    assert payload["options"]["num_ctx"] == 32768
 
 
 def test_ollama_http_error_is_reported_as_server_error(monkeypatch: pytest.MonkeyPatch) -> None:

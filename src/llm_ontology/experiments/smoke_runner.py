@@ -166,10 +166,7 @@ class SmokeExperimentRunner:
             case
             for case in cases
             if (not selection.tasks or case.task in selection.tasks)
-            and (
-                not selection.difficulties
-                or case.difficulty.value in selection.difficulties
-            )
+            and (not selection.difficulties or case.difficulty.value in selection.difficulties)
             and (not selection.case_ids or case.id in selection.case_ids)
         ]
         selected_modes = selection.modes or self.config.modes
@@ -283,6 +280,14 @@ class SmokeExperimentRunner:
             total_context_tokens=self.config.total_context_tokens,
             reserved_output_tokens=self.config.reserved_output_tokens,
             safety_margin_tokens=self.config.safety_margin_tokens,
+            retrieval_token_budget=(
+                self.config.retrieval_token_budget
+                if self.config.enforce_retrieval_token_budget
+                else None
+            ),
+            max_retrieved_document_tokens=(self.config.max_retrieved_document_tokens),
+            runtime_context_tokens=self.config.ollama_num_ctx,
+            fail_on_prompt_budget_exceeded=bool(self.config.fail_on_prompt_budget_exceeded),
             structured_retries=self.config.structured_retries,
         )
 
@@ -325,6 +330,19 @@ class SmokeExperimentRunner:
             total_context_tokens=self.config.total_context_tokens,
             reserved_output_tokens=self.config.reserved_output_tokens,
             safety_margin_tokens=self.config.safety_margin_tokens,
+            retrieval_token_budget=(
+                self.config.retrieval_token_budget
+                if self.config.enforce_retrieval_token_budget
+                else None
+            ),
+            max_retrieved_document_tokens=(self.config.max_retrieved_document_tokens),
+            metadata_filter=(
+                {"task": case.task}
+                if self.config.task_filter_enabled and mode != RetrievalMode.NO_RAG
+                else {}
+            ),
+            runtime_context_tokens=self.config.ollama_num_ctx,
+            fail_on_prompt_budget_exceeded=bool(self.config.fail_on_prompt_budget_exceeded),
             random_seed=self.config.random_seed,
             results_path=self.config.output_dir / "runs.jsonl",
             prompt_artifacts_dir=self.config.output_dir / "prompts" / case.id / mode.value,
@@ -354,6 +372,12 @@ class SmokeExperimentRunner:
         check("generation.temperature", rag.llm.temperature, self.config.generation_temperature)
         check("generation.top_p", rag.llm.top_p, self.config.generation_top_p)
         check("generation.seed", rag.llm.seed, self.config.random_seed)
+        if self.config.ollama_num_ctx is not None:
+            check(
+                "generation.context_window_tokens",
+                rag.llm.context_window_tokens,
+                self.config.ollama_num_ctx,
+            )
         check("embeddings.provider", rag.embeddings.provider, self.config.embedding_provider)
         check("embeddings.model", rag.embeddings.model, self.config.embedding_model)
         check("embeddings.dimension", rag.embeddings.dimension, self.config.embedding_dimension)
@@ -404,9 +428,7 @@ class SmokeExperimentRunner:
         leakage_path = self.config.dataset_root / "leakage_report.json"
         leakage = json.loads(leakage_path.read_text(encoding="utf-8"))
         if leakage.get("overall_safe") is not True:
-            raise BaselineMismatchError(
-                "BASELINE_MISMATCH: smoke leakage audit is not safe."
-            )
+            raise BaselineMismatchError("BASELINE_MISMATCH: smoke leakage audit is not safe.")
 
         collection_metadata = {
             name: identity.model_dump(mode="json")
@@ -417,9 +439,7 @@ class SmokeExperimentRunner:
         runtime_validation = "skipped"
         if not self.config.require_runtime_assets:
             if mismatches:
-                raise BaselineMismatchError(
-                    "BASELINE_MISMATCH: " + "; ".join(mismatches)
-                )
+                raise BaselineMismatchError("BASELINE_MISMATCH: " + "; ".join(mismatches))
             return _environment_metadata(
                 self.config,
                 rag,
@@ -432,8 +452,7 @@ class SmokeExperimentRunner:
         persist = Path(rag.vector_store.persist_path)
         if not persist.is_dir():
             raise BaselineMismatchError(
-                "BASELINE_MISMATCH: Chroma persistence directory is missing: "
-                f"{persist.as_posix()}"
+                f"BASELINE_MISMATCH: Chroma persistence directory is missing: {persist.as_posix()}"
             )
         manifest_store = CollectionManifestStore(persist)
         for collection in (
@@ -489,8 +508,7 @@ class SmokeExperimentRunner:
                 actual_generation_digest = str(generation_resolver())
             except RuntimeError as exc:
                 raise BaselineMismatchError(
-                    "BASELINE_MISMATCH: generation model digest could not be verified: "
-                    f"{exc}"
+                    f"BASELINE_MISMATCH: generation model digest could not be verified: {exc}"
                 ) from exc
             check(
                 "generation.model_digest",
@@ -506,8 +524,7 @@ class SmokeExperimentRunner:
                 actual_embedding_digest = str(embedding_resolver())
             except RuntimeError as exc:
                 raise BaselineMismatchError(
-                    "BASELINE_MISMATCH: embedding model digest could not be verified: "
-                    f"{exc}"
+                    f"BASELINE_MISMATCH: embedding model digest could not be verified: {exc}"
                 ) from exc
             check(
                 "embeddings.model_digest",
@@ -583,9 +600,7 @@ def _check_collection_identity(
     for field, actual in checks.items():
         wanted = expected_values[field]
         if actual != wanted:
-            mismatches.append(
-                f"collections.{name}.{field}: expected={wanted!r}, actual={actual!r}"
-            )
+            mismatches.append(f"collections.{name}.{field}: expected={wanted!r}, actual={actual!r}")
 
 
 def _environment_metadata(
@@ -597,7 +612,7 @@ def _environment_metadata(
     collections: dict[str, Any],
     runtime_validation: str,
 ) -> dict[str, Any]:
-    return {
+    metadata = {
         "baseline_id": config.baseline_id,
         "baseline_fingerprint": config.baseline_fingerprint,
         "os_runtime": platform.platform(),
@@ -611,3 +626,6 @@ def _environment_metadata(
         "chroma_path": Path(rag.vector_store.persist_path).as_posix(),
         "collection_ids": collections,
     }
+    if config.ollama_num_ctx is not None:
+        metadata["ollama_num_ctx"] = config.ollama_num_ctx
+    return metadata

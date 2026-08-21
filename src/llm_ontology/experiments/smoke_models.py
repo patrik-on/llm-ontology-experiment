@@ -50,6 +50,11 @@ class SmokeExperimentConfig(BaseModel):
     total_context_tokens: int = Field(default=32768, ge=1)
     reserved_output_tokens: int = Field(default=2048, ge=1)
     safety_margin_tokens: int = Field(default=256, ge=0)
+    ollama_num_ctx: int | None = Field(default=None, ge=1)
+    enforce_retrieval_token_budget: bool | None = None
+    task_filter_enabled: bool | None = None
+    max_retrieved_document_tokens: int | None = Field(default=None, ge=1)
+    fail_on_prompt_budget_exceeded: bool | None = None
     structured_retries: int = Field(default=2, ge=0)
     structured_output_enabled: Literal[True] = True
     structured_output_format: Literal["json_schema"] = "json_schema"
@@ -97,6 +102,10 @@ class SmokeExperimentConfig(BaseModel):
             raise ValueError("Frozen collection identities must cover all three baseline indexes.")
         if self.generation_max_tokens > self.total_context_tokens:
             raise ValueError("generation_max_tokens cannot exceed the context window.")
+        if self.ollama_num_ctx is not None and self.total_context_tokens > self.ollama_num_ctx:
+            raise ValueError("total_context_tokens cannot exceed ollama_num_ctx.")
+        if self.fail_on_prompt_budget_exceeded and self.ollama_num_ctx is None:
+            raise ValueError("fail_on_prompt_budget_exceeded requires an explicit ollama_num_ctx.")
         frozen_dataset_ids = {
             manifest_id
             for identity in self.collection_manifests.values()

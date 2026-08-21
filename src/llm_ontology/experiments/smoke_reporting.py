@@ -9,7 +9,42 @@ from pathlib import Path
 from statistics import mean
 from typing import Any, Iterable
 
+from llm_ontology.evaluation.metrics_runner import (
+    aggregate_refactoring,
+    aggregate_testing,
+)
 from llm_ontology.experiments.smoke_models import SmokeExperimentConfig, SmokeRunRecord
+
+
+SUMMARY_FIELDS = (
+    "task",
+    "mode",
+    "success",
+    "failed",
+    "average_primary_score",
+    "count",
+    "output_non_empty_rate",
+    "contains_test_annotation_rate",
+    "has_assertion_rate",
+    "target_method_invocation_rate",
+    "trivial_test_smell_rate",
+    "avg_test_quality_score",
+    "median_test_quality_score",
+    "min_test_quality_score",
+    "max_test_quality_score",
+    "avg_coverage_proxy_score",
+    "output_differs_from_input_rate",
+    "avg_edit_similarity",
+    "avg_code_health_delta_score",
+    "avg_cohesion_proxy_score",
+    "avg_coupling_proxy_score",
+    "avg_refactoring_quality_score",
+    "median_refactoring_quality_score",
+    "min_refactoring_quality_score",
+    "max_refactoring_quality_score",
+    "avg_complexity_delta",
+    "avg_loc_delta",
+)
 
 
 def append_run_record(path: Path, record: SmokeRunRecord) -> None:
@@ -30,7 +65,9 @@ def read_run_history(path: Path) -> list[SmokeRunRecord]:
             try:
                 records.append(SmokeRunRecord.model_validate_json(line))
             except ValueError as exc:
-                raise ValueError(f"Invalid smoke run record at {path}:{line_number}: {exc}") from exc
+                raise ValueError(
+                    f"Invalid smoke run record at {path}:{line_number}: {exc}"
+                ) from exc
     return records
 
 
@@ -44,10 +81,7 @@ def latest_run_records(
     for record in records:
         if baseline_id is not None and record.baseline_id != baseline_id:
             continue
-        if (
-            baseline_fingerprint is not None
-            and record.baseline_fingerprint != baseline_fingerprint
-        ):
+        if baseline_fingerprint is not None and record.baseline_fingerprint != baseline_fingerprint:
             continue
         previous = latest.get(record.run_id)
         if previous is None or record.attempt >= previous.attempt:
@@ -97,13 +131,14 @@ def write_smoke_reports(
         "raw_history_records": len(history),
         "excluded_history_records": len(history) - len(baseline_history),
         "fairness_passed": bool(fairness_audit.get("passed")),
+        "evaluation_metric_contract": "canonical_finetuning_eval_metrics",
         "by_task_mode": summary_rows,
     }
     _write_json(output / "summary.json", summary)
     _write_csv(
         output / "summary.csv",
         summary_rows,
-        fieldnames=("task", "mode", "success", "failed", "average_primary_score"),
+        fieldnames=SUMMARY_FIELDS,
     )
 
     comparisons = _case_comparisons(latest)
@@ -143,6 +178,12 @@ def _summary_rows(records: list[SmokeRunRecord]) -> list[dict[str, Any]]:
     rows = []
     for (task, mode), items in sorted(groups.items()):
         scores = [score for item in items if (score := _primary_score(item)) is not None]
+        successful_metrics = [item.metrics for item in items if item.status == "success"]
+        evaluation_aggregates = (
+            aggregate_testing(successful_metrics)
+            if task == "testing"
+            else aggregate_refactoring(successful_metrics)
+        )
         rows.append(
             {
                 "task": task,
@@ -150,6 +191,7 @@ def _summary_rows(records: list[SmokeRunRecord]) -> list[dict[str, Any]]:
                 "success": sum(item.status == "success" for item in items),
                 "failed": sum(item.status == "failed" for item in items),
                 "average_primary_score": round(mean(scores), 6) if scores else "",
+                **evaluation_aggregates,
             }
         )
     return rows
@@ -193,6 +235,7 @@ def _retrieval_analysis(records: list[SmokeRunRecord]) -> dict[str, Any]:
     for record in records:
         experiment = record.experiment_record or {}
         trace = experiment.get("retrieval_trace") or {}
+        token_budget = experiment.get("token_budget") or {}
         rows.append(
             {
                 "run_id": record.run_id,
@@ -200,16 +243,21 @@ def _retrieval_analysis(records: list[SmokeRunRecord]) -> dict[str, Any]:
                 "task": record.task,
                 "mode": record.mode.value,
                 "selected_collections": trace.get("selected_collections", []),
+                "applied_filters": trace.get("applied_filters", {}),
                 "retrieved_documents": len(trace.get("retrieved_documents", [])),
                 "prompt_documents": len(trace.get("prompt_document_ids", [])),
+                "retrieval_tokens": token_budget.get("retrieval_tokens", 0),
+                "max_document_tokens": token_budget.get("max_document_tokens"),
+                "truncated_documents": len(token_budget.get("truncated_document_ids", [])),
+                "final_prompt_tokens": token_budget.get("final_prompt_tokens"),
+                "runtime_prompt_eval_count": token_budget.get("runtime_prompt_eval_count"),
+                "runtime_prompt_truncation_suspected": token_budget.get(
+                    "runtime_prompt_truncation_suspected"
+                ),
                 "fusion_strategy": trace.get("fusion_strategy"),
                 "rrf_k": trace.get("rrf_k"),
-                "candidates_before_deduplication": trace.get(
-                    "candidates_before_deduplication", 0
-                ),
-                "candidates_after_deduplication": trace.get(
-                    "candidates_after_deduplication", 0
-                ),
+                "candidates_before_deduplication": trace.get("candidates_before_deduplication", 0),
+                "candidates_after_deduplication": trace.get("candidates_after_deduplication", 0),
                 "retrieval_latency_ms": trace.get("total_latency_ms", 0.0),
             }
         )
@@ -221,8 +269,15 @@ def _retrieval_analysis(records: list[SmokeRunRecord]) -> dict[str, Any]:
             "average_retrieved_documents": round(
                 mean(item["retrieved_documents"] for item in items), 6
             ),
-            "average_prompt_documents": round(
-                mean(item["prompt_documents"] for item in items), 6
+            "average_prompt_documents": round(mean(item["prompt_documents"] for item in items), 6),
+            "average_retrieval_tokens": round(
+                mean(float(item["retrieval_tokens"]) for item in items), 6
+            ),
+            "average_truncated_documents": round(
+                mean(item["truncated_documents"] for item in items), 6
+            ),
+            "runtime_prompt_truncation_suspected_count": sum(
+                item["runtime_prompt_truncation_suspected"] is True for item in items
             ),
             "average_retrieval_latency_ms": round(
                 mean(float(item["retrieval_latency_ms"]) for item in items), 6
@@ -260,9 +315,7 @@ def _primary_score(record: SmokeRunRecord | None) -> float | None:
     if record is None or record.status != "success":
         return None
     key = (
-        "generated_test_quality_score"
-        if record.task == "testing"
-        else "refactoring_quality_score"
+        "generated_test_quality_score" if record.task == "testing" else "refactoring_quality_score"
     )
     value = record.metrics.get(key)
     return float(value) if isinstance(value, (int, float)) else None
@@ -283,12 +336,64 @@ def _markdown_report(
         f"- Successful: {summary['successful_run_ids']}",
         f"- Failed: {summary['failed_run_ids']}",
         f"- Prompt fairness: {'PASS' if summary['fairness_passed'] else 'FAIL'}",
+        "- Metrics: canonical fine-tuning evaluation aggregates",
         "",
-        "## Case comparison",
+        "## Evaluation metrics",
         "",
-        "| Case | Task | Direct | Single RAG | MultiRAG | Best mode |",
-        "|---|---|---:|---:|---:|---|",
+        "### Testing",
+        "",
+        "| Mode | Test quality | Coverage proxy | @Test rate | Assertion rate | "
+        "Target invocation | Trivial smell |",
+        "|---|---:|---:|---:|---:|---:|---:|",
     ]
+    for row in summary["by_task_mode"]:
+        if row["task"] != "testing":
+            continue
+        lines.append(
+            "| {mode} | {quality} | {coverage} | {annotation} | {assertion} | "
+            "{target} | {smell} |".format(
+                mode=row["mode"],
+                quality=_format_metric(row.get("avg_test_quality_score")),
+                coverage=_format_metric(row.get("avg_coverage_proxy_score")),
+                annotation=_format_metric(row.get("contains_test_annotation_rate")),
+                assertion=_format_metric(row.get("has_assertion_rate")),
+                target=_format_metric(row.get("target_method_invocation_rate")),
+                smell=_format_metric(row.get("trivial_test_smell_rate")),
+            )
+        )
+    lines.extend(
+        [
+            "",
+            "### Refactoring",
+            "",
+            "| Mode | Quality | Code health | Cohesion | Coupling | Complexity Δ | LOC Δ |",
+            "|---|---:|---:|---:|---:|---:|---:|",
+        ]
+    )
+    for row in summary["by_task_mode"]:
+        if row["task"] != "refactoring":
+            continue
+        lines.append(
+            "| {mode} | {quality} | {health} | {cohesion} | {coupling} | "
+            "{complexity} | {loc} |".format(
+                mode=row["mode"],
+                quality=_format_metric(row.get("avg_refactoring_quality_score")),
+                health=_format_metric(row.get("avg_code_health_delta_score")),
+                cohesion=_format_metric(row.get("avg_cohesion_proxy_score")),
+                coupling=_format_metric(row.get("avg_coupling_proxy_score")),
+                complexity=_format_metric(row.get("avg_complexity_delta")),
+                loc=_format_metric(row.get("avg_loc_delta")),
+            )
+        )
+    lines.extend(
+        [
+            "",
+            "## Case comparison",
+            "",
+            "| Case | Task | Direct | Single RAG | MultiRAG | Best mode |",
+            "|---|---|---:|---:|---:|---|",
+        ]
+    )
     for row in comparisons:
         lines.append(
             "| {case_id} | {task} | {no_rag_score} | {single_collection_rag_score} | "
@@ -302,6 +407,10 @@ def _markdown_report(
     else:
         lines.append("No latest run is marked as failed.")
     return "\n".join(lines) + "\n"
+
+
+def _format_metric(value: Any) -> str:
+    return f"{float(value):.4f}" if isinstance(value, (int, float)) else ""
 
 
 def _write_json(path: Path, payload: Any) -> None:
