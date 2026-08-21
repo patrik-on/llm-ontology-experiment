@@ -7,6 +7,7 @@ from typing import Any
 
 from llm_ontology.core.config import read_yaml
 from llm_ontology.evaluation.prediction_io import pick_first, read_jsonl, write_jsonl
+from llm_ontology.evaluation.run_layout import require_canonical_evaluation_path
 from llm_ontology.finetuning.prompt_formatter import format_inference_prompt
 
 
@@ -299,7 +300,9 @@ def main() -> None:
     parser.add_argument("--offload-dir", default=None)
     parser.add_argument("--load-in-4bit", dest="load_in_4bit", action="store_true", default=None)
     parser.add_argument("--no-load-in-4bit", dest="load_in_4bit", action="store_false")
-    run_inference(parser.parse_args())
+    args = parser.parse_args()
+    require_canonical_evaluation_path(args.output)
+    run_inference(args)
 
 
 if __name__ == "__main__":

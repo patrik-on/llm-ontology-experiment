@@ -73,6 +73,7 @@ llm-ontology-experiment/
 ├── artifacts/                       # Generované a handoff artefakty
 │   ├── finetuning/                  # Adaptéry, checksumy a checkpoint metadata
 │   ├── retrieval/                   # Index artefakty a index reporty
+│   ├── evaluation/runs/<run_id>/    # Jednotné prediction/metrics/report runs
 │   └── experiments/                 # Ignorované runs, audity, agregácie a reporty
 │
 ├── docs/                            # Technická a metodologická dokumentácia
@@ -121,6 +122,10 @@ Ollama generation, structured output a auditovateľné experiment records.
 
 Deterministická evaluácia testing a refactoring výstupov, prediction IO,
 executable kontroly, metriky, agregácie a reporty.
+
+Každý lokálny evaluation beh má validované `run_id` a zapisuje sa iba do
+`artifacts/evaluation/runs/<run_id>/` spolu s `run_manifest.json`. Runner tým
+zabraňuje vytváraniu `evaluation_*` priečinkov v koreni repozitára.
 
 #### `experiments/`
 

@@ -102,7 +102,7 @@ Po stiahnuti base modelu, priprave test datasetov a rozbaleni adapterov:
 python scripts/run_full_evaluation.py \
   --models-config configs/evaluation/eval_models_v2_only.yaml \
   --limit 5 \
-  --output-root evaluation_v2_smoke \
+  --run-id v2_final_smoke \
   --overwrite
 ```
 

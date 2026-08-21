@@ -16,6 +16,7 @@ from llm_ontology.retrieval.config import RagConfig, load_rag_config
 from llm_ontology.retrieval.factory import create_vector_store
 from llm_ontology.retrieval.models import RetrievalMode, RetrievalRequest
 from llm_ontology.retrieval.pipeline import VectorRetriever
+from llm_ontology.retrieval.query import build_retrieval_query
 from llm_ontology.vectorstore.manifest import (
     IncompatibleCollectionError,
     create_collection_manifest,
@@ -44,6 +45,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     query_parser.add_argument("--mode", choices=tuple(mode.value for mode in RetrievalMode))
     query_parser.add_argument("--top-k", type=int)
+    query_parser.add_argument("--task", choices=("testing", "refactoring"))
+    query_parser.add_argument("--class-name", default="")
+    query_parser.add_argument("--focal-method", default="")
+    query_parser.add_argument("--requirements", default="")
     query_parser.add_argument("--filter", action="append", default=[], metavar="KEY=VALUE")
     return parser
 
@@ -56,6 +61,7 @@ def run_index(args: argparse.Namespace, config: RagConfig) -> int:
             dataset=args.dataset,
             collection=collection,
             split=args.split,
+            embedding_template_version=config.ingestion.embedding_template_version,
         )
         chunker = PassthroughChunker(config.ingestion.pipeline_version)
     else:
@@ -64,6 +70,7 @@ def run_index(args: argparse.Namespace, config: RagConfig) -> int:
             dataset=args.dataset,
             collection=collection,
             split=args.split,
+            embedding_template_version=config.ingestion.embedding_template_version,
         )
         chunker = StructuredTextChunker(
             config.ingestion.literature_max_chars,
@@ -92,7 +99,7 @@ def run_index(args: argparse.Namespace, config: RagConfig) -> int:
                 collection_name=collection,
                 embedding_provider=vector_store.embedding_provider,
                 embedding_normalized=config.embeddings.normalized,
-                embedding_template_version="1",
+                embedding_template_version=config.ingestion.embedding_template_version,
                 chunker_name=(
                     "passthrough"
                     if args.loader == "dataset"
@@ -111,6 +118,10 @@ def run_index(args: argparse.Namespace, config: RagConfig) -> int:
 
 def run_query(args: argparse.Namespace, config: RagConfig) -> int:
     mode = RetrievalMode(args.mode) if args.mode else config.retrieval.mode
+    metadata_filter = {
+        **config.retrieval.metadata_filter,
+        **parse_filters(args.filter),
+    }
     if mode == RetrievalMode.MULTI_COLLECTION_RAG:
         if args.collection:
             raise ValueError("Use --collections, not --collection, for MultiRAG.")
@@ -129,16 +140,31 @@ def run_query(args: argparse.Namespace, config: RagConfig) -> int:
             if args.collection
             else _configured_collection(config)
         ]
+    task = args.task or str(metadata_filter.get("task", "")).strip()
+    if config.retrieval.query_strategy == "task_aware_v1" and not task:
+        raise ValueError("task_aware_v1 query requires --task or a task metadata filter.")
+    query = build_retrieval_query(
+        strategy=config.retrieval.query_strategy,
+        task=task or "testing",
+        input_text=args.query,
+        requirements=args.requirements,
+        structured_identity={
+            "class_name": args.class_name,
+            "focal_method": args.focal_method,
+        },
+    )
     request = RetrievalRequest(
-        query=args.query,
+        query=query,
         mode=mode,
         collections=collections,
-        metadata_filter={**config.retrieval.metadata_filter, **parse_filters(args.filter)},
+        metadata_filter=metadata_filter,
         allowed_splits=config.retrieval.allowed_splits,
         top_k=args.top_k or config.retrieval.top_k,
         max_context_tokens=config.retrieval.max_context_tokens,
         rrf_k=config.retrieval.rrf_k,
         per_collection_top_k=config.retrieval.per_collection_top_k,
+        candidate_pool_size=config.retrieval.candidate_pool_size,
+        reranking_strategy=config.retrieval.reranking_strategy,
     )
     result = VectorRetriever(create_vector_store(config)).retrieve(request)
     print(result.model_dump_json(indent=2))

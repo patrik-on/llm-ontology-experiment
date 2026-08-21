@@ -65,7 +65,7 @@ python scripts/experiments/benchmarks/run_benchmark.py `
   --temperature 0 `
   --seed 42 `
   --limit 1 `
-  --output evaluation/predictions/testbench_direct_canary.jsonl
+  --output artifacts/evaluation/runs/testbench_canary/predictions/testing/testbench_direct_canary.jsonl
 ```
 
 ## 3. Bezpečný evaluation dry-run
@@ -75,20 +75,20 @@ Nevytvorí Java súbor a nespustí Maven.
 
 ```powershell
 python scripts/experiments/benchmarks/evaluate_testbench.py `
-  --predictions evaluation/predictions/testbench_direct_canary.jsonl `
+  --predictions artifacts/evaluation/runs/testbench_canary/predictions/testing/testbench_direct_canary.jsonl `
   --dry-run `
-  --output evaluation/metrics/testbench_direct_canary_plan.jsonl
+  --output artifacts/evaluation/runs/testbench_canary/metrics/testing/testbench_direct_canary_plan.jsonl
 ```
 
 ## 4. Canary Maven test
 
 ```powershell
 python scripts/experiments/benchmarks/evaluate_testbench.py `
-  --predictions evaluation/predictions/testbench_direct_canary.jsonl `
+  --predictions artifacts/evaluation/runs/testbench_canary/predictions/testing/testbench_direct_canary.jsonl `
   --repair-package `
   --limit 1 `
   --timeout 600 `
-  --output evaluation/metrics/testbench_direct_canary.jsonl
+  --output artifacts/evaluation/runs/testbench_canary/metrics/testing/testbench_direct_canary.jsonl
 ```
 
 `--repair-package` iba doplní chýbajúci package declaration podľa benchmark
@@ -108,13 +108,13 @@ python scripts/experiments/benchmarks/run_benchmark.py `
   --temperature 0 `
   --seed 42 `
   --limit 108 `
-  --output evaluation/predictions/testbench_direct_source.jsonl
+  --output artifacts/evaluation/runs/testbench_direct_source/predictions/testing/testbench_direct_source.jsonl
 
 python scripts/experiments/benchmarks/evaluate_testbench.py `
-  --predictions evaluation/predictions/testbench_direct_source.jsonl `
+  --predictions artifacts/evaluation/runs/testbench_direct_source/predictions/testing/testbench_direct_source.jsonl `
   --repair-package `
   --timeout 600 `
-  --output evaluation/metrics/testbench_direct_source.jsonl
+  --output artifacts/evaluation/runs/testbench_direct_source/metrics/testing/testbench_direct_source.jsonl
 ```
 
 Pre prompt abláciu zopakuj generovanie s `--context-level simple` a `full`.

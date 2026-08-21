@@ -323,6 +323,17 @@ class SmokeExperimentRunner:
             top_k=self.config.top_k,
             rrf_k=self.config.rrf_k,
             per_collection_top_k=self.config.per_collection_top_k,
+            retrieval_query_strategy=(
+                self.config.retrieval_query_strategy or rag.retrieval.query_strategy
+            ),
+            retrieval_reranking_strategy=(
+                self.config.retrieval_reranking_strategy
+                or rag.retrieval.reranking_strategy
+            ),
+            retrieval_candidate_pool_size=(
+                self.config.retrieval_candidate_pool_size
+                or rag.retrieval.candidate_pool_size
+            ),
             allowed_splits=list(self.config.allowed_splits),
             tokenizer_model=self.config.tokenizer_model,
             tokenizer_revision=self.config.tokenizer_revision,
@@ -395,6 +406,24 @@ class SmokeExperimentRunner:
             rag.retrieval.per_collection_top_k,
             self.config.per_collection_top_k,
         )
+        if self.config.retrieval_query_strategy is not None:
+            check(
+                "retrieval.query_strategy",
+                rag.retrieval.query_strategy,
+                self.config.retrieval_query_strategy,
+            )
+        if self.config.retrieval_reranking_strategy is not None:
+            check(
+                "retrieval.reranking_strategy",
+                rag.retrieval.reranking_strategy,
+                self.config.retrieval_reranking_strategy,
+            )
+        if self.config.retrieval_candidate_pool_size is not None:
+            check(
+                "retrieval.candidate_pool_size",
+                rag.retrieval.candidate_pool_size,
+                self.config.retrieval_candidate_pool_size,
+            )
         check(
             "retrieval.allowed_splits",
             tuple(rag.retrieval.allowed_splits),

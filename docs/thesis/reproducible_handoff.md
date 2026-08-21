@@ -94,7 +94,7 @@ Ak su dostupne base model, v2 adaptery a test datasety:
 python scripts/run_full_evaluation.py \
   --models-config configs/evaluation/eval_models_v2_only.yaml \
   --limit 50 \
-  --output-root evaluation_v2_only \
+  --run-id v2_final \
   --overwrite
 ```
 
@@ -132,6 +132,6 @@ S plnym base modelom a datasetmi navyse:
 python scripts/run_full_evaluation.py \
   --models-config configs/evaluation/eval_models_v2_only.yaml \
   --limit 5 \
-  --output-root evaluation_v2_smoke \
+  --run-id v2_final_smoke \
   --overwrite
 ```

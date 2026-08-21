@@ -32,6 +32,7 @@ class NormalizedJsonlLoader:
         split: str = "train",
         manifest: DatasetManifest | None = None,
         expected_context_level: str | None = None,
+        embedding_template_version: str = "1",
     ) -> None:
         self.path = Path(path)
         self.dataset = dataset
@@ -39,10 +40,15 @@ class NormalizedJsonlLoader:
         self.split = split
         self.manifest = manifest
         self.expected_context_level = expected_context_level
+        self.embedding_template_version = embedding_template_version
 
     def load(self) -> Iterable[SourceDocument]:
         for document in self.load_knowledge():
-            yield materialize_for_collection(document, self.collection)
+            yield materialize_for_collection(
+                document,
+                self.collection,
+                embedding_template_version=self.embedding_template_version,
+            )
 
     def load_knowledge(self) -> Iterable[KnowledgeDocument]:
         for index, record in enumerate(read_records(self.path)):
@@ -147,6 +153,7 @@ class TextDocumentLoader:
         split: str = "train",
         metadata: dict[str, Any] | None = None,
         manifest: DatasetManifest | None = None,
+        embedding_template_version: str = "1",
     ) -> None:
         self.path = Path(path)
         self.dataset = dataset
@@ -154,10 +161,15 @@ class TextDocumentLoader:
         self.split = split
         self.metadata = metadata or {}
         self.manifest = manifest
+        self.embedding_template_version = embedding_template_version
 
     def load(self) -> Iterable[SourceDocument]:
         for document in self.load_knowledge():
-            yield materialize_for_collection(document, self.collection)
+            yield materialize_for_collection(
+                document,
+                self.collection,
+                embedding_template_version=self.embedding_template_version,
+            )
 
     def load_knowledge(self) -> Iterable[KnowledgeDocument]:
         if self.path.suffix.lower() not in self.SUPPORTED_SUFFIXES:

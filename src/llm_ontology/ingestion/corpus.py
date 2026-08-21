@@ -28,6 +28,7 @@ class ProductionCorpusBuilder:
         refactoring_collection: str = "refactoring_db",
         literature_collection: str = "literature_db",
         pair_parser: JavaParser | None = None,
+        embedding_template_version: str = "1",
     ) -> None:
         self.pair_chunker = PairAwareJavaChunker(
             pipeline_version=pipeline_version, parser=pair_parser
@@ -40,6 +41,7 @@ class ProductionCorpusBuilder:
         self.testing_collection = testing_collection
         self.refactoring_collection = refactoring_collection
         self.literature_collection = literature_collection
+        self.embedding_template_version = embedding_template_version
 
     def build(
         self,
@@ -71,7 +73,11 @@ class ProductionCorpusBuilder:
     ) -> list[DocumentChunk]:
         chunks = []
         for knowledge_document in documents:
-            source_document = materialize_for_collection(knowledge_document, collection)
+            source_document = materialize_for_collection(
+                knowledge_document,
+                collection,
+                embedding_template_version=self.embedding_template_version,
+            )
             chunker = (
                 self.literature_chunker
                 if knowledge_document.document_type == DocumentType.LITERATURE

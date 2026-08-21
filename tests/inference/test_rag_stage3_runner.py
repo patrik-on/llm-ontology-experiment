@@ -343,6 +343,78 @@ def test_runner_records_alias_canonical_task_prompt_and_budget(tmp_path: Path) -
     assert record.generation_model_digest is None
 
 
+def test_runner_passes_task_aware_query_and_reranking_contract(tmp_path: Path) -> None:
+    requests = []
+
+    class CapturingRetriever:
+        def retrieve(self, request):
+            requests.append(request)
+            return RetrievalResult(
+                documents=[
+                    RetrievalHit(
+                        document_id="example-1",
+                        collection="tests",
+                        content=(
+                            "Production Java code:\npublic int add(int a, int b) { "
+                            "return a + b; }\n\nCorresponding test code:\n@Test void adds() {}"
+                        ),
+                        score=0.9,
+                    )
+                ],
+                trace=RetrievalTrace(query=request.query),
+            )
+
+    response = json.dumps(
+        {
+            "task_type": "testing",
+            "analysis_summary": "tests addition",
+            "generated_tests": "@Test void adds() {}",
+        }
+    )
+    runner = RagExperimentRunner(
+        retriever=CapturingRetriever(),
+        llm_provider=MockLLMProvider(response),
+        token_counter=CharacterTokenCounter(),
+        total_context_tokens=2048,
+        reserved_output_tokens=64,
+    )
+    config = _config(
+        tmp_path,
+        task="testing",
+        mode=RetrievalMode.SINGLE_COLLECTION_RAG,
+        collection="tests",
+    ).model_copy(
+        update={
+            "top_k": 3,
+            "retrieval_query_strategy": "task_aware_v1",
+            "retrieval_reranking_strategy": "code_aware_v1",
+            "retrieval_candidate_pool_size": 12,
+        }
+    )
+
+    runner.run_case(
+        config,
+        ExperimentCase(
+            case_id="task-aware-query",
+            instruction="Generate tests.",
+            input_text="public int add(int left, int right) { return left + right; }",
+            requirements="Cover normal inputs.",
+            structured_identity={
+                "class_name": "Calculator",
+                "focal_method": "add",
+            },
+        ),
+    )
+
+    request = requests[0]
+    assert "Task: test generation" in request.query
+    assert "Java class: Calculator" in request.query
+    assert "Focal method: add" in request.query
+    assert "Requirements: Cover normal inputs." in request.query
+    assert request.candidate_pool_size == 12
+    assert request.reranking_strategy == "code_aware_v1"
+
+
 def test_runner_enforces_retrieval_budget_and_reports_runtime_prompt_count(
     tmp_path: Path,
 ) -> None:

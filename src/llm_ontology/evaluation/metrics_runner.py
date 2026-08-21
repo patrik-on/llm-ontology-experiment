@@ -8,6 +8,7 @@ from typing import Any
 
 from llm_ontology.evaluation.prediction_io import normalize_prediction_record, read_jsonl, write_csv, write_json, write_jsonl
 from llm_ontology.evaluation.refactoring_metrics import compute_refactoring_metrics
+from llm_ontology.evaluation.run_layout import require_canonical_evaluation_path
 from llm_ontology.evaluation.test_metrics import compute_testing_metrics
 
 
@@ -89,6 +90,8 @@ def main() -> None:
     parser.add_argument("--predictions-dir", required=True)
     parser.add_argument("--output-dir", required=True)
     args = parser.parse_args()
+    require_canonical_evaluation_path(args.predictions_dir)
+    require_canonical_evaluation_path(args.output_dir)
     compute_metrics(args.task, args.predictions_dir, args.output_dir)
 
 

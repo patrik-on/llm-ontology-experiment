@@ -84,16 +84,10 @@ experiments/**/results/*
 !experiments/**/info.md
 wandb/
 
-# Evaluation outputs
-evaluation_smoke/**
-evaluation_v2*/
-evaluation/predictions/**
-evaluation/metrics/**
-evaluation/reports/**
-evaluation/samples/**
-!evaluation/
-!evaluation/**/
-!evaluation/**/info.md
+# Evaluation outputs: one canonical namespace, one directory per run_id.
+artifacts/evaluation/runs/**
+!artifacts/evaluation/runs/
+!artifacts/evaluation/runs/.gitkeep
 
 # Logs
 *.log

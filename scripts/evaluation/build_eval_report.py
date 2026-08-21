@@ -10,13 +10,15 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
 from llm_ontology.evaluation.report_writer import write_evaluation_report
+from llm_ontology.evaluation.run_layout import EvaluationRunLayout
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Build Markdown evaluation report from aggregate metrics.")
-    parser.add_argument("--output-root", default="evaluation")
+    parser.add_argument("--run-id", required=True)
     args = parser.parse_args()
-    path = write_evaluation_report(args.output_root)
+    layout = EvaluationRunLayout(args.run_id)
+    path = write_evaluation_report(layout.root)
     print(f"Wrote report: {path}")
 
 

@@ -10,6 +10,8 @@ Inference, metriky, agregácie a reportovanie.
 - `metrics_runner.py`: per-example a aggregate výpočty,
 - `report_writer.py`: report a kvalitatívne ukážky,
 - `full_evaluation.py`: subprocess orchestration,
+- `run_layout.py`: canonical `artifacts/evaluation/runs/<run_id>` kontrakt a
+  run manifest,
 - `smoke.py`: model-free end-to-end kontrola,
 - `coverage_runner.py`: placeholder pre executable JaCoCo subset.
 

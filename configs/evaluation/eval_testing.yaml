@@ -1,4 +1,4 @@
 task: "testing"
 dataset: "data/processed/testing/test.jsonl"
-predictions_dir: "evaluation/predictions/testing"
-metrics_dir: "evaluation/metrics/testing"
+predictions_dir: "artifacts/evaluation/runs/legacy_v1_full/predictions/testing"
+metrics_dir: "artifacts/evaluation/runs/legacy_v1_full/metrics/testing"

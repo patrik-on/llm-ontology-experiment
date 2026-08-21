@@ -15,6 +15,7 @@ from llm_ontology.inference.structured_output import StructuredOutputGenerator
 from llm_ontology.providers.contracts import LLMProvider
 from llm_ontology.retrieval.contracts import Retriever
 from llm_ontology.retrieval.models import RetrievalMode, RetrievalRequest
+from llm_ontology.retrieval.query import build_retrieval_query
 from llm_ontology.retrieval.token_budget import ContextBudgeter, TokenCounter
 
 
@@ -46,6 +47,9 @@ class RagExperimentConfig(BaseModel):
     top_k: int = Field(default=5, ge=1)
     rrf_k: int = Field(default=60, ge=1)
     per_collection_top_k: int = Field(default=5, ge=1, le=100)
+    retrieval_query_strategy: str = "raw_input"
+    retrieval_reranking_strategy: str = "none"
+    retrieval_candidate_pool_size: int | None = Field(default=None, ge=1, le=100)
     allowed_splits: list[str] = Field(default_factory=lambda: ["train"])
     tokenizer_model: str = "Qwen/Qwen2.5-Coder-7B-Instruct"
     tokenizer_revision: str = "c03e6d358207e414f1eca0bb1891e29f1db0e242"
@@ -109,6 +113,27 @@ class RagExperimentConfig(BaseModel):
             )
         if self.fail_on_prompt_budget_exceeded and self.runtime_context_tokens is None:
             raise ValueError("fail_on_prompt_budget_exceeded requires runtime_context_tokens.")
+        if self.retrieval_query_strategy not in {"raw_input", "task_aware_v1"}:
+            raise ValueError(
+                f"Unsupported retrieval query strategy: {self.retrieval_query_strategy!r}"
+            )
+        if self.retrieval_reranking_strategy not in {"none", "code_aware_v1"}:
+            raise ValueError(
+                "Unsupported retrieval reranking strategy: "
+                f"{self.retrieval_reranking_strategy!r}"
+            )
+        if (
+            self.retrieval_candidate_pool_size is not None
+            and self.retrieval_candidate_pool_size < self.top_k
+        ):
+            raise ValueError("retrieval_candidate_pool_size cannot be smaller than top_k.")
+        if self.retrieval_reranking_strategy != "none" and (
+            self.retrieval_candidate_pool_size is None
+            or self.retrieval_candidate_pool_size <= self.top_k
+        ):
+            raise ValueError(
+                "Retrieval reranking requires a candidate pool larger than top_k."
+            )
         return self
 
 
@@ -173,9 +198,16 @@ class RagExperimentRunner:
                 "Experiment config is disabled. Attach approved dataset manifests before enabling it."
             )
         self._validate_runtime(config)
+        retrieval_query = build_retrieval_query(
+            strategy=config.retrieval_query_strategy,
+            task=config.canonical_task.value,
+            input_text=case.input_text,
+            requirements=case.requirements,
+            structured_identity=case.structured_identity,
+        )
         retrieval = self.retriever.retrieve(
             RetrievalRequest(
-                query=case.input_text,
+                query=retrieval_query,
                 mode=config.retrieval_mode,
                 collections=(
                     config.collections
@@ -194,6 +226,8 @@ class RagExperimentRunner:
                 ),
                 rrf_k=config.rrf_k,
                 per_collection_top_k=config.per_collection_top_k,
+                candidate_pool_size=config.retrieval_candidate_pool_size,
+                reranking_strategy=config.retrieval_reranking_strategy,
             )
         )
         fixed_prompt = self.prompt_builder.build(
@@ -210,7 +244,11 @@ class RagExperimentRunner:
                 document_id=document.document_id,
                 content=document.content,
                 source=str(document.metadata.get("source", document.collection)),
-                score=document.reranking_score or document.score,
+                score=(
+                    document.reranking_score
+                    if document.reranking_score is not None
+                    else document.score
+                ),
                 metadata={**document.metadata, "collection": document.collection},
             )
             for document in selection.documents
