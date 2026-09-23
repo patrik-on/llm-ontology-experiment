@@ -31,6 +31,20 @@ Aktualizované: **2026-07-19**
 | MultiRAG a ontology RAG | plán | routing, fusion, ontológia a reranking patria do ďalších fáz |
 | JaCoCo/PIT v novom evaluatore | plán | potrebné pre plnú reprodukciu TestBench metrík |
 
+## Samostatný SI context eval
+
+Pilotná sada pre procesné skilly a modulové `AGENTS.md` je v samostatnom Git
+repozitári `../si-context-eval`. Tento repozitár obsahuje iba
+[tenký spúšťací most](scripts/benchmarks/context_eval_bridge.py), ktorý
+posiela príkazy do eval repozitára. Napríklad:
+
+```powershell
+python scripts/benchmarks/context_eval_bridge.py list
+```
+
+Zadania, projekty, referenčné riešenia, hodnotiteľ aj metodika sú výhradne
+v `si-context-eval`.
+
 ## Rýchla Python kontrola
 
 ```bash

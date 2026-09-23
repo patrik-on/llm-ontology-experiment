@@ -84,6 +84,7 @@ evaluation/samples/**
 # Logs
 *.log
 runs/
+/tmp/
 
 # Results - keep only selected small reports if needed
 results/**
