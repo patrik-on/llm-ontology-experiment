@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import json
+import importlib.util
 import logging
+import os
 import platform
 import re
 from collections.abc import Callable
@@ -21,6 +23,7 @@ from llm_ontology.inference.experiment_runner import (
 )
 from llm_ontology.retrieval.config import RagConfig, load_rag_config
 from llm_ontology.retrieval.factory import (
+    create_embedding_provider,
     create_llm_provider,
     create_vector_store,
 )
@@ -110,17 +113,12 @@ class ConfiguredInteractiveRunner:
     def collection_for(self, task: str, mode: RetrievalMode) -> str | None:
         if mode == RetrievalMode.NO_RAG:
             return None
-        if mode == RetrievalMode.MULTI_COLLECTION_RAG:
-            raise NotImplementedError("MultiRAG is not available yet.")
         config = self._base_config(task, mode)
+        if mode == RetrievalMode.MULTI_COLLECTION_RAG:
+            return ", ".join(config.collections)
         return config.collection
 
     def run(self, request: UIRunRequest) -> ExperimentRecord:
-        if request.mode == RetrievalMode.MULTI_COLLECTION_RAG:
-            raise NotImplementedError(
-                "MultiRAG is not available because multi-collection retrieval and fusion "
-                "are not implemented in the shared runner."
-            )
         config = self._base_config(request.task, request.mode)
         config = config.model_copy(
             update={
@@ -179,33 +177,80 @@ class EnvironmentStatusService:
         rag_config: RagConfig,
         *,
         timeout_seconds: float = 3.0,
+        embedding_provider_factory: Callable[[Any], Any] = create_embedding_provider,
         llm_provider_factory: Callable[[Any], Any] = create_llm_provider,
         chroma_client_factory: Callable[[str | Path | None], Any] = create_chroma_client,
+        runtime_probe: Callable[[], tuple[str, bool]] | None = None,
+        dependency_probe: Callable[[], dict[str, str]] | None = None,
     ) -> None:
         self.rag_config = rag_config
         self.timeout_seconds = timeout_seconds
+        self.embedding_provider_factory = embedding_provider_factory
         self.llm_provider_factory = llm_provider_factory
         self.chroma_client_factory = chroma_client_factory
+        self.runtime_probe = runtime_probe or _runtime_identity
+        self.dependency_probe = dependency_probe or _dependency_status
 
     def inspect(self) -> EnvironmentStatus:
         errors: list[str] = []
+        runtime_os, is_wsl = self.runtime_probe()
+        runtime_environment = self.rag_config.runtime.environment
+        if runtime_environment == "wsl" and not is_wsl:
+            errors.append(
+                "WSL-only runtime required: run this command inside Linux/WSL; "
+                "Windows fallback is disabled."
+            )
         model_available = False
         model_digest = "N/A"
-        ollama_status = "unavailable"
+        generation_status = "Unavailable"
+        generation_provider = self.rag_config.llm.provider
+        generation_model = self.rag_config.llm.model
         try:
             llm_settings = self.rag_config.llm.model_copy(
                 update={"timeout_seconds": self.timeout_seconds}
             )
             provider = self.llm_provider_factory(llm_settings)
+            generation_provider = str(
+                getattr(provider, "provider_name", self.rag_config.llm.provider)
+            )
             resolver = getattr(provider, "resolve_model_digest", None)
             if callable(resolver):
                 model_digest = str(resolver())
             else:
                 model_digest = str(getattr(provider, "model_version", "N/A"))
             model_available = True
-            ollama_status = "available"
+            generation_status = "Ready"
         except Exception as exc:  # noqa: BLE001 - status probes are best-effort.
             errors.append(_friendly_error(exc))
+
+        embedding_settings = self.rag_config.embeddings
+        embedding_provider_name = embedding_settings.provider
+        embedding_model = embedding_settings.model
+        embedding_revision = embedding_settings.revision or "N/A"
+        embedding_model_digest = embedding_settings.revision or "N/A"
+        embedding_dimension: int | str = embedding_settings.dimension or "N/A"
+        embedding_base_url = (
+            embedding_settings.base_url
+            if embedding_provider_name == "ollama"
+            else "N/A"
+        )
+        embedding_status = "configured"
+        if embedding_provider_name == "ollama":
+            try:
+                runtime_settings = embedding_settings.model_copy(
+                    update={"timeout_seconds": self.timeout_seconds}
+                )
+                embedding_provider = self.embedding_provider_factory(runtime_settings)
+                runtime = dict(embedding_provider.runtime_metadata)
+                embedding_model = str(runtime["embedding_model"])
+                embedding_model_digest = str(runtime["embedding_model_digest"])
+                embedding_revision = embedding_model_digest
+                embedding_dimension = int(runtime["embedding_dimension"])
+                embedding_base_url = str(runtime["embedding_base_url"])
+                embedding_status = "Ready"
+            except Exception as exc:  # noqa: BLE001 - status probes are best-effort.
+                embedding_status = "Unavailable"
+                errors.append(_friendly_error(exc))
 
         chroma_path = resolve_path(self.rag_config.vector_store.persist_path)
         collections: list[CollectionStatus] = []
@@ -228,6 +273,9 @@ class EnvironmentStatusService:
                         CollectionStatus(
                             name=name,
                             document_count=collection.count(),
+                            embedding_provider=(
+                                manifest.embedding_provider if manifest else "N/A"
+                            ),
                             embedding_model=(
                                 manifest.embedding_model if manifest else "N/A"
                             ),
@@ -235,6 +283,17 @@ class EnvironmentStatusService:
                                 manifest.embedding_revision or "N/A"
                                 if manifest
                                 else "N/A"
+                            ),
+                            embedding_model_digest=(
+                                manifest.embedding_model_digest or "N/A"
+                                if manifest
+                                else "N/A"
+                            ),
+                            embedding_dimension=(
+                                manifest.embedding_dimension if manifest else "N/A"
+                            ),
+                            ollama_runtime=(
+                                manifest.ollama_runtime if manifest else "N/A"
                             ),
                             chunker_version=(
                                 manifest.chunker_version if manifest else "N/A"
@@ -246,20 +305,96 @@ class EnvironmentStatusService:
             except Exception as exc:  # noqa: BLE001 - status probes are best-effort.
                 chroma_status = "error"
                 errors.append(_friendly_error(exc))
+        elif chroma_path.parent.exists():
+            chroma_status = "not_initialized"
+
+        dependencies = self.dependency_probe()
+        missing_dependencies = [
+            name for name, status in dependencies.items() if status != "available"
+        ]
+        if runtime_environment == "wsl" and missing_dependencies:
+            errors.append(
+                "Missing base dependencies: " + ", ".join(missing_dependencies)
+            )
+
+        uses_ollama = {
+            self.rag_config.embeddings.provider,
+            self.rag_config.llm.provider,
+        } == {"ollama"}
+        ollama_status = (
+            "Ready"
+            if uses_ollama
+            and embedding_status == "Ready"
+            and generation_status == "Ready"
+            else "Unavailable" if "ollama" in {
+                self.rag_config.embeddings.provider,
+                self.rag_config.llm.provider,
+            } else "Not configured"
+        )
+        chroma_available = chroma_status in {"available", "not_initialized"}
+        strict_ready = (
+            is_wsl
+            and uses_ollama
+            and ollama_status == "Ready"
+            and chroma_available
+            and not missing_dependencies
+            and not errors
+        )
+        status = "READY" if strict_ready else "NOT_READY"
 
         return EnvironmentStatus(
+            status=status,
+            runtime_os=runtime_os,
+            runtime_environment=runtime_environment,
             ollama_status=ollama_status,
+            ollama_base_url=self.rag_config.runtime.ollama_base_url,
             configured_model=self.rag_config.llm.model,
             model_available=model_available,
             model_digest=model_digest,
             chroma_path=str(chroma_path),
             chroma_status=chroma_status,
-            embedding_model=self.rag_config.embeddings.model,
-            embedding_revision=self.rag_config.embeddings.revision or "N/A",
+            embedding_provider=embedding_provider_name,
+            embedding_model=embedding_model,
+            embedding_revision=embedding_revision,
+            embedding_model_digest=embedding_model_digest,
+            embedding_dimension=embedding_dimension,
+            embedding_base_url=embedding_base_url,
+            embedding_status=embedding_status,
+            generation_provider=generation_provider,
+            generation_model=generation_model,
+            generation_model_digest=model_digest,
+            generation_status=generation_status,
             python_version=platform.python_version(),
+            dependencies=dependencies,
             collections=collections,
             errors=errors,
         )
+
+
+def _runtime_identity() -> tuple[str, bool]:
+    system = platform.system()
+    release = platform.release()
+    version = platform.version()
+    is_linux = system == "Linux"
+    is_wsl = is_linux and (
+        bool(os.environ.get("WSL_DISTRO_NAME"))
+        or "microsoft" in release.lower()
+        or "microsoft" in version.lower()
+    )
+    label = f"{system} {release}"
+    return (f"WSL/Linux ({label})" if is_wsl else label, is_wsl)
+
+
+def _dependency_status() -> dict[str, str]:
+    modules = {
+        "pydantic": "pydantic",
+        "pyyaml": "yaml",
+        "chromadb": "chromadb",
+    }
+    return {
+        name: "available" if importlib.util.find_spec(module) is not None else "missing"
+        for name, module in modules.items()
+    }
 
 
 class UIService:
@@ -282,7 +417,7 @@ class UIService:
             collection = self.runner.collection_for(
                 task_from_label(task_label), mode_from_label(mode_label)
             )
-        except (ValueError, NotImplementedError):
+        except ValueError:
             return "N/A"
         return collection or "Retrieval disabled"
 
@@ -335,11 +470,7 @@ class UIService:
                     run_id=capture_id,
                     status="Run failed",
                     error=message,
-                    retrieval_message=(
-                        "MultiRAG is not available yet."
-                        if isinstance(exc, NotImplementedError)
-                        else "No retrieval result is available."
-                    ),
+                    retrieval_message="No retrieval result is available.",
                     metrics=MetricsView(
                         values={
                             "model": self.runner.model_name,
@@ -399,6 +530,29 @@ def _record_to_view(record: ExperimentRecord) -> UIRunView:
             record.retrieval_trace.retrieved_documents, start=1
         )
     ]
+    fusion_trace = {
+        "strategy": record.retrieval_trace.fusion_strategy,
+        "rrf_k": record.retrieval_trace.rrf_k,
+        "candidates_before_deduplication": (
+            record.retrieval_trace.candidates_before_deduplication
+        ),
+        "candidates_after_deduplication": (
+            record.retrieval_trace.candidates_after_deduplication
+        ),
+        "per_collection": {
+            collection: [
+                {
+                    "original_rank": rank,
+                    "document_id": hit.document_id,
+                    "score": hit.score,
+                    "source_type": hit.metadata.get("document_type", "N/A"),
+                    "dataset": hit.metadata.get("dataset", "N/A"),
+                }
+                for rank, hit in enumerate(hits, start=1)
+            ]
+            for collection, hits in record.retrieval_trace.collection_results.items()
+        },
+    }
     prompt_text = ""
     if record.prompt_artifact_path:
         path = Path(record.prompt_artifact_path)
@@ -432,6 +586,7 @@ def _record_to_view(record: ExperimentRecord) -> UIRunView:
         output=output,
         retrieval_message=retrieval_message,
         retrieval_documents=retrieval_documents,
+        fusion_trace=fusion_trace,
         prompt=prompt,
         metrics=metrics,
     )
@@ -441,6 +596,7 @@ def _retrieval_document_view(
     rank: int, document: Any, prompt_document_ids: set[str]
 ) -> RetrievalDocumentView:
     metadata = document.metadata
+    contributions = document.fusion_contributions
     preview = " ".join(document.content.split())
     if len(preview) > 500:
         preview = preview[:497].rstrip() + "..."
@@ -448,6 +604,15 @@ def _retrieval_document_view(
         rank=rank,
         document_id=document.document_id,
         collection=document.collection,
+        source_collections=", ".join(
+            contribution.collection for contribution in contributions
+        ) or document.collection,
+        original_ranks=", ".join(
+            f"{contribution.collection}:{contribution.original_rank}"
+            for contribution in contributions
+        ) or "N/A",
+        rrf_score=document.rrf_score if document.rrf_score is not None else "N/A",
+        final_rank=document.final_rank if document.final_rank is not None else rank,
         source_type=str(metadata.get("document_type", "N/A")),
         dataset_name=str(metadata.get("dataset", "N/A")),
         score=(
@@ -490,7 +655,9 @@ def _metrics(record: ExperimentRecord, prompt_estimate: int | None) -> dict[str,
         "model_digest": record.llm_digest or "N/A",
         "task": record.canonical_task,
         "mode": record.retrieval_mode,
-        "collections": record.collection or "N/A",
+        "collections": record.collection
+        or ", ".join(record.retrieval_parameters.get("collections") or [])
+        or "N/A",
         "prompt_tokens": int(sum(prompt_counts)) if prompt_counts else prompt_estimate or "N/A",
         "completion_tokens": (
             int(sum(completion_counts)) if completion_counts else "N/A"

@@ -1,0 +1,22 @@
+dataset_name: ml4refactoring_benchmark
+dataset_version: sha256-86d064ef7919ce9a
+source_path: data/processed/refactoring/test.jsonl
+source_split: test
+usage_role: benchmark
+allowed_for_indexing: false
+sample_count: 608
+content_hash: 86d064ef7919ce9a94382ad1e352e5e8b62c097a0245228a3e7f51fabec8d31e
+created_at: 2026-08-20T00:00:00Z
+fingerprints_path: artifacts/split_audits/refactoring_benchmark_fingerprints.jsonl
+grouping_policy:
+  primary_group_level: method
+  group_fields: [repository, project, commit_sha, refactoring_id]
+  related_case_fields: [commit_sha, case_id]
+  require_cross_role_disjointness: true
+  audit_report_path: artifacts/split_audits/refactoring_retrieval_vs_benchmark_methods.json
+metadata:
+  task: refactoring
+  context_level: null
+  approval_status: approved_for_final_evaluation_only
+  tuning_allowed: false
+  notes: Final benchmark; indexing is forbidden and exact refactoring identities are reserved.

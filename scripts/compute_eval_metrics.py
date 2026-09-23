@@ -1,3 +1,5 @@
+"""Compatibility entrypoint for the canonical evaluation metrics command."""
+
 from __future__ import annotations
 
 import sys

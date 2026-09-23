@@ -8,7 +8,11 @@ Konfigurácie existujúcej baseline/LoRA evaluation pipeline.
 - `eval_refactoring.yaml`: refactoring dataset a výstupné priečinky,
 - `eval_full.yaml`: spoločný evaluation setup.
 
+Canonical výstup je `artifacts/evaluation/runs/<run_id>/`. `run_id` je
+validovaný názov experimentu; konfigurácie ani príkazy už neurčujú ľubovoľný
+top-level `output_root`.
+
 Inference pre každý model beží v samostatnom procese, aby sa uvoľnila VRAM.
-Tieto configy zatiaľ reprezentujú existujúci direct inference tok. Budúci RAG
-runner bude navyše zapisovať approach a retrieval trace; nemá sa pridávať ako
-neprehľadný `if` blok do modelového zoznamu.
+Tieto Hugging Face/LoRA configy sú `legacy_not_final` a reprezentujú historický
+direct inference tok. Aktuálny WSL/Ollama Direct/RAG/MultiRAG baseline používa
+configy v `configs/experiments/rag_v2/` a spoločný experiment runner.

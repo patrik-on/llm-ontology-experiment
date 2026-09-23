@@ -1,3 +1,5 @@
+"""Run the legacy standalone Ollama direct baseline."""
+
 from __future__ import annotations
 
 import sys

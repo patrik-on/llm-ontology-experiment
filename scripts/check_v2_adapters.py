@@ -1,3 +1,5 @@
+"""Compatibility entrypoint for the v2 adapter integrity check."""
+
 from __future__ import annotations
 
 import sys

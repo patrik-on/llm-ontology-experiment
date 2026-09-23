@@ -7,5 +7,5 @@ Kompatibilná vrstva pôvodných fine-tuning importov.
 - `model_loader.py`: re-export `llm_ontology.models`.
 
 Nový kód má používať spoločné modelové a promptovacie moduly. Hlavný training
-engine je v `llm_ontology.training.finetuning`. Wrappery sa odstránia až po
+engine je v `llm_ontology.finetuning.training.finetuning`. Wrappery sa odstránia až po
 migrácii všetkých externých importov a runbookov.

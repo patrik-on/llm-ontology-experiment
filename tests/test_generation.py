@@ -1,6 +1,6 @@
 from llm_ontology.inference.prompts import build_prompt, build_training_text
 from llm_ontology.finetuning.prompt_formatter import format_inference_prompt, format_training_prompt
-from llm_ontology.training.finetuning import apply_training_overrides, build_tokenized_training_example, dataset_sample_limits
+from llm_ontology.finetuning.training.finetuning import apply_training_overrides, build_tokenized_training_example, dataset_sample_limits
 from llm_ontology.evaluation.inference_eval import is_lora_model
 
 
@@ -28,8 +28,11 @@ def test_build_prompt_and_training_text() -> None:
     prompt = build_prompt(record)
     training_text = build_training_text(record)
 
-    assert "### Instruction:" in prompt
-    assert "### Response:" in prompt
+    assert "SYSTEM\n" in prompt
+    assert "TASK\n" in prompt
+    assert "INPUT\ncode" in prompt
+    assert "RETRIEVED EVIDENCE\nNone." in prompt
+    assert "OUTPUT REQUIREMENTS\n" in prompt
     assert training_text.endswith("answer")
 
 
