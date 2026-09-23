@@ -13,6 +13,8 @@ LOGGER = logging.getLogger(__name__)
 class SentenceTransformerEmbeddingProvider:
     """Local, revision-pinned Sentence Transformers embedding provider."""
 
+    provider_name = "sentence_transformers"
+
     def __init__(
         self,
         *,
@@ -64,6 +66,15 @@ class SentenceTransformerEmbeddingProvider:
     def library_versions(self) -> dict[str, str]:
         packages = ("sentence-transformers", "transformers", "torch")
         return {package: importlib.metadata.version(package) for package in packages}
+
+    @property
+    def runtime_metadata(self) -> dict[str, str | int]:
+        return {
+            "embedding_provider": self.provider_name,
+            "embedding_model": self.model_identifier,
+            "embedding_model_digest": self.model_revision,
+            "embedding_dimension": self.embedding_dimension,
+        }
 
     def embed_documents(
         self, texts: list[str], batch_size: int | None = None

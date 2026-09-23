@@ -18,6 +18,7 @@ class LLMProvider(Protocol):
 class EmbeddingProvider(Protocol):
     """Provider-neutral embedding boundary used outside ChromaDB."""
 
+    provider_name: str
     model_name: str
     model_version: str
     dimension: int
@@ -33,6 +34,10 @@ class EmbeddingProvider(Protocol):
     @property
     def embedding_dimension(self) -> int:
         """Number of values produced for one text."""
+
+    @property
+    def runtime_metadata(self) -> dict[str, str | int]:
+        """Runtime model identity for manifests, logs and environment views."""
 
     def embed_documents(
         self, texts: list[str], batch_size: int | None = None

@@ -26,5 +26,5 @@ execution:
     Java: TESTBENCH_JAVA17_HOME
 
 outputs:
-  predictions: evaluation/predictions/testbench_direct_source.jsonl
-  metrics: evaluation/metrics/testbench_direct_source.jsonl
+  predictions: artifacts/evaluation/runs/testbench_direct_source/predictions/testing/testbench_direct_source.jsonl
+  metrics: artifacts/evaluation/runs/testbench_direct_source/metrics/testing/testbench_direct_source.jsonl

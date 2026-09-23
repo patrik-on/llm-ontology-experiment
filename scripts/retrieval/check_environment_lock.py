@@ -1,3 +1,5 @@
+"""Validate the preserved legacy Windows RAG environment lock."""
+
 from __future__ import annotations
 
 import argparse
@@ -9,7 +11,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Verify the frozen RAG experiment runtime.")
     parser.add_argument(
         "--lock",
-        default="configs/environment/rag_baseline_windows_cpu.lock.json",
+        default="configs/shared/environment/rag_baseline_windows_cpu.lock.json",
     )
     parser.add_argument("--skip-ollama", action="store_true")
     parser.add_argument("--skip-benchmark-toolchain", action="store_true")

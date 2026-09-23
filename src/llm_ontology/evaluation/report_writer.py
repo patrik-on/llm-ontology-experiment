@@ -31,7 +31,9 @@ def best_model(aggregates: list[dict[str, Any]], metric: str, lower_is_better: b
     values = [item for item in aggregates if item.get(metric) is not None]
     if not values:
         return "n/a"
-    key = lambda item: float(item.get(metric, 0))
+    def key(item: dict[str, Any]) -> float:
+        return float(item.get(metric, 0))
+
     return str((min if lower_is_better else max)(values, key=key).get("model_name"))
 
 
@@ -87,7 +89,7 @@ def write_examples(task: str, predictions_dir: Path, metrics_path: Path, output_
     output_path.write_text("\n".join(lines), encoding="utf-8")
 
 
-def write_evaluation_report(output_root: str | Path = "evaluation") -> Path:
+def write_evaluation_report(output_root: str | Path) -> Path:
     root = Path(output_root)
     testing = load_aggregate(root / "metrics" / "testing" / "aggregate_metrics.json")
     refactoring = load_aggregate(root / "metrics" / "refactoring" / "aggregate_metrics.json")

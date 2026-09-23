@@ -3,7 +3,7 @@ experiment:
   description: "C0 baseline inference using Ollama qwen2.5-coder:7b"
 
 model:
-  config: "configs/models/qwen25_coder_7b_ollama.yaml"
+  config: "configs/shared/models/qwen25_coder_7b_ollama.yaml"
 
 datasets:
   refactoring_test: "data/processed/refactoring/test.jsonl"

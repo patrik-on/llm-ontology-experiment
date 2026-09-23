@@ -1,7 +1,7 @@
 experiment:
   name: "b2_refactoring"
   description: "Fine-tuning on refactoring tasks only"
-  model_config: "configs/models/qwen25_coder_7b_hf.yaml"
+  model_config: "configs/shared/models/qwen25_coder_7b_hf.yaml"
   lora_config: "configs/finetuning/lora_config.yaml"
 
 dataset:

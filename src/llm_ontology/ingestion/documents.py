@@ -70,47 +70,101 @@ class EmbeddingTextBuilder(Protocol):
         """Build versioned semantic text without technical provenance noise."""
 
 
+SUPPORTED_EMBEDDING_TEMPLATE_VERSIONS = ("1", "2")
+
+
+def _require_embedding_template_version(value: str) -> str:
+    if value not in SUPPORTED_EMBEDDING_TEMPLATE_VERSIONS:
+        raise ValueError(
+            f"Unsupported embedding template version {value!r}; "
+            f"expected one of {SUPPORTED_EMBEDDING_TEMPLATE_VERSIONS}."
+        )
+    return value
+
+
+def _refactoring_pair_text(document: KnowledgeDocument) -> str:
+    before = str(document.metadata.get("input_code", "")).strip()
+    after = str(document.metadata.get("output_code", "")).strip()
+    refactoring_type = str(document.metadata.get("refactoring_type", "unknown"))
+    diff = str(document.metadata.get("diff", "")).strip()
+    parts = [
+        "Task: refactoring",
+        f"Refactoring type: {refactoring_type}",
+        f"Original Java code:\n{before}",
+        f"Refactored Java code:\n{after}",
+    ]
+    if diff:
+        parts.append(f"Change summary or diff:\n{diff}")
+    return "\n\n".join(parts)
+
+
+def _testing_pair_text(document: KnowledgeDocument) -> str:
+    production = str(document.metadata.get("input_code", "")).strip()
+    test_code = str(document.metadata.get("output_code", "")).strip()
+    context_level = str(document.metadata.get("context_level", "src_fm"))
+    return "\n\n".join(
+        (
+            "Task: test generation",
+            f"Methods2Test context level: {context_level}",
+            f"Production Java code:\n{production}",
+            f"Corresponding test code:\n{test_code}",
+        )
+    )
+
+
 class RefactoringEmbeddingTextBuilder:
-    template_name = "refactoring_pair"
-    template_version = "1"
+    def __init__(self, template_version: str = "1") -> None:
+        self.template_version = _require_embedding_template_version(template_version)
+        self.template_name = (
+            "refactoring_pair" if self.template_version == "1" else "refactoring_input"
+        )
 
     def build(self, document: KnowledgeDocument) -> EmbeddingText:
         before = str(document.metadata.get("input_code", "")).strip()
-        after = str(document.metadata.get("output_code", "")).strip()
         refactoring_type = str(document.metadata.get("refactoring_type", "unknown"))
-        diff = str(document.metadata.get("diff", "")).strip()
-        parts = [
-            "Task: refactoring",
-            f"Refactoring type: {refactoring_type}",
-            f"Original Java code:\n{before}",
-            f"Refactored Java code:\n{after}",
-        ]
-        if diff:
-            parts.append(f"Change summary or diff:\n{diff}")
+        text = (
+            _refactoring_pair_text(document)
+            if self.template_version == "1"
+            else "\n\n".join(
+                (
+                    "Task: refactoring",
+                    f"Refactoring type: {refactoring_type}",
+                    f"Original Java code:\n{before}",
+                )
+            )
+        )
         return EmbeddingText(
-            text="\n\n".join(parts),
+            text=text,
             template_name=self.template_name,
             template_version=self.template_version,
         )
 
 
 class TestingEmbeddingTextBuilder:
-    template_name = "production_test_pair"
-    template_version = "1"
+    def __init__(self, template_version: str = "1") -> None:
+        self.template_version = _require_embedding_template_version(template_version)
+        self.template_name = (
+            "production_test_pair"
+            if self.template_version == "1"
+            else "production_test_input"
+        )
 
     def build(self, document: KnowledgeDocument) -> EmbeddingText:
         production = str(document.metadata.get("input_code", "")).strip()
-        test_code = str(document.metadata.get("output_code", "")).strip()
         context_level = str(document.metadata.get("context_level", "src_fm"))
-        return EmbeddingText(
-            text="\n\n".join(
+        text = (
+            _testing_pair_text(document)
+            if self.template_version == "1"
+            else "\n\n".join(
                 (
                     "Task: test generation",
                     f"Methods2Test context level: {context_level}",
                     f"Production Java code:\n{production}",
-                    f"Corresponding test code:\n{test_code}",
                 )
-            ),
+            )
+        )
+        return EmbeddingText(
+            text=text,
             template_name=self.template_name,
             template_version=self.template_version,
         )
@@ -118,7 +172,9 @@ class TestingEmbeddingTextBuilder:
 
 class LiteratureEmbeddingTextBuilder:
     template_name = "software_engineering_literature"
-    template_version = "1"
+
+    def __init__(self, template_version: str = "1") -> None:
+        self.template_version = _require_embedding_template_version(template_version)
 
     def build(self, document: KnowledgeDocument) -> EmbeddingText:
         title = str(document.metadata.get("document_title", document.source)).strip()
@@ -134,29 +190,45 @@ class LiteratureEmbeddingTextBuilder:
         )
 
 
-def default_embedding_text_builder(document_type: DocumentType) -> EmbeddingTextBuilder:
+def default_embedding_text_builder(
+    document_type: DocumentType,
+    template_version: str = "1",
+) -> EmbeddingTextBuilder:
     if document_type == DocumentType.REFACTORING_EXAMPLE:
-        return RefactoringEmbeddingTextBuilder()
+        return RefactoringEmbeddingTextBuilder(template_version)
     if document_type == DocumentType.TEST_EXAMPLE:
-        return TestingEmbeddingTextBuilder()
+        return TestingEmbeddingTextBuilder(template_version)
     if document_type == DocumentType.LITERATURE:
-        return LiteratureEmbeddingTextBuilder()
+        return LiteratureEmbeddingTextBuilder(template_version)
     raise ValueError(f"No embedding text builder registered for {document_type.value!r}.")
+
+
+def _evidence_content(document: KnowledgeDocument, template_version: str) -> str:
+    if document.document_type == DocumentType.REFACTORING_EXAMPLE:
+        return _refactoring_pair_text(document)
+    if document.document_type == DocumentType.TEST_EXAMPLE:
+        return _testing_pair_text(document)
+    return LiteratureEmbeddingTextBuilder(template_version).build(document).text
 
 
 def materialize_for_collection(
     document: KnowledgeDocument,
     collection: str,
     builder: EmbeddingTextBuilder | None = None,
+    embedding_template_version: str = "1",
 ) -> SourceDocument:
-    selected_builder = builder or default_embedding_text_builder(document.document_type)
+    selected_builder = builder or default_embedding_text_builder(
+        document.document_type,
+        embedding_template_version,
+    )
     embedding = selected_builder.build(document)
+    content = _evidence_content(document, embedding.template_version)
     embedded_fields = {"input_code", "output_code", "diff", "instruction"}
     public_metadata = {
         key: value for key, value in document.metadata.items() if key not in embedded_fields
     }
     return SourceDocument(
-        content=embedding.text,
+        content=content,
         embedding_text=embedding.text,
         document_type=document.document_type,
         collection=collection,

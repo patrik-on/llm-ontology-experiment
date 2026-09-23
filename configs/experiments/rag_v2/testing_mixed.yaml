@@ -2,11 +2,14 @@ enabled: false
 requested_task: testing
 retrieval_mode: single_collection_rag
 collection: mixed
-dataset_version: pending-approved-corpus
-dataset_manifest_ids: []
-embedding_model: jinaai/jina-embeddings-v2-base-code
-embedding_revision: 516f4baf13dec4ddddda8631e019b5737c8bc250
-embedding_remote_code_revision: 3baf9e3ac750e76e8edd3019170176884695fb94
+dataset_version: testing-3986+refactoring-2043-leakage-safe-v1
+dataset_manifest_ids:
+  - 86640657b063d30c3274ed644a893c578a80acea6f47a6f04d34b24890cb6d85
+  - 6dcbeeff649b53529d735402b4e543a6abed8477831a78c50e90bb3ce01d3a1c
+embedding_model: bge-m3
+embedding_revision: runtime_digest
+embedding_remote_code_revision: null
+generation_provider: ollama
 llm_model: qwen2.5-coder:7b
 llm_version: runtime_digest
 top_k: 5

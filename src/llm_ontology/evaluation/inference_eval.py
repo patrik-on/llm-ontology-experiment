@@ -7,6 +7,7 @@ from typing import Any
 
 from llm_ontology.core.config import read_yaml
 from llm_ontology.evaluation.prediction_io import pick_first, read_jsonl, write_jsonl
+from llm_ontology.evaluation.run_layout import require_canonical_evaluation_path
 from llm_ontology.finetuning.prompt_formatter import format_inference_prompt
 
 
@@ -81,11 +82,14 @@ def load_eval_model(model_config: dict[str, Any], inference_config: dict[str, An
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
-    tokenizer = AutoTokenizer.from_pretrained(model_config["model_path"], trust_remote_code=True)
+    model_path = str(Path(model_config["model_path"]).expanduser())
+    tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     device_map = inference_config.get("device_map", "auto")
     offload_dir = inference_config.get("offload_dir")
+    if offload_dir:
+        offload_dir = str(Path(offload_dir).expanduser())
     if offload_dir:
         Path(offload_dir).mkdir(parents=True, exist_ok=True)
 
@@ -107,11 +111,11 @@ def load_eval_model(model_config: dict[str, Any], inference_config: dict[str, An
             bnb_4bit_quant_type=str(inference_config.get("bnb_4bit_quant_type", "nf4")),
         )
 
-    model = AutoModelForCausalLM.from_pretrained(model_config["model_path"], **kwargs)
+    model = AutoModelForCausalLM.from_pretrained(model_path, **kwargs)
     if is_lora_model(model_config):
         model = peft_from_pretrained_with_fallback(
             model,
-            model_config["adapter_path"],
+            str(Path(model_config["adapter_path"]).expanduser()),
             str(device_map) if device_map else None,
             str(offload_dir) if offload_dir else None,
         )
@@ -296,7 +300,9 @@ def main() -> None:
     parser.add_argument("--offload-dir", default=None)
     parser.add_argument("--load-in-4bit", dest="load_in_4bit", action="store_true", default=None)
     parser.add_argument("--no-load-in-4bit", dest="load_in_4bit", action="store_false")
-    run_inference(parser.parse_args())
+    args = parser.parse_args()
+    require_canonical_evaluation_path(args.output)
+    run_inference(args)
 
 
 if __name__ == "__main__":

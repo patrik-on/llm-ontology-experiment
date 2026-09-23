@@ -1,0 +1,22 @@
+model:
+  status: "legacy_not_final"
+  provider: "huggingface"
+  name: "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct"
+  tokenizer_name: "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct"
+  hub_id: "Qwen/Qwen2.5-Coder-7B-Instruct"
+  architecture: "causal_lm"
+  language_focus: "code"
+  primary_use: "fine_tuning"
+
+runtime:
+  max_seq_length: 2048
+  load_in_4bit: true
+  torch_dtype: "float16"
+  device_map: "auto"
+  trust_remote_code: true
+
+notes:
+  - "Legacy Hugging Face fine-tuning config; not the current Ollama experiment runtime."
+  - "WSL2/Linux model config for LoRA/QLoRA fine-tuning."
+  - "Uses Windows-hosted model files via /mnt/c."
+  - "Requires CUDA-enabled PyTorch and bitsandbytes in WSL."
