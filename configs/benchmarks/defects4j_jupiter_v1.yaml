@@ -1,0 +1,29 @@
+# New diagnostic protocol; baseline_v1/v2 and existing HF contracts are unchanged.
+protocol: defects4j_jupiter_v1
+defects4j_commit: 6d54320e0db5a357f9ab38a8e4d2e5aead7e1c09
+defects4j_home: /home/patrik/benchmark-work/defects4j
+java_home: /home/patrik/benchmark-work/deps/jdk-11.0.33+10
+tool_paths:
+  - /home/patrik/benchmark-work/deps/ubuntu/usr/bin
+perl5lib:
+  - /home/patrik/benchmark-work/deps/ubuntu/usr/share/perl5
+  - /home/patrik/benchmark-work/deps/ubuntu/usr/lib/x86_64-linux-gnu/perl5/5.38
+library_paths:
+  - /home/patrik/benchmark-work/deps/ubuntu/usr/lib/x86_64-linux-gnu
+work_root: /home/patrik/benchmark-work/integration
+junit_jar: /home/patrik/benchmark-work/downloads/junit-platform-console-standalone-1.11.4.jar
+junit_sha256: b016ef6b1c3454d6d7c2c88ce081dabf289699686af6622d6e4e2e1b54b4a2fc
+project: Lang
+bug_id: 24
+focal_class: org.apache.commons.lang3.math.NumberUtils
+focal_method: isNumber
+training_sources:
+  - data/processed/testing/train.jsonl
+retrieval_config: configs/retrieval/ollama_bge_m3_v3.yaml
+hf_models_config: configs/evaluation/eval_models_v2_only.yaml
+hf_model_name: b2_testing_v2
+max_new_tokens: 2048
+timeout_seconds: 30
+repeats: 2
+generation_model_digest: dae161e27b0e90dd1856c8bb3209201fd6736d8eb66298e75ed87571486f4364
+embedding_model_digest: 7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab
