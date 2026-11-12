@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "version": "0.8.13",
+  "license": "EPL-2.0",
+  "release_url": "https://github.com/jacoco/jacoco/releases/tag/v0.8.13",
+  "release_published_at": "2025-04-02T17:43:42Z",
+  "metadata_checked_at": "2026-11-12",
+  "source": "https://repo.maven.apache.org/maven2/org/jacoco/",
+  "metadata_urls": [
+    "https://api.github.com/repos/jacoco/jacoco/releases/tags/v0.8.13",
+    "https://repo.maven.apache.org/maven2/org/jacoco/org.jacoco.agent/0.8.13/org.jacoco.agent-0.8.13.pom",
+    "https://repo.maven.apache.org/maven2/org/jacoco/org.jacoco.cli/0.8.13/org.jacoco.cli-0.8.13.pom"
+  ],
+  "artifacts": {
+    "agent": {
+      "filename": "org.jacoco.agent-0.8.13-runtime.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jacoco/org.jacoco.agent/0.8.13/org.jacoco.agent-0.8.13-runtime.jar",
+      "sha256": "47e700ccb0fdb9e27c5241353f8161938f4e53c3561dd35e063c5fe88dc3349b",
+      "upstream_sha1": "850ba9544f357712728f89fe3e1fd51b265a0192"
+    },
+    "cli": {
+      "filename": "org.jacoco.cli-0.8.13-nodeps.jar",
+      "url": "https://repo.maven.apache.org/maven2/org/jacoco/org.jacoco.cli/0.8.13/org.jacoco.cli-0.8.13-nodeps.jar",
+      "sha256": "8f748683833d4dc4d72cea5d6b43f49344687b831e0582c97bcb9b984e3de0a3",
+      "upstream_sha1": "9063bfcd2729fd0b1252793a5c09b9a63c8f724c"
+    }
+  },
+  "download_directory": "/home/patrik/benchmark-work/downloads",
+  "measurement_contract": {
+    "production": "focal .class only, compiled with -g",
+    "execution": "shared evaluate_revision, java_options optional and default unchanged",
+    "success_gate": "passed; positive execution required by shared evaluator",
+    "failed_runs": "diagnostic_coverage only, never success coverage",
+    "focal_invocation": "JaCoCo METHOD covered count equals 1",
+    "missing_counter": "null with reason, never synthetic zero",
+    "zero_branch_total": "ratio null",
+    "security": "reviewed local diagnostics, not sandboxed"
+  }
+}

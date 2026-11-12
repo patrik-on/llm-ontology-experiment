@@ -140,8 +140,11 @@ def read_console_summary(text: str) -> dict[str, int]:
 
 def evaluate_revision(source: str, revision: dict[str, Any], *, output: Path,
                       java_home: Path, junit_jar: Path, junit_sha256: str,
-                      timeout: int = 30) -> dict[str, Any]:
-    """Compile only generated source against production outputs; execute only Jupiter."""
+                      timeout: int = 30, java_options: list[str] | None = None) -> dict[str, Any]:
+    """Compile generated source; optional JVM options apply only to test execution.
+
+    Options are trusted evaluator configuration, never generated-source input.
+    """
     if file_sha256(junit_jar) != junit_sha256:
         raise ValueError("Pinned JUnit console checksum mismatch.")
     # Exclusive work directories reject stale reports and accidental resume overwrite.
@@ -172,7 +175,8 @@ def evaluate_revision(source: str, revision: dict[str, Any], *, output: Path,
         result["status"] = "compile_failure"
     else:
         execution = run_process(
-            [str(java_home / "bin/java"), "-Xmx512m", "-jar", str(junit_jar), "execute",
+            [str(java_home / "bin/java"), "-Xmx512m", *(java_options or []),
+             "-jar", str(junit_jar), "execute",
              "--class-path", f"{classes}:{classpath}", "--select-class", qualified,
              "--include-engine", "junit-jupiter", "--fail-if-no-tests",
              "--reports-dir", str(reports), "--disable-banner", "--disable-ansi-colors", "--details=summary"],

@@ -1,0 +1,2880 @@
+{
+  "actual_calls": 20,
+  "arms": {
+    "ft_testing": {
+      "actual_calls": 5,
+      "assembled": {
+        "count": 5,
+        "denominator": 5,
+        "rate": 1.0
+      },
+      "assertion_presence": {
+        "classes_with_lexical_calls": 5,
+        "diagnostic_only": true
+      },
+      "body_schema": {
+        "count": 5,
+        "denominator": 5,
+        "rate": 1.0
+      },
+      "cases": 5,
+      "class_pass": {
+        "count": 2,
+        "denominator": 5,
+        "rate": 0.4
+      },
+      "compiled": {
+        "count": 5,
+        "denominator": 5,
+        "rate": 1.0
+      },
+      "coverage": {
+        "class": {
+          "branch": {
+            "accepted_measured_cases": 2,
+            "all_attempt_reference_denominator": 22,
+            "all_attempt_success_credit_case_macro": 0.3,
+            "all_attempt_success_credit_covered": 7,
+            "all_attempt_success_credit_pooled_ratio": 0.3181818181818182,
+            "conditional_case_macro": 0.75,
+            "conditional_pooled_covered": 7,
+            "conditional_pooled_ratio": 0.7,
+            "conditional_pooled_total": 10,
+            "credit_policy": "Failed/unassembled class gets zero success CREDIT against reference denominator, NOT a claimed measured zero coverage.",
+            "missing_measurement_not_zero": true
+          },
+          "line": {
+            "accepted_measured_cases": 2,
+            "all_attempt_reference_denominator": 29,
+            "all_attempt_success_credit_case_macro": 0.24545454545454545,
+            "all_attempt_success_credit_covered": 9,
+            "all_attempt_success_credit_pooled_ratio": 0.3103448275862069,
+            "conditional_case_macro": 0.6136363636363636,
+            "conditional_pooled_covered": 9,
+            "conditional_pooled_ratio": 0.6923076923076923,
+            "conditional_pooled_total": 13,
+            "credit_policy": "Failed/unassembled class gets zero success CREDIT against reference denominator, NOT a claimed measured zero coverage.",
+            "missing_measurement_not_zero": true
+          }
+        },
+        "method": {
+          "branch": {
+            "accepted_measured_cases": 2,
+            "all_attempt_reference_denominator": 22,
+            "all_attempt_success_credit_case_macro": 0.3,
+            "all_attempt_success_credit_covered": 7,
+            "all_attempt_success_credit_pooled_ratio": 0.3181818181818182,
+            "conditional_case_macro": 0.75,
+            "conditional_pooled_covered": 7,
+            "conditional_pooled_ratio": 0.7,
+            "conditional_pooled_total": 10,
+            "credit_policy": "Failed/unassembled class gets zero success CREDIT against reference denominator, NOT a claimed measured zero coverage.",
+            "missing_measurement_not_zero": true
+          },
+          "line": {
+            "accepted_measured_cases": 2,
+            "all_attempt_reference_denominator": 23,
+            "all_attempt_success_credit_case_macro": 0.36,
+            "all_attempt_success_credit_covered": 9,
+            "all_attempt_success_credit_pooled_ratio": 0.391304347826087,
+            "conditional_case_macro": 0.9,
+            "conditional_pooled_covered": 9,
+            "conditional_pooled_ratio": 0.8181818181818182,
+            "conditional_pooled_total": 11,
+            "credit_policy": "Failed/unassembled class gets zero success CREDIT against reference denominator, NOT a claimed measured zero coverage.",
+            "missing_measurement_not_zero": true
+          }
+        }
+      },
+      "focal_invoked_accepted": {
+        "count": 2,
+        "denominator": 5,
+        "rate": 0.4
+      },
+      "positive_execution_repeat_stable": {
+        "count": 5,
+        "denominator_positive_executed": 5
+      },
+      "positive_nonaborted_execution": {
+        "count": 5,
+        "denominator": 5,
+        "rate": 1.0
+      },
+      "repeat_stable": {
+        "count": 5,
+        "measured": 5
+      },
+      "syntax_parse": {
+        "count": 5,
+        "denominator": 5,
+        "rate": 1.0
+      },
+      "tests_first_run": {
+        "tests_aborted": 0,
+        "tests_failed": 3,
+        "tests_skipped": 0,
+        "tests_started": 10,
+        "tests_successful": 7
+      },
+      "truncated": {
+        "count": 0,
+        "denominator": 5,
+        "rate": 0.0
+      }
+    },
+    "qwen_base": {
+      "actual_calls": 5,
+      "assembled": {
+        "count": 3,
+        "denominator": 5,
+        "rate": 0.6
+      },
+      "assertion_presence": {
+        "classes_with_lexical_calls": 3,
+        "diagnostic_only": true
+      },
+      "body_schema": {
+        "count": 5,
+        "denominator": 5,
+        "rate": 1.0
+      },
+      "cases": 5,
+      "class_pass": {
+        "count": 3,
+        "denominator": 5,
+        "rate": 0.6
+      },
+      "compiled": {
+        "count": 3,
+        "denominator": 5,
+        "rate": 0.6
+      },
+      "coverage": {
+        "class": {
+          "branch": {
+            "accepted_measured_cases": 3,
+            "all_attempt_reference_denominator": 22,
+            "all_attempt_success_credit_case_macro": 0.5666666666666667,
+            "all_attempt_success_credit_covered": 13,
+            "all_attempt_success_credit_pooled_ratio": 0.5909090909090909,
+            "conditional_case_macro": 0.9444444444444445,
+            "conditional_pooled_covered": 13,
+            "conditional_pooled_ratio": 0.9285714285714286,
+            "conditional_pooled_total": 14,
+            "credit_policy": "Failed/unassembled class gets zero success CREDIT against reference denominator, NOT a claimed measured zero coverage.",
+            "missing_measurement_not_zero": true
+          },
+          "line": {
+            "accepted_measured_cases": 3,
+            "all_attempt_reference_denominator": 29,
+            "all_attempt_success_credit_case_macro": 0.4914141414141414,
+            "all_attempt_success_credit_covered": 20,
+            "all_attempt_success_credit_pooled_ratio": 0.6896551724137931,
+            "conditional_case_macro": 0.8190235690235691,
+            "conditional_pooled_covered": 20,
+            "conditional_pooled_ratio": 0.8333333333333334,
+            "conditional_pooled_total": 24,
+            "credit_policy": "Failed/unassembled class gets zero success CREDIT against reference denominator, NOT a claimed measured zero coverage.",
+            "missing_measurement_not_zero": true
+          }
+        },
+        "method": {
+          "branch": {
+            "accepted_measured_cases": 3,
+            "all_attempt_reference_denominator": 22,
+            "all_attempt_success_credit_case_macro": 0.5666666666666667,
+            "all_attempt_success_credit_covered": 13,
+            "all_attempt_success_credit_pooled_ratio": 0.5909090909090909,
+            "conditional_case_macro": 0.9444444444444445,
+            "conditional_pooled_covered": 13,
+            "conditional_pooled_ratio": 0.9285714285714286,
+            "conditional_pooled_total": 14,
+            "credit_policy": "Failed/unassembled class gets zero success CREDIT against reference denominator, NOT a claimed measured zero coverage.",
+            "missing_measurement_not_zero": true
+          },
+          "line": {
+            "accepted_measured_cases": 3,
+            "all_attempt_reference_denominator": 23,
+            "all_attempt_success_credit_case_macro": 0.58,
+            "all_attempt_success_credit_covered": 19,
+            "all_attempt_success_credit_pooled_ratio": 0.8260869565217391,
+            "conditional_case_macro": 0.9666666666666667,
+            "conditional_pooled_covered": 19,
+            "conditional_pooled_ratio": 0.95,
+            "conditional_pooled_total": 20,
+            "credit_policy": "Failed/unassembled class gets zero success CREDIT against reference denominator, NOT a claimed measured zero coverage.",
+            "missing_measurement_not_zero": true
+          }
+        }
+      },
+      "focal_invoked_accepted": {
+        "count": 3,
+        "denominator": 5,
+        "rate": 0.6
+      },
+      "positive_execution_repeat_stable": {
+        "count": 3,
+        "denominator_positive_executed": 3
+      },
+      "positive_nonaborted_execution": {
+        "count": 3,
+        "denominator": 5,
+        "rate": 0.6
+      },
+      "repeat_stable": {
+        "count": 3,
+        "measured": 3
+      },
+      "syntax_parse": {
+        "count": 3,
+        "denominator": 5,
+        "rate": 0.6
+      },
+      "tests_first_run": {
+        "tests_aborted": 0,
+        "tests_failed": 0,
+        "tests_skipped": 0,
+        "tests_started": 6,
+        "tests_successful": 6
+      },
+      "truncated": {
+        "count": 0,
+        "denominator": 5,
+        "rate": 0.0
+      }
+    },
+    "rag_multi": {
+      "actual_calls": 5,
+      "assembled": {
+        "count": 3,
+        "denominator": 5,
+        "rate": 0.6
+      },
+      "assertion_presence": {
+        "classes_with_lexical_calls": 3,
+        "diagnostic_only": true
+      },
+      "body_schema": {
+        "count": 5,
+        "denominator": 5,
+        "rate": 1.0
+      },
+      "cases": 5,
+      "class_pass": {
+        "count": 2,
+        "denominator": 5,
+        "rate": 0.4
+      },
+      "compiled": {
+        "count": 3,
+        "denominator": 5,
+        "rate": 0.6
+      },
+      "coverage": {
+        "class": {
+          "branch": {
+            "accepted_measured_cases": 2,
+            "all_attempt_reference_denominator": 22,
+            "all_attempt_success_credit_case_macro": 0.4,
+            "all_attempt_success_credit_covered": 8,
+            "all_attempt_success_credit_pooled_ratio": 0.36363636363636365,
+            "conditional_case_macro": 1.0,
+            "conditional_pooled_covered": 8,
+            "conditional_pooled_ratio": 1.0,
+            "conditional_pooled_total": 8,
+            "credit_policy": "Failed/unassembled class gets zero success CREDIT against reference denominator, NOT a claimed measured zero coverage.",
+            "missing_measurement_not_zero": true
+          },
+          "line": {
+            "accepted_measured_cases": 2,
+            "all_attempt_reference_denominator": 29,
+            "all_attempt_success_credit_case_macro": 0.3277777777777778,
+            "all_attempt_success_credit_covered": 11,
+            "all_attempt_success_credit_pooled_ratio": 0.3793103448275862,
+            "conditional_case_macro": 0.8194444444444444,
+            "conditional_pooled_covered": 11,
+            "conditional_pooled_ratio": 0.8461538461538461,
+            "conditional_pooled_total": 13,
+            "credit_policy": "Failed/unassembled class gets zero success CREDIT against reference denominator, NOT a claimed measured zero coverage.",
+            "missing_measurement_not_zero": true
+          }
+        },
+        "method": {
+          "branch": {
+            "accepted_measured_cases": 2,
+            "all_attempt_reference_denominator": 22,
+            "all_attempt_success_credit_case_macro": 0.4,
+            "all_attempt_success_credit_covered": 8,
+            "all_attempt_success_credit_pooled_ratio": 0.36363636363636365,
+            "conditional_case_macro": 1.0,
+            "conditional_pooled_covered": 8,
+            "conditional_pooled_ratio": 1.0,
+            "conditional_pooled_total": 8,
+            "credit_policy": "Failed/unassembled class gets zero success CREDIT against reference denominator, NOT a claimed measured zero coverage.",
+            "missing_measurement_not_zero": true
+          },
+          "line": {
+            "accepted_measured_cases": 2,
+            "all_attempt_reference_denominator": 23,
+            "all_attempt_success_credit_case_macro": 0.4,
+            "all_attempt_success_credit_covered": 10,
+            "all_attempt_success_credit_pooled_ratio": 0.43478260869565216,
+            "conditional_case_macro": 1.0,
+            "conditional_pooled_covered": 10,
+            "conditional_pooled_ratio": 1.0,
+            "conditional_pooled_total": 10,
+            "credit_policy": "Failed/unassembled class gets zero success CREDIT against reference denominator, NOT a claimed measured zero coverage.",
+            "missing_measurement_not_zero": true
+          }
+        }
+      },
+      "focal_invoked_accepted": {
+        "count": 2,
+        "denominator": 5,
+        "rate": 0.4
+      },
+      "positive_execution_repeat_stable": {
+        "count": 3,
+        "denominator_positive_executed": 3
+      },
+      "positive_nonaborted_execution": {
+        "count": 3,
+        "denominator": 5,
+        "rate": 0.6
+      },
+      "repeat_stable": {
+        "count": 3,
+        "measured": 3
+      },
+      "syntax_parse": {
+        "count": 3,
+        "denominator": 5,
+        "rate": 0.6
+      },
+      "tests_first_run": {
+        "tests_aborted": 0,
+        "tests_failed": 1,
+        "tests_skipped": 0,
+        "tests_started": 6,
+        "tests_successful": 5
+      },
+      "truncated": {
+        "count": 0,
+        "denominator": 5,
+        "rate": 0.0
+      }
+    },
+    "rag_single": {
+      "actual_calls": 5,
+      "assembled": {
+        "count": 3,
+        "denominator": 5,
+        "rate": 0.6
+      },
+      "assertion_presence": {
+        "classes_with_lexical_calls": 3,
+        "diagnostic_only": true
+      },
+      "body_schema": {
+        "count": 5,
+        "denominator": 5,
+        "rate": 1.0
+      },
+      "cases": 5,
+      "class_pass": {
+        "count": 1,
+        "denominator": 5,
+        "rate": 0.2
+      },
+      "compiled": {
+        "count": 2,
+        "denominator": 5,
+        "rate": 0.4
+      },
+      "coverage": {
+        "class": {
+          "branch": {
+            "accepted_measured_cases": 1,
+            "all_attempt_reference_denominator": 22,
+            "all_attempt_success_credit_case_macro": 0.2,
+            "all_attempt_success_credit_covered": 6,
+            "all_attempt_success_credit_pooled_ratio": 0.2727272727272727,
+            "conditional_case_macro": 1.0,
+            "conditional_pooled_covered": 6,
+            "conditional_pooled_ratio": 1.0,
+            "conditional_pooled_total": 6,
+            "credit_policy": "Failed/unassembled class gets zero success CREDIT against reference denominator, NOT a claimed measured zero coverage.",
+            "missing_measurement_not_zero": true
+          },
+          "line": {
+            "accepted_measured_cases": 1,
+            "all_attempt_reference_denominator": 29,
+            "all_attempt_success_credit_case_macro": 0.17777777777777776,
+            "all_attempt_success_credit_covered": 8,
+            "all_attempt_success_credit_pooled_ratio": 0.27586206896551724,
+            "conditional_case_macro": 0.8888888888888888,
+            "conditional_pooled_covered": 8,
+            "conditional_pooled_ratio": 0.8888888888888888,
+            "conditional_pooled_total": 9,
+            "credit_policy": "Failed/unassembled class gets zero success CREDIT against reference denominator, NOT a claimed measured zero coverage.",
+            "missing_measurement_not_zero": true
+          }
+        },
+        "method": {
+          "branch": {
+            "accepted_measured_cases": 1,
+            "all_attempt_reference_denominator": 22,
+            "all_attempt_success_credit_case_macro": 0.2,
+            "all_attempt_success_credit_covered": 6,
+            "all_attempt_success_credit_pooled_ratio": 0.2727272727272727,
+            "conditional_case_macro": 1.0,
+            "conditional_pooled_covered": 6,
+            "conditional_pooled_ratio": 1.0,
+            "conditional_pooled_total": 6,
+            "credit_policy": "Failed/unassembled class gets zero success CREDIT against reference denominator, NOT a claimed measured zero coverage.",
+            "missing_measurement_not_zero": true
+          },
+          "line": {
+            "accepted_measured_cases": 1,
+            "all_attempt_reference_denominator": 23,
+            "all_attempt_success_credit_case_macro": 0.2,
+            "all_attempt_success_credit_covered": 7,
+            "all_attempt_success_credit_pooled_ratio": 0.30434782608695654,
+            "conditional_case_macro": 1.0,
+            "conditional_pooled_covered": 7,
+            "conditional_pooled_ratio": 1.0,
+            "conditional_pooled_total": 7,
+            "credit_policy": "Failed/unassembled class gets zero success CREDIT against reference denominator, NOT a claimed measured zero coverage.",
+            "missing_measurement_not_zero": true
+          }
+        }
+      },
+      "focal_invoked_accepted": {
+        "count": 1,
+        "denominator": 5,
+        "rate": 0.2
+      },
+      "positive_execution_repeat_stable": {
+        "count": 2,
+        "denominator_positive_executed": 2
+      },
+      "positive_nonaborted_execution": {
+        "count": 2,
+        "denominator": 5,
+        "rate": 0.4
+      },
+      "repeat_stable": {
+        "count": 3,
+        "measured": 3
+      },
+      "syntax_parse": {
+        "count": 3,
+        "denominator": 5,
+        "rate": 0.6
+      },
+      "tests_first_run": {
+        "tests_aborted": 0,
+        "tests_failed": 1,
+        "tests_skipped": 0,
+        "tests_started": 4,
+        "tests_successful": 3
+      },
+      "truncated": {
+        "count": 0,
+        "denominator": 5,
+        "rate": 0.0
+      }
+    }
+  },
+  "attempts_per_cell": 1,
+  "bug_detection": "not_applicable_no_buggy_revisions",
+  "cases": [
+    "79160472_49",
+    "52804523_92",
+    "56354946_19",
+    "206427_319",
+    "206427_280"
+  ],
+  "coverage": "real JaCoCo 0.8.13; production focal method/class only; two fresh runs; no gold mixed into generated-test runs",
+  "cross_source_repository_check": {
+    "rag_identity_matches": [],
+    "scope": "Named repository/project metadata supplemental check; absent metadata is not affirmative lineage proof.",
+    "source_metadata": [
+      {
+        "family": "refactoring_ml4ref",
+        "matching_named_metadata": {}
+      },
+      {
+        "family": "refactoring_marv",
+        "matching_named_metadata": {}
+      }
+    ]
+  },
+  "demo": {
+    "status": "passed",
+    "tests_started": 2
+  },
+  "environment": {
+    "git_head": "fdac5542d3a740f38e5d48ffa7cc88a3818b3e35",
+    "java": "openjdk version \"11.0.33\" 2026-10-20\nOpenJDK Runtime Environment Temurin-11.0.33+10 (build 11.0.33+10)\nOpenJDK 64-Bit Server VM Temurin-11.0.33+10 (build 11.0.33+10, mixed mode)\n",
+    "ollama": "ollama version is 0.15.2\n",
+    "packages": {
+      "bitsandbytes": "0.49.2",
+      "chromadb": "1.5.9",
+      "peft": "0.19.1",
+      "pydantic": "2.12.3",
+      "pytest": "9.0.3",
+      "torch": "2.11.0",
+      "transformers": "4.57.6",
+      "tree-sitter": "0.25.2",
+      "tree-sitter-java": "0.23.5"
+    },
+    "platform": "Linux-6.18.54.1-microsoft-standard-WSL2-x86_64-with-glibc2.39",
+    "python": "3.13.11"
+  },
+  "failure_categories": {
+    "ft_testing": {
+      "206427_280": "passed",
+      "206427_319": "assertion_failure",
+      "52804523_92": "assertion_failure",
+      "56354946_19": "passed",
+      "79160472_49": "assertion_failure"
+    },
+    "qwen_base": {
+      "206427_280": "passed",
+      "206427_319": "passed",
+      "52804523_92": "body_java_syntax_rejection",
+      "56354946_19": "body_java_syntax_rejection",
+      "79160472_49": "passed"
+    },
+    "rag_multi": {
+      "206427_280": "body_java_syntax_rejection",
+      "206427_319": "passed",
+      "52804523_92": "assertion_failure",
+      "56354946_19": "body_java_syntax_rejection",
+      "79160472_49": "passed"
+    },
+    "rag_single": {
+      "206427_280": "compile_failure",
+      "206427_319": "passed",
+      "52804523_92": "assertion_failure",
+      "56354946_19": "body_java_syntax_rejection",
+      "79160472_49": "body_java_syntax_rejection"
+    }
+  },
+  "harness_controls": {
+    "empty": "no_tests",
+    "fail": "assertion_failure",
+    "pass": "passed"
+  },
+  "identity_hashing_timing": {
+    "reason": "freeze hashing was not separately timed; not included in generation timings",
+    "seconds": null
+  },
+  "index_manifests": {
+    "data/chroma/ollama_bge_m3_v3/manifests/mixed.json": "cd7da0ff04c9e5b158ae52096c3853602f0e8a220f246d7c6a54a54f184c68ee",
+    "data/chroma/ollama_bge_m3_v3/manifests/refactoring_db.json": "570d75aa6919a76e3c4b1204d4b89e4e0d7c6114c6db54b2520c89b3a439dfe1",
+    "data/chroma/ollama_bge_m3_v3/manifests/testing_db.json": "8675a31150c90077a0525da9a1bc4e07c6221b1bbbd738c99db473a94166e411"
+  },
+  "ledger": [
+    {
+      "arm": "ft_testing",
+      "completion_sha256": "1a1c6fa6acc927e87567b56f24ec148a75eff8d52d0e5ab9b3d94b08c7b96c31",
+      "dispatch_sha256": "8411e2fd49f725337fcc14657f4ec1f10d3f59ccabbb2887e2f3b586472e57f0",
+      "id": "206427_280"
+    },
+    {
+      "arm": "qwen_base",
+      "completion_sha256": "f26cf6780595ea4ae309a695fefe8756c9536fbf60c04f35fe2e4894b0fa85c9",
+      "dispatch_sha256": "b16ae12b520dfd6c183117e4787bbe47250d58607731dd5a32c8585a7c0000cd",
+      "id": "206427_280"
+    },
+    {
+      "arm": "rag_multi",
+      "completion_sha256": "ec00777002408a6bae10afae85d28715bb14a7c2e1865bd4aad00309c5929aef",
+      "dispatch_sha256": "b46b7bff09c75550cc1bd51ecbce3326bf41445d52b1e7a6398833db2d2f6a81",
+      "id": "206427_280"
+    },
+    {
+      "arm": "rag_single",
+      "completion_sha256": "c581e926d03b96d7af93bb23c62860647de3e3d5bc6b87fd71ed71ba3fdee7fd",
+      "dispatch_sha256": "65b3c529e8b785fd9e42c97aff33cddc7c25eabf81ac8550efa270529b585fa6",
+      "id": "206427_280"
+    },
+    {
+      "arm": "ft_testing",
+      "completion_sha256": "6e359af362337d8a2584ad244214c8a9e044d45e53799948171f92fb8e7b8912",
+      "dispatch_sha256": "f0ec9fb677cdda968fcb60e69fe02e8413e1b7e2831d684ddbda7d54d8941da0",
+      "id": "206427_319"
+    },
+    {
+      "arm": "qwen_base",
+      "completion_sha256": "9452fd69eba96b6b09a787d2f3522740eeb38f1a384c407508a00207b103e087",
+      "dispatch_sha256": "675426918b4cfc57139f7c8b7f57fecca2994e0cfb56145b3a32c9d32358d0e2",
+      "id": "206427_319"
+    },
+    {
+      "arm": "rag_multi",
+      "completion_sha256": "b58f42bd0de355828d8b1601fd28a0ecf03a45c418f939a8e8d5d65a34c53ff1",
+      "dispatch_sha256": "2deb6dbe38fce2b1b288ee4e3c167502197daf0f0f2c9368f8dba85b6c7b190d",
+      "id": "206427_319"
+    },
+    {
+      "arm": "rag_single",
+      "completion_sha256": "d8329e6c6b10dec372e6cc5f8f70a4f094a60fd0c504453914ada24571d456b8",
+      "dispatch_sha256": "afc1d9466f16b429144b2ee15bf45862475f69c250b2845c47174bb4231ee2fd",
+      "id": "206427_319"
+    },
+    {
+      "arm": "ft_testing",
+      "completion_sha256": "5d42cd6488a22b8dea40eb8e60417595da7fd46fe5dff71bdd477250d8fbee72",
+      "dispatch_sha256": "de67b1d7611afab83d4fec7641cc9152e3d4f4c85551f6bb5622b112ab21b7e7",
+      "id": "52804523_92"
+    },
+    {
+      "arm": "qwen_base",
+      "completion_sha256": "e8edbaad01c1870ab2d3d6f784d6ee3d2b36488211039ea5a87fdb6306a72c25",
+      "dispatch_sha256": "19300d64b6ae9a219a844a49b6a43d9b914b0208458ee656d25b32ba71000368",
+      "id": "52804523_92"
+    },
+    {
+      "arm": "rag_multi",
+      "completion_sha256": "b356dabf867e7e6e99c6e5d7e3a0f826a86450587cb413f4728730f714176e5b",
+      "dispatch_sha256": "0bfd949d17ff8b0d01ec97c1cc43a7ea381734357324a0217b41fb3be51c9572",
+      "id": "52804523_92"
+    },
+    {
+      "arm": "rag_single",
+      "completion_sha256": "688d46061bc28f21f1913f5e270f0faa2f2681a04310b859966c09ee75fd35fa",
+      "dispatch_sha256": "94e028a40e713aceb151065ce30cc7d88382b4c9fe7825457139d37aa79b581b",
+      "id": "52804523_92"
+    },
+    {
+      "arm": "ft_testing",
+      "completion_sha256": "004d45d0c52ab0470aa99c3b2d2a82130459ea62501b24599a5668e8c1b5cda9",
+      "dispatch_sha256": "de5410f0453d38f9985e2dc6d64827597feb64560293036558a2f7fee2a331e2",
+      "id": "56354946_19"
+    },
+    {
+      "arm": "qwen_base",
+      "completion_sha256": "7b154ee9eb1aef503d5ee77956ee7ca87c2c474bcb0c28611eb1f699409926c7",
+      "dispatch_sha256": "eb455b8ddcf068f318535495117892d84f1303563b92e100e32cc063beb40561",
+      "id": "56354946_19"
+    },
+    {
+      "arm": "rag_multi",
+      "completion_sha256": "33c7f26f8f439fcaea806e0e8fc04c607c25c1a7177f0de2b37f01a7c076fd9d",
+      "dispatch_sha256": "023077095fa78ee341348d3599cd17042c3e69184e056bec010465902510c5ec",
+      "id": "56354946_19"
+    },
+    {
+      "arm": "rag_single",
+      "completion_sha256": "a29b70e937497f0704e3db97d5739c9f5911622359af2fc29893e56426e62559",
+      "dispatch_sha256": "e9a929b3c4cf57fb53768b76c0c13bb71444ab1475af77320ce917974dfc0306",
+      "id": "56354946_19"
+    },
+    {
+      "arm": "ft_testing",
+      "completion_sha256": "fdf119dc9270770d03faa6f5edf2dfff0083f3a2d76969d26b50ed0d24b4619c",
+      "dispatch_sha256": "8c0c1c917aff50b812ae75608724c8c19898e4a871606d439c3edac606be12f2",
+      "id": "79160472_49"
+    },
+    {
+      "arm": "qwen_base",
+      "completion_sha256": "0ed639d68fb21b0987aa319f51ac208969a1ef4c3b7c82690ef12e33b8ae7fb0",
+      "dispatch_sha256": "82d1385d9bbca5bf31a22e3d87f8ea9c478b501b47ecfd71e519556f566cd5d1",
+      "id": "79160472_49"
+    },
+    {
+      "arm": "rag_multi",
+      "completion_sha256": "b7482e8b84d533e517371a6ee1863d73aee52ab7b3f0ec4aa16deaa3d49ee8fa",
+      "dispatch_sha256": "f820c4620f956bd4748cc7f65d73dabc339fa3c1800c96fb17274135bacd2758",
+      "id": "79160472_49"
+    },
+    {
+      "arm": "rag_single",
+      "completion_sha256": "0f4fe775d311e65737469c4e3b2e8dfe588715e9e7f42cda59a0c56a557e4bc2",
+      "dispatch_sha256": "303984965f84748c357715fb9796c18642ad4f6aa44e7c91f98de53feb9d8c5c",
+      "id": "79160472_49"
+    }
+  ],
+  "limitations": [
+    "Five convenience-filtered extracted methods from four projects; official EVAL/pilot_validation, not final TEST.",
+    "Today snapshot absence verified; historic train bytes/base pretraining unknown.",
+    "HF PEFT NF4 raw instruction vs Ollama Q4 schema-constrained generate: systems comparison, not isolated FT effect.",
+    "Known retrieval limitations unchanged; no index rebuild, no training, no retries or repairs.",
+    "Coverage is execution evidence, not semantic assertion quality or real fault detection; no buggy revisions or mutation analysis.",
+    "Lexical assertion presence only; local reviewed execution is not an OS sandbox.",
+    "Class metrics are extracted wrapper, including constructor/static initialization; method metrics are focal scope."
+  ],
+  "max_actual_calls": 20,
+  "model_identities": {
+    "ft_completed_epochs": 0.6,
+    "ft_completed_steps": 300,
+    "ft_file_identities": {
+      "adapter_config.json": {
+        "bytes": 1081,
+        "sha256": "0fba3993c53f75368d503bfc11c64ffc9d6d21a749970ad4ca5e6821b07bf6a8"
+      },
+      "adapter_model.safetensors": {
+        "bytes": 40400200,
+        "sha256": "82259c6862f1fd3b042fd9ca9459abe03f202227317e0e075f8b860e60000c2f"
+      },
+      "config.json": {
+        "bytes": 663,
+        "sha256": "c0242402ad6a13b331ea320feea8c7e3776ffb7a4eff0757b9cd667e116d9a28"
+      },
+      "config_snapshot.yaml": {
+        "bytes": 2244,
+        "sha256": "4c6e4b29f79f821a6da66f05db5508fb96ad46e7ba5a3bd4eb5f947f4088c2fb"
+      },
+      "model-00001-of-00004.safetensors": {
+        "bytes": 4877660776,
+        "sha256": "0b6f069918b07c064cbba8ae4f00f529aa9bbf84b7cdfcb7fc2694a40f6aa8ef"
+      },
+      "model-00002-of-00004.safetensors": {
+        "bytes": 4932751008,
+        "sha256": "c3d46733e7aa054ea7b063fbccd0a5a08446e7bd1814bef26936c5aa1331da62"
+      },
+      "model-00003-of-00004.safetensors": {
+        "bytes": 4330865200,
+        "sha256": "9fe45dacee087385b3d2d6dd27a7413a8a56d95f145772facc148fa86fc73446"
+      },
+      "model-00004-of-00004.safetensors": {
+        "bytes": 1089994880,
+        "sha256": "5aa6e5cbe642377fd441fb4e60e83cca96b2bcd9820e245b9ea06d94653f17f2"
+      },
+      "model.safetensors.index.json": {
+        "bytes": 27752,
+        "sha256": "998a078123ffc97763690de7f2a677eb89168af5eaf8a5e12e6bc24d18e25bdb"
+      },
+      "tokenizer.json": {
+        "bytes": 7031645,
+        "sha256": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539"
+      },
+      "tokenizer_config.json": {
+        "bytes": 7305,
+        "sha256": "959e7f1d9a1b7641a6d6ce05ca97b75c7894fcb66cbe5a040406458fb1128ee4"
+      },
+      "training_summary.json": {
+        "bytes": 1246,
+        "sha256": "bcd597da067568a9771d8389f4547de64594fca092c9eefccc3c363d1b96f500"
+      }
+    },
+    "ft_inference": {
+      "bnb_4bit_compute_dtype": "float16",
+      "bnb_4bit_quant_type": "nf4",
+      "bnb_4bit_use_double_quant": true,
+      "device_map": "auto",
+      "load_in_4bit": true,
+      "offload_dir": "~/experiments/llm-ontology/eval_offload",
+      "torch_dtype": "float16"
+    },
+    "ft_model": {
+      "adapter_path": "~/experiments/llm-ontology-v2/b2_testing/checkpoints/final_adapter",
+      "model_path": "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct",
+      "name": "b2_testing_v2",
+      "type": "lora"
+    },
+    "ollama_details": {
+      "families": [
+        "qwen2"
+      ],
+      "family": "qwen2",
+      "format": "gguf",
+      "parameter_size": "7.6B",
+      "parent_model": "",
+      "quantization_level": "Q4_K_M"
+    },
+    "ollama_digest": "dae161e27b0e90dd1856c8bb3209201fd6736d8eb66298e75ed87571486f4364",
+    "ollama_identity_sha256": "a0728ec1f96bc33339f7cc484e0f28e32f1d35f11acb4f1fe0fb2c3b04ab06db",
+    "ollama_model": "qwen2.5-coder:7b"
+  },
+  "model_load": {
+    "loaded_once_for_up_to_five": true,
+    "seconds": 179.478560495
+  },
+  "paired_matrix": [
+    {
+      "actual_calls": 1,
+      "arm": "qwen_base",
+      "assembled": true,
+      "assertion_calls_lexical_diagnostic": 4,
+      "body_schema": true,
+      "class_pass": true,
+      "compiled": true,
+      "coverage": {
+        "class": {
+          "counters": {
+            "branch": {
+              "covered": 2,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 2
+            },
+            "line": {
+              "covered": 3,
+              "missed": 1,
+              "ratio": 0.75,
+              "reason": null,
+              "total": 4
+            },
+            "method": {
+              "covered": 1,
+              "missed": 1,
+              "ratio": 0.5,
+              "reason": null,
+              "total": 2
+            }
+          },
+          "name": "com.episode6.hackit.mockspresso.util.Preconditions"
+        },
+        "focal_invoked": true,
+        "method": {
+          "counters": {
+            "branch": {
+              "covered": 2,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 2
+            },
+            "line": {
+              "covered": 3,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 3
+            },
+            "method": {
+              "covered": 1,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 1
+            }
+          },
+          "descriptor": "(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;",
+          "name": "assertNotNull"
+        },
+        "reason": null,
+        "status": "measured"
+      },
+      "coverage_reason": null,
+      "diagnostic_coverage": null,
+      "failure_category": "passed",
+      "finish_reason": "stop",
+      "focal_invoked_accepted": true,
+      "generation_seconds": 0.575362418,
+      "id": "79160472_49",
+      "input_tokens": 1232,
+      "load_seconds": 6.364113069,
+      "output_tokens": 46,
+      "per_test_outcomes_first_run": [
+        {
+          "class": "com.episode6.hackit.mockspresso.util.GeneratedBodyTests",
+          "status": "passed",
+          "test": "testCase1()",
+          "type": null
+        },
+        {
+          "class": "com.episode6.hackit.mockspresso.util.GeneratedBodyTests",
+          "status": "passed",
+          "test": "testCase2()",
+          "type": null
+        }
+      ],
+      "per_test_outcomes_repeat_equal": true,
+      "positive_execution_repeat_stable": true,
+      "positive_nonaborted_execution": true,
+      "prompt_processing_seconds": 0.437981869,
+      "repeat_coverage_equal": true,
+      "repeat_stable": true,
+      "retrieval_seconds": 9.830000067267974e-07,
+      "statuses": [
+        "passed",
+        "passed"
+      ],
+      "syntax_parse": true,
+      "tests_first_run": {
+        "containers_failed": 0,
+        "tests_aborted": 0,
+        "tests_failed": 0,
+        "tests_found": 2,
+        "tests_skipped": 0,
+        "tests_started": 2,
+        "tests_successful": 2
+      },
+      "truncated": false
+    },
+    {
+      "actual_calls": 1,
+      "arm": "ft_testing",
+      "assembled": true,
+      "assertion_calls_lexical_diagnostic": 2,
+      "body_schema": true,
+      "class_pass": false,
+      "compiled": true,
+      "coverage": null,
+      "coverage_reason": "test_class_not_passed",
+      "diagnostic_coverage": {
+        "class": {
+          "counters": {
+            "branch": {
+              "covered": 0,
+              "missed": 2,
+              "ratio": 0.0,
+              "reason": null,
+              "total": 2
+            },
+            "line": {
+              "covered": 0,
+              "missed": 4,
+              "ratio": 0.0,
+              "reason": null,
+              "total": 4
+            },
+            "method": {
+              "covered": 0,
+              "missed": 2,
+              "ratio": 0.0,
+              "reason": null,
+              "total": 2
+            }
+          },
+          "name": "com.episode6.hackit.mockspresso.util.Preconditions"
+        },
+        "focal_invoked": false,
+        "method": {
+          "counters": {
+            "branch": {
+              "covered": 0,
+              "missed": 2,
+              "ratio": 0.0,
+              "reason": null,
+              "total": 2
+            },
+            "line": {
+              "covered": 0,
+              "missed": 3,
+              "ratio": 0.0,
+              "reason": null,
+              "total": 3
+            },
+            "method": {
+              "covered": 0,
+              "missed": 1,
+              "ratio": 0.0,
+              "reason": null,
+              "total": 1
+            }
+          },
+          "descriptor": "(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;",
+          "name": "assertNotNull"
+        },
+        "reason": null,
+        "status": "measured"
+      },
+      "failure_category": "assertion_failure",
+      "finish_reason": "eos",
+      "focal_invoked_accepted": false,
+      "generation_seconds": 3.2419578489999594,
+      "id": "79160472_49",
+      "input_tokens": 951,
+      "load_seconds": null,
+      "output_tokens": 27,
+      "per_test_outcomes_first_run": [
+        {
+          "class": "com.episode6.hackit.mockspresso.util.GeneratedBodyTests",
+          "status": "failure",
+          "test": "testCase1()",
+          "type": "org.opentest4j.AssertionFailedError"
+        },
+        {
+          "class": "com.episode6.hackit.mockspresso.util.GeneratedBodyTests",
+          "status": "passed",
+          "test": "testCase2()",
+          "type": null
+        }
+      ],
+      "per_test_outcomes_repeat_equal": true,
+      "positive_execution_repeat_stable": true,
+      "positive_nonaborted_execution": true,
+      "prompt_processing_seconds": null,
+      "repeat_coverage_equal": true,
+      "repeat_stable": true,
+      "retrieval_seconds": null,
+      "statuses": [
+        "assertion_failure",
+        "assertion_failure"
+      ],
+      "syntax_parse": true,
+      "tests_first_run": {
+        "containers_failed": 0,
+        "tests_aborted": 0,
+        "tests_failed": 1,
+        "tests_found": 2,
+        "tests_skipped": 0,
+        "tests_started": 2,
+        "tests_successful": 1
+      },
+      "truncated": false
+    },
+    {
+      "actual_calls": 1,
+      "arm": "rag_single",
+      "assembled": false,
+      "body_schema": true,
+      "class_pass": false,
+      "compiled": false,
+      "coverage": null,
+      "coverage_reason": "generation_not_assembled",
+      "failure_category": "body_java_syntax_rejection",
+      "failure_detail": "Body is not balanced Java statements.",
+      "finish_reason": "stop",
+      "focal_invoked_accepted": false,
+      "generation_seconds": 0.562228565,
+      "id": "79160472_49",
+      "input_tokens": 2964,
+      "load_seconds": 3.711699773,
+      "output_tokens": 43,
+      "per_test_outcomes_first_run": [],
+      "per_test_outcomes_repeat_equal": null,
+      "positive_execution_repeat_stable": false,
+      "positive_nonaborted_execution": false,
+      "prompt_processing_seconds": 1.117956654,
+      "repeat_stable": null,
+      "retrieval_seconds": 9.010389055999951,
+      "syntax_parse": false,
+      "tests_first_run": {},
+      "truncated": false
+    },
+    {
+      "actual_calls": 1,
+      "arm": "rag_multi",
+      "assembled": true,
+      "assertion_calls_lexical_diagnostic": 4,
+      "body_schema": true,
+      "class_pass": true,
+      "compiled": true,
+      "coverage": {
+        "class": {
+          "counters": {
+            "branch": {
+              "covered": 2,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 2
+            },
+            "line": {
+              "covered": 3,
+              "missed": 1,
+              "ratio": 0.75,
+              "reason": null,
+              "total": 4
+            },
+            "method": {
+              "covered": 1,
+              "missed": 1,
+              "ratio": 0.5,
+              "reason": null,
+              "total": 2
+            }
+          },
+          "name": "com.episode6.hackit.mockspresso.util.Preconditions"
+        },
+        "focal_invoked": true,
+        "method": {
+          "counters": {
+            "branch": {
+              "covered": 2,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 2
+            },
+            "line": {
+              "covered": 3,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 3
+            },
+            "method": {
+              "covered": 1,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 1
+            }
+          },
+          "descriptor": "(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;",
+          "name": "assertNotNull"
+        },
+        "reason": null,
+        "status": "measured"
+      },
+      "coverage_reason": null,
+      "diagnostic_coverage": null,
+      "failure_category": "passed",
+      "finish_reason": "stop",
+      "focal_invoked_accepted": true,
+      "generation_seconds": 0.623503583,
+      "id": "79160472_49",
+      "input_tokens": 5469,
+      "load_seconds": 2.635130563,
+      "output_tokens": 46,
+      "per_test_outcomes_first_run": [
+        {
+          "class": "com.episode6.hackit.mockspresso.util.GeneratedBodyTests",
+          "status": "passed",
+          "test": "testCase1()",
+          "type": null
+        },
+        {
+          "class": "com.episode6.hackit.mockspresso.util.GeneratedBodyTests",
+          "status": "passed",
+          "test": "testCase2()",
+          "type": null
+        }
+      ],
+      "per_test_outcomes_repeat_equal": true,
+      "positive_execution_repeat_stable": true,
+      "positive_nonaborted_execution": true,
+      "prompt_processing_seconds": 2.076616667,
+      "repeat_coverage_equal": true,
+      "repeat_stable": true,
+      "retrieval_seconds": 5.211802391999981,
+      "statuses": [
+        "passed",
+        "passed"
+      ],
+      "syntax_parse": true,
+      "tests_first_run": {
+        "containers_failed": 0,
+        "tests_aborted": 0,
+        "tests_failed": 0,
+        "tests_found": 2,
+        "tests_skipped": 0,
+        "tests_started": 2,
+        "tests_successful": 2
+      },
+      "truncated": false
+    },
+    {
+      "actual_calls": 1,
+      "arm": "qwen_base",
+      "assembled": false,
+      "body_schema": true,
+      "class_pass": false,
+      "compiled": false,
+      "coverage": null,
+      "coverage_reason": "generation_not_assembled",
+      "failure_category": "body_java_syntax_rejection",
+      "failure_detail": "Body is not balanced Java statements.",
+      "finish_reason": "stop",
+      "focal_invoked_accepted": false,
+      "generation_seconds": 0.718126367,
+      "id": "52804523_92",
+      "input_tokens": 1232,
+      "load_seconds": 6.492730706,
+      "output_tokens": 57,
+      "per_test_outcomes_first_run": [],
+      "per_test_outcomes_repeat_equal": null,
+      "positive_execution_repeat_stable": false,
+      "positive_nonaborted_execution": false,
+      "prompt_processing_seconds": 0.434209914,
+      "repeat_stable": null,
+      "retrieval_seconds": 1.4850000411570363e-06,
+      "syntax_parse": false,
+      "tests_first_run": {},
+      "truncated": false
+    },
+    {
+      "actual_calls": 1,
+      "arm": "ft_testing",
+      "assembled": true,
+      "assertion_calls_lexical_diagnostic": 2,
+      "body_schema": true,
+      "class_pass": false,
+      "compiled": true,
+      "coverage": null,
+      "coverage_reason": "test_class_not_passed",
+      "diagnostic_coverage": {
+        "class": {
+          "counters": {
+            "branch": {
+              "covered": 3,
+              "missed": 1,
+              "ratio": 0.75,
+              "reason": null,
+              "total": 4
+            },
+            "line": {
+              "covered": 2,
+              "missed": 1,
+              "ratio": 0.6666666666666666,
+              "reason": null,
+              "total": 3
+            },
+            "method": {
+              "covered": 1,
+              "missed": 1,
+              "ratio": 0.5,
+              "reason": null,
+              "total": 2
+            }
+          },
+          "name": "org.codice.alliance.libs.klv.Utilities"
+        },
+        "focal_invoked": true,
+        "method": {
+          "counters": {
+            "branch": {
+              "covered": 3,
+              "missed": 1,
+              "ratio": 0.75,
+              "reason": null,
+              "total": 4
+            },
+            "line": {
+              "covered": 2,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 2
+            },
+            "method": {
+              "covered": 1,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 1
+            }
+          },
+          "descriptor": "(Ljava/io/Serializable;)Z",
+          "name": "isNotStringNone"
+        },
+        "reason": null,
+        "status": "measured"
+      },
+      "failure_category": "assertion_failure",
+      "finish_reason": "eos",
+      "focal_invoked_accepted": false,
+      "generation_seconds": 4.4287514009999995,
+      "id": "52804523_92",
+      "input_tokens": 951,
+      "load_seconds": null,
+      "output_tokens": 36,
+      "per_test_outcomes_first_run": [
+        {
+          "class": "org.codice.alliance.libs.klv.GeneratedBodyTests",
+          "status": "failure",
+          "test": "testCase1()",
+          "type": "org.opentest4j.AssertionFailedError"
+        },
+        {
+          "class": "org.codice.alliance.libs.klv.GeneratedBodyTests",
+          "status": "passed",
+          "test": "testCase2()",
+          "type": null
+        }
+      ],
+      "per_test_outcomes_repeat_equal": true,
+      "positive_execution_repeat_stable": true,
+      "positive_nonaborted_execution": true,
+      "prompt_processing_seconds": null,
+      "repeat_coverage_equal": true,
+      "repeat_stable": true,
+      "retrieval_seconds": null,
+      "statuses": [
+        "assertion_failure",
+        "assertion_failure"
+      ],
+      "syntax_parse": true,
+      "tests_first_run": {
+        "containers_failed": 0,
+        "tests_aborted": 0,
+        "tests_failed": 1,
+        "tests_found": 2,
+        "tests_skipped": 0,
+        "tests_started": 2,
+        "tests_successful": 1
+      },
+      "truncated": false
+    },
+    {
+      "actual_calls": 1,
+      "arm": "rag_single",
+      "assembled": true,
+      "assertion_calls_lexical_diagnostic": 3,
+      "body_schema": true,
+      "class_pass": false,
+      "compiled": true,
+      "coverage": null,
+      "coverage_reason": "test_class_not_passed",
+      "diagnostic_coverage": {
+        "class": {
+          "counters": {
+            "branch": {
+              "covered": 4,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 4
+            },
+            "line": {
+              "covered": 2,
+              "missed": 1,
+              "ratio": 0.6666666666666666,
+              "reason": null,
+              "total": 3
+            },
+            "method": {
+              "covered": 1,
+              "missed": 1,
+              "ratio": 0.5,
+              "reason": null,
+              "total": 2
+            }
+          },
+          "name": "org.codice.alliance.libs.klv.Utilities"
+        },
+        "focal_invoked": true,
+        "method": {
+          "counters": {
+            "branch": {
+              "covered": 4,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 4
+            },
+            "line": {
+              "covered": 2,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 2
+            },
+            "method": {
+              "covered": 1,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 1
+            }
+          },
+          "descriptor": "(Ljava/io/Serializable;)Z",
+          "name": "isNotStringNone"
+        },
+        "reason": null,
+        "status": "measured"
+      },
+      "failure_category": "assertion_failure",
+      "finish_reason": "stop",
+      "focal_invoked_accepted": false,
+      "generation_seconds": 0.664430553,
+      "id": "52804523_92",
+      "input_tokens": 3001,
+      "load_seconds": 2.318343679,
+      "output_tokens": 51,
+      "per_test_outcomes_first_run": [
+        {
+          "class": "org.codice.alliance.libs.klv.GeneratedBodyTests",
+          "status": "passed",
+          "test": "testCase1()",
+          "type": null
+        },
+        {
+          "class": "org.codice.alliance.libs.klv.GeneratedBodyTests",
+          "status": "failure",
+          "test": "testCase2()",
+          "type": "org.opentest4j.AssertionFailedError"
+        }
+      ],
+      "per_test_outcomes_repeat_equal": true,
+      "positive_execution_repeat_stable": true,
+      "positive_nonaborted_execution": true,
+      "prompt_processing_seconds": 1.101191311,
+      "repeat_coverage_equal": true,
+      "repeat_stable": true,
+      "retrieval_seconds": 1.62966490499997,
+      "statuses": [
+        "assertion_failure",
+        "assertion_failure"
+      ],
+      "syntax_parse": true,
+      "tests_first_run": {
+        "containers_failed": 0,
+        "tests_aborted": 0,
+        "tests_failed": 1,
+        "tests_found": 2,
+        "tests_skipped": 0,
+        "tests_started": 2,
+        "tests_successful": 1
+      },
+      "truncated": false
+    },
+    {
+      "actual_calls": 1,
+      "arm": "rag_multi",
+      "assembled": true,
+      "assertion_calls_lexical_diagnostic": 3,
+      "body_schema": true,
+      "class_pass": false,
+      "compiled": true,
+      "coverage": null,
+      "coverage_reason": "test_class_not_passed",
+      "diagnostic_coverage": {
+        "class": {
+          "counters": {
+            "branch": {
+              "covered": 4,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 4
+            },
+            "line": {
+              "covered": 2,
+              "missed": 1,
+              "ratio": 0.6666666666666666,
+              "reason": null,
+              "total": 3
+            },
+            "method": {
+              "covered": 1,
+              "missed": 1,
+              "ratio": 0.5,
+              "reason": null,
+              "total": 2
+            }
+          },
+          "name": "org.codice.alliance.libs.klv.Utilities"
+        },
+        "focal_invoked": true,
+        "method": {
+          "counters": {
+            "branch": {
+              "covered": 4,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 4
+            },
+            "line": {
+              "covered": 2,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 2
+            },
+            "method": {
+              "covered": 1,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 1
+            }
+          },
+          "descriptor": "(Ljava/io/Serializable;)Z",
+          "name": "isNotStringNone"
+        },
+        "reason": null,
+        "status": "measured"
+      },
+      "failure_category": "assertion_failure",
+      "finish_reason": "stop",
+      "focal_invoked_accepted": false,
+      "generation_seconds": 0.749008247,
+      "id": "52804523_92",
+      "input_tokens": 3011,
+      "load_seconds": 2.10635253,
+      "output_tokens": 58,
+      "per_test_outcomes_first_run": [
+        {
+          "class": "org.codice.alliance.libs.klv.GeneratedBodyTests",
+          "status": "passed",
+          "test": "testCase1()",
+          "type": null
+        },
+        {
+          "class": "org.codice.alliance.libs.klv.GeneratedBodyTests",
+          "status": "failure",
+          "test": "testCase2()",
+          "type": "org.opentest4j.AssertionFailedError"
+        }
+      ],
+      "per_test_outcomes_repeat_equal": true,
+      "positive_execution_repeat_stable": true,
+      "positive_nonaborted_execution": true,
+      "prompt_processing_seconds": 1.097508892,
+      "repeat_coverage_equal": true,
+      "repeat_stable": true,
+      "retrieval_seconds": 1.827000312999985,
+      "statuses": [
+        "assertion_failure",
+        "assertion_failure"
+      ],
+      "syntax_parse": true,
+      "tests_first_run": {
+        "containers_failed": 0,
+        "tests_aborted": 0,
+        "tests_failed": 1,
+        "tests_found": 2,
+        "tests_skipped": 0,
+        "tests_started": 2,
+        "tests_successful": 1
+      },
+      "truncated": false
+    },
+    {
+      "actual_calls": 1,
+      "arm": "qwen_base",
+      "assembled": false,
+      "body_schema": true,
+      "class_pass": false,
+      "compiled": false,
+      "coverage": null,
+      "coverage_reason": "generation_not_assembled",
+      "failure_category": "body_java_syntax_rejection",
+      "failure_detail": "Body is not balanced Java statements.",
+      "finish_reason": "stop",
+      "focal_invoked_accepted": false,
+      "generation_seconds": 0.661370116,
+      "id": "56354946_19",
+      "input_tokens": 1204,
+      "load_seconds": 2.923925518,
+      "output_tokens": 52,
+      "per_test_outcomes_first_run": [],
+      "per_test_outcomes_repeat_equal": null,
+      "positive_execution_repeat_stable": false,
+      "positive_nonaborted_execution": false,
+      "prompt_processing_seconds": 0.43593324,
+      "repeat_stable": null,
+      "retrieval_seconds": 2.687999995032442e-06,
+      "syntax_parse": false,
+      "tests_first_run": {},
+      "truncated": false
+    },
+    {
+      "actual_calls": 1,
+      "arm": "ft_testing",
+      "assembled": true,
+      "assertion_calls_lexical_diagnostic": 6,
+      "body_schema": true,
+      "class_pass": true,
+      "compiled": true,
+      "coverage": {
+        "class": {
+          "counters": {
+            "branch": {
+              "covered": 4,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 4
+            },
+            "line": {
+              "covered": 1,
+              "missed": 1,
+              "ratio": 0.5,
+              "reason": null,
+              "total": 2
+            },
+            "method": {
+              "covered": 1,
+              "missed": 1,
+              "ratio": 0.5,
+              "reason": null,
+              "total": 2
+            }
+          },
+          "name": "net.simno.klingar.util.Strings"
+        },
+        "focal_invoked": true,
+        "method": {
+          "counters": {
+            "branch": {
+              "covered": 4,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 4
+            },
+            "line": {
+              "covered": 1,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 1
+            },
+            "method": {
+              "covered": 1,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 1
+            }
+          },
+          "descriptor": "(Ljava/lang/CharSequence;)Z",
+          "name": "isBlank"
+        },
+        "reason": null,
+        "status": "measured"
+      },
+      "coverage_reason": null,
+      "diagnostic_coverage": null,
+      "failure_category": "passed",
+      "finish_reason": "eos",
+      "focal_invoked_accepted": true,
+      "generation_seconds": 6.7660202359999175,
+      "id": "56354946_19",
+      "input_tokens": 923,
+      "load_seconds": null,
+      "output_tokens": 68,
+      "per_test_outcomes_first_run": [
+        {
+          "class": "net.simno.klingar.util.GeneratedBodyTests",
+          "status": "passed",
+          "test": "testCase1()",
+          "type": null
+        },
+        {
+          "class": "net.simno.klingar.util.GeneratedBodyTests",
+          "status": "passed",
+          "test": "testCase2()",
+          "type": null
+        }
+      ],
+      "per_test_outcomes_repeat_equal": true,
+      "positive_execution_repeat_stable": true,
+      "positive_nonaborted_execution": true,
+      "prompt_processing_seconds": null,
+      "repeat_coverage_equal": true,
+      "repeat_stable": true,
+      "retrieval_seconds": null,
+      "statuses": [
+        "passed",
+        "passed"
+      ],
+      "syntax_parse": true,
+      "tests_first_run": {
+        "containers_failed": 0,
+        "tests_aborted": 0,
+        "tests_failed": 0,
+        "tests_found": 2,
+        "tests_skipped": 0,
+        "tests_started": 2,
+        "tests_successful": 2
+      },
+      "truncated": false
+    },
+    {
+      "actual_calls": 1,
+      "arm": "rag_single",
+      "assembled": false,
+      "body_schema": true,
+      "class_pass": false,
+      "compiled": false,
+      "coverage": null,
+      "coverage_reason": "generation_not_assembled",
+      "failure_category": "body_java_syntax_rejection",
+      "failure_detail": "Body is not balanced Java statements.",
+      "finish_reason": "stop",
+      "focal_invoked_accepted": false,
+      "generation_seconds": 0.666738483,
+      "id": "56354946_19",
+      "input_tokens": 2695,
+      "load_seconds": 2.64569814,
+      "output_tokens": 52,
+      "per_test_outcomes_first_run": [],
+      "per_test_outcomes_repeat_equal": null,
+      "positive_execution_repeat_stable": false,
+      "positive_nonaborted_execution": false,
+      "prompt_processing_seconds": 0.988012587,
+      "repeat_stable": null,
+      "retrieval_seconds": 1.4812659300000064,
+      "syntax_parse": false,
+      "tests_first_run": {},
+      "truncated": false
+    },
+    {
+      "actual_calls": 1,
+      "arm": "rag_multi",
+      "assembled": false,
+      "body_schema": true,
+      "class_pass": false,
+      "compiled": false,
+      "coverage": null,
+      "coverage_reason": "generation_not_assembled",
+      "failure_category": "body_java_syntax_rejection",
+      "failure_detail": "Body is not balanced Java statements.",
+      "finish_reason": "stop",
+      "focal_invoked_accepted": false,
+      "generation_seconds": 0.703989387,
+      "id": "56354946_19",
+      "input_tokens": 5425,
+      "load_seconds": 2.037710458,
+      "output_tokens": 52,
+      "per_test_outcomes_first_run": [],
+      "per_test_outcomes_repeat_equal": null,
+      "positive_execution_repeat_stable": false,
+      "positive_nonaborted_execution": false,
+      "prompt_processing_seconds": 2.04604013,
+      "repeat_stable": null,
+      "retrieval_seconds": 1.6976547339999115,
+      "syntax_parse": false,
+      "tests_first_run": {},
+      "truncated": false
+    },
+    {
+      "actual_calls": 1,
+      "arm": "qwen_base",
+      "assembled": true,
+      "assertion_calls_lexical_diagnostic": 4,
+      "body_schema": true,
+      "class_pass": true,
+      "compiled": true,
+      "coverage": {
+        "class": {
+          "counters": {
+            "branch": {
+              "covered": 6,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 6
+            },
+            "line": {
+              "covered": 8,
+              "missed": 1,
+              "ratio": 0.8888888888888888,
+              "reason": null,
+              "total": 9
+            },
+            "method": {
+              "covered": 2,
+              "missed": 1,
+              "ratio": 0.6666666666666666,
+              "reason": null,
+              "total": 3
+            }
+          },
+          "name": "org.apache.tika.utils.RegexUtils"
+        },
+        "focal_invoked": true,
+        "method": {
+          "counters": {
+            "branch": {
+              "covered": 6,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 6
+            },
+            "line": {
+              "covered": 7,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 7
+            },
+            "method": {
+              "covered": 1,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 1
+            }
+          },
+          "descriptor": "(Ljava/lang/String;)Ljava/util/List;",
+          "name": "extractLinks"
+        },
+        "reason": null,
+        "status": "measured"
+      },
+      "coverage_reason": null,
+      "diagnostic_coverage": null,
+      "failure_category": "passed",
+      "finish_reason": "stop",
+      "focal_invoked_accepted": true,
+      "generation_seconds": 0.92195675,
+      "id": "206427_319",
+      "input_tokens": 1453,
+      "load_seconds": 3.33899397,
+      "output_tokens": 73,
+      "per_test_outcomes_first_run": [
+        {
+          "class": "org.apache.tika.utils.GeneratedBodyTests",
+          "status": "passed",
+          "test": "testCase1()",
+          "type": null
+        },
+        {
+          "class": "org.apache.tika.utils.GeneratedBodyTests",
+          "status": "passed",
+          "test": "testCase2()",
+          "type": null
+        }
+      ],
+      "per_test_outcomes_repeat_equal": true,
+      "positive_execution_repeat_stable": true,
+      "positive_nonaborted_execution": true,
+      "prompt_processing_seconds": 0.518380096,
+      "repeat_coverage_equal": true,
+      "repeat_stable": true,
+      "retrieval_seconds": 6.230000053619733e-07,
+      "statuses": [
+        "passed",
+        "passed"
+      ],
+      "syntax_parse": true,
+      "tests_first_run": {
+        "containers_failed": 0,
+        "tests_aborted": 0,
+        "tests_failed": 0,
+        "tests_found": 2,
+        "tests_skipped": 0,
+        "tests_started": 2,
+        "tests_successful": 2
+      },
+      "truncated": false
+    },
+    {
+      "actual_calls": 1,
+      "arm": "ft_testing",
+      "assembled": true,
+      "assertion_calls_lexical_diagnostic": 2,
+      "body_schema": true,
+      "class_pass": false,
+      "compiled": true,
+      "coverage": null,
+      "coverage_reason": "test_class_not_passed",
+      "diagnostic_coverage": {
+        "class": {
+          "counters": {
+            "branch": {
+              "covered": 4,
+              "missed": 2,
+              "ratio": 0.6666666666666666,
+              "reason": null,
+              "total": 6
+            },
+            "line": {
+              "covered": 7,
+              "missed": 2,
+              "ratio": 0.7777777777777778,
+              "reason": null,
+              "total": 9
+            },
+            "method": {
+              "covered": 2,
+              "missed": 1,
+              "ratio": 0.6666666666666666,
+              "reason": null,
+              "total": 3
+            }
+          },
+          "name": "org.apache.tika.utils.RegexUtils"
+        },
+        "focal_invoked": true,
+        "method": {
+          "counters": {
+            "branch": {
+              "covered": 4,
+              "missed": 2,
+              "ratio": 0.6666666666666666,
+              "reason": null,
+              "total": 6
+            },
+            "line": {
+              "covered": 6,
+              "missed": 1,
+              "ratio": 0.8571428571428571,
+              "reason": null,
+              "total": 7
+            },
+            "method": {
+              "covered": 1,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 1
+            }
+          },
+          "descriptor": "(Ljava/lang/String;)Ljava/util/List;",
+          "name": "extractLinks"
+        },
+        "reason": null,
+        "status": "measured"
+      },
+      "failure_category": "assertion_failure",
+      "finish_reason": "eos",
+      "focal_invoked_accepted": false,
+      "generation_seconds": 5.841817541000069,
+      "id": "206427_319",
+      "input_tokens": 1172,
+      "load_seconds": null,
+      "output_tokens": 62,
+      "per_test_outcomes_first_run": [
+        {
+          "class": "org.apache.tika.utils.GeneratedBodyTests",
+          "status": "failure",
+          "test": "testCase1()",
+          "type": "org.opentest4j.AssertionFailedError"
+        },
+        {
+          "class": "org.apache.tika.utils.GeneratedBodyTests",
+          "status": "passed",
+          "test": "testCase2()",
+          "type": null
+        }
+      ],
+      "per_test_outcomes_repeat_equal": true,
+      "positive_execution_repeat_stable": true,
+      "positive_nonaborted_execution": true,
+      "prompt_processing_seconds": null,
+      "repeat_coverage_equal": true,
+      "repeat_stable": true,
+      "retrieval_seconds": null,
+      "statuses": [
+        "assertion_failure",
+        "assertion_failure"
+      ],
+      "syntax_parse": true,
+      "tests_first_run": {
+        "containers_failed": 0,
+        "tests_aborted": 0,
+        "tests_failed": 1,
+        "tests_found": 2,
+        "tests_skipped": 0,
+        "tests_started": 2,
+        "tests_successful": 1
+      },
+      "truncated": false
+    },
+    {
+      "actual_calls": 1,
+      "arm": "rag_single",
+      "assembled": true,
+      "assertion_calls_lexical_diagnostic": 3,
+      "body_schema": true,
+      "class_pass": true,
+      "compiled": true,
+      "coverage": {
+        "class": {
+          "counters": {
+            "branch": {
+              "covered": 6,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 6
+            },
+            "line": {
+              "covered": 8,
+              "missed": 1,
+              "ratio": 0.8888888888888888,
+              "reason": null,
+              "total": 9
+            },
+            "method": {
+              "covered": 2,
+              "missed": 1,
+              "ratio": 0.6666666666666666,
+              "reason": null,
+              "total": 3
+            }
+          },
+          "name": "org.apache.tika.utils.RegexUtils"
+        },
+        "focal_invoked": true,
+        "method": {
+          "counters": {
+            "branch": {
+              "covered": 6,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 6
+            },
+            "line": {
+              "covered": 7,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 7
+            },
+            "method": {
+              "covered": 1,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 1
+            }
+          },
+          "descriptor": "(Ljava/lang/String;)Ljava/util/List;",
+          "name": "extractLinks"
+        },
+        "reason": null,
+        "status": "measured"
+      },
+      "coverage_reason": null,
+      "diagnostic_coverage": null,
+      "failure_category": "passed",
+      "finish_reason": "stop",
+      "focal_invoked_accepted": true,
+      "generation_seconds": 0.955116113,
+      "id": "206427_319",
+      "input_tokens": 7330,
+      "load_seconds": 2.383692272,
+      "output_tokens": 68,
+      "per_test_outcomes_first_run": [
+        {
+          "class": "org.apache.tika.utils.GeneratedBodyTests",
+          "status": "passed",
+          "test": "testCase1()",
+          "type": null
+        },
+        {
+          "class": "org.apache.tika.utils.GeneratedBodyTests",
+          "status": "passed",
+          "test": "testCase2()",
+          "type": null
+        }
+      ],
+      "per_test_outcomes_repeat_equal": true,
+      "positive_execution_repeat_stable": true,
+      "positive_nonaborted_execution": true,
+      "prompt_processing_seconds": 2.870455538,
+      "repeat_coverage_equal": true,
+      "repeat_stable": true,
+      "retrieval_seconds": 1.7476286849999951,
+      "statuses": [
+        "passed",
+        "passed"
+      ],
+      "syntax_parse": true,
+      "tests_first_run": {
+        "containers_failed": 0,
+        "tests_aborted": 0,
+        "tests_failed": 0,
+        "tests_found": 2,
+        "tests_skipped": 0,
+        "tests_started": 2,
+        "tests_successful": 2
+      },
+      "truncated": false
+    },
+    {
+      "actual_calls": 1,
+      "arm": "rag_multi",
+      "assembled": true,
+      "assertion_calls_lexical_diagnostic": 3,
+      "body_schema": true,
+      "class_pass": true,
+      "compiled": true,
+      "coverage": {
+        "class": {
+          "counters": {
+            "branch": {
+              "covered": 6,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 6
+            },
+            "line": {
+              "covered": 8,
+              "missed": 1,
+              "ratio": 0.8888888888888888,
+              "reason": null,
+              "total": 9
+            },
+            "method": {
+              "covered": 2,
+              "missed": 1,
+              "ratio": 0.6666666666666666,
+              "reason": null,
+              "total": 3
+            }
+          },
+          "name": "org.apache.tika.utils.RegexUtils"
+        },
+        "focal_invoked": true,
+        "method": {
+          "counters": {
+            "branch": {
+              "covered": 6,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 6
+            },
+            "line": {
+              "covered": 7,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 7
+            },
+            "method": {
+              "covered": 1,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 1
+            }
+          },
+          "descriptor": "(Ljava/lang/String;)Ljava/util/List;",
+          "name": "extractLinks"
+        },
+        "reason": null,
+        "status": "measured"
+      },
+      "coverage_reason": null,
+      "diagnostic_coverage": null,
+      "failure_category": "passed",
+      "finish_reason": "stop",
+      "focal_invoked_accepted": true,
+      "generation_seconds": 0.981997767,
+      "id": "206427_319",
+      "input_tokens": 7344,
+      "load_seconds": 2.345672375,
+      "output_tokens": 69,
+      "per_test_outcomes_first_run": [
+        {
+          "class": "org.apache.tika.utils.GeneratedBodyTests",
+          "status": "passed",
+          "test": "testCase1()",
+          "type": null
+        },
+        {
+          "class": "org.apache.tika.utils.GeneratedBodyTests",
+          "status": "passed",
+          "test": "testCase2()",
+          "type": null
+        }
+      ],
+      "per_test_outcomes_repeat_equal": true,
+      "positive_execution_repeat_stable": true,
+      "positive_nonaborted_execution": true,
+      "prompt_processing_seconds": 2.952982875,
+      "repeat_coverage_equal": true,
+      "repeat_stable": true,
+      "retrieval_seconds": 1.5262504969999782,
+      "statuses": [
+        "passed",
+        "passed"
+      ],
+      "syntax_parse": true,
+      "tests_first_run": {
+        "containers_failed": 0,
+        "tests_aborted": 0,
+        "tests_failed": 0,
+        "tests_found": 2,
+        "tests_skipped": 0,
+        "tests_started": 2,
+        "tests_successful": 2
+      },
+      "truncated": false
+    },
+    {
+      "actual_calls": 1,
+      "arm": "qwen_base",
+      "assembled": true,
+      "assertion_calls_lexical_diagnostic": 2,
+      "body_schema": true,
+      "class_pass": true,
+      "compiled": true,
+      "coverage": {
+        "class": {
+          "counters": {
+            "branch": {
+              "covered": 5,
+              "missed": 1,
+              "ratio": 0.8333333333333334,
+              "reason": null,
+              "total": 6
+            },
+            "line": {
+              "covered": 9,
+              "missed": 2,
+              "ratio": 0.8181818181818182,
+              "reason": null,
+              "total": 11
+            },
+            "method": {
+              "covered": 1,
+              "missed": 1,
+              "ratio": 0.5,
+              "reason": null,
+              "total": 2
+            }
+          },
+          "name": "org.apache.tika.io.EndianUtils"
+        },
+        "focal_invoked": true,
+        "method": {
+          "counters": {
+            "branch": {
+              "covered": 5,
+              "missed": 1,
+              "ratio": 0.8333333333333334,
+              "reason": null,
+              "total": 6
+            },
+            "line": {
+              "covered": 9,
+              "missed": 1,
+              "ratio": 0.9,
+              "reason": null,
+              "total": 10
+            },
+            "method": {
+              "covered": 1,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 1
+            }
+          },
+          "descriptor": "(Ljava/io/InputStream;)J",
+          "name": "readUE7"
+        },
+        "reason": null,
+        "status": "measured"
+      },
+      "coverage_reason": null,
+      "diagnostic_coverage": null,
+      "failure_category": "passed",
+      "finish_reason": "stop",
+      "focal_invoked_accepted": true,
+      "generation_seconds": 0.732806625,
+      "id": "206427_280",
+      "input_tokens": 1336,
+      "load_seconds": 4.259007514,
+      "output_tokens": 58,
+      "per_test_outcomes_first_run": [
+        {
+          "class": "org.apache.tika.io.GeneratedBodyTests",
+          "status": "passed",
+          "test": "testCase1()",
+          "type": null
+        },
+        {
+          "class": "org.apache.tika.io.GeneratedBodyTests",
+          "status": "passed",
+          "test": "testCase2()",
+          "type": null
+        }
+      ],
+      "per_test_outcomes_repeat_equal": true,
+      "positive_execution_repeat_stable": true,
+      "positive_nonaborted_execution": true,
+      "prompt_processing_seconds": 0.480931603,
+      "repeat_coverage_equal": true,
+      "repeat_stable": true,
+      "retrieval_seconds": 8.410000305048015e-07,
+      "statuses": [
+        "passed",
+        "passed"
+      ],
+      "syntax_parse": true,
+      "tests_first_run": {
+        "containers_failed": 0,
+        "tests_aborted": 0,
+        "tests_failed": 0,
+        "tests_found": 2,
+        "tests_skipped": 0,
+        "tests_started": 2,
+        "tests_successful": 2
+      },
+      "truncated": false
+    },
+    {
+      "actual_calls": 1,
+      "arm": "ft_testing",
+      "assembled": true,
+      "assertion_calls_lexical_diagnostic": 2,
+      "body_schema": true,
+      "class_pass": true,
+      "compiled": true,
+      "coverage": {
+        "class": {
+          "counters": {
+            "branch": {
+              "covered": 3,
+              "missed": 3,
+              "ratio": 0.5,
+              "reason": null,
+              "total": 6
+            },
+            "line": {
+              "covered": 8,
+              "missed": 3,
+              "ratio": 0.7272727272727273,
+              "reason": null,
+              "total": 11
+            },
+            "method": {
+              "covered": 1,
+              "missed": 1,
+              "ratio": 0.5,
+              "reason": null,
+              "total": 2
+            }
+          },
+          "name": "org.apache.tika.io.EndianUtils"
+        },
+        "focal_invoked": true,
+        "method": {
+          "counters": {
+            "branch": {
+              "covered": 3,
+              "missed": 3,
+              "ratio": 0.5,
+              "reason": null,
+              "total": 6
+            },
+            "line": {
+              "covered": 8,
+              "missed": 2,
+              "ratio": 0.8,
+              "reason": null,
+              "total": 10
+            },
+            "method": {
+              "covered": 1,
+              "missed": 0,
+              "ratio": 1.0,
+              "reason": null,
+              "total": 1
+            }
+          },
+          "descriptor": "(Ljava/io/InputStream;)J",
+          "name": "readUE7"
+        },
+        "reason": null,
+        "status": "measured"
+      },
+      "coverage_reason": null,
+      "diagnostic_coverage": null,
+      "failure_category": "passed",
+      "finish_reason": "eos",
+      "focal_invoked_accepted": true,
+      "generation_seconds": 4.984255855000015,
+      "id": "206427_280",
+      "input_tokens": 1055,
+      "load_seconds": null,
+      "output_tokens": 52,
+      "per_test_outcomes_first_run": [
+        {
+          "class": "org.apache.tika.io.GeneratedBodyTests",
+          "status": "passed",
+          "test": "testCase1()",
+          "type": null
+        },
+        {
+          "class": "org.apache.tika.io.GeneratedBodyTests",
+          "status": "passed",
+          "test": "testCase2()",
+          "type": null
+        }
+      ],
+      "per_test_outcomes_repeat_equal": true,
+      "positive_execution_repeat_stable": true,
+      "positive_nonaborted_execution": true,
+      "prompt_processing_seconds": null,
+      "repeat_coverage_equal": true,
+      "repeat_stable": true,
+      "retrieval_seconds": null,
+      "statuses": [
+        "passed",
+        "passed"
+      ],
+      "syntax_parse": true,
+      "tests_first_run": {
+        "containers_failed": 0,
+        "tests_aborted": 0,
+        "tests_failed": 0,
+        "tests_found": 2,
+        "tests_skipped": 0,
+        "tests_started": 2,
+        "tests_successful": 2
+      },
+      "truncated": false
+    },
+    {
+      "actual_calls": 1,
+      "arm": "rag_single",
+      "assembled": true,
+      "assertion_calls_lexical_diagnostic": 2,
+      "body_schema": true,
+      "class_pass": false,
+      "compiled": false,
+      "coverage": null,
+      "coverage_reason": "missing_execution_data",
+      "diagnostic_coverage": null,
+      "failure_category": "compile_failure",
+      "failure_detail": "/mnt/c/Users/patri/OneDrive/Dokumenty/GitHub/llm-ontology-experiment/artifacts/evaluation/runs/methods2test-eval-five-v1-20261112/cases/206427_280/predictions/rag_single/coverage-0/evaluation/GeneratedBodyTests.java:21: error: incompatible types: possible lossy conversion from int to byte\nInputStream stream = new ByteArrayInputStream(new byte[]{0x80, 0x7F});\n                                                         ^\n/mnt/c/Users/patri/OneDrive/Dokumenty/GitHub/llm-ontology-experiment/artifacts/evaluation/runs/methods2test-eval-five-v1-20261112/cases/206427_280/predictions/rag_single/coverage-0/evaluation/GeneratedBodyTests.java:25: error: incompatible types: possible lossy conversion from int to byte\nInputStream stream = new ByteArrayInputStream(new byte[]{0x80, 0x00});\n                                                         ^\n2 errors\n",
+      "finish_reason": "stop",
+      "focal_invoked_accepted": false,
+      "generation_seconds": 1.184652361,
+      "id": "206427_280",
+      "input_tokens": 2998,
+      "load_seconds": 2.86253155,
+      "output_tokens": 89,
+      "per_test_outcomes_first_run": [],
+      "per_test_outcomes_repeat_equal": null,
+      "positive_execution_repeat_stable": false,
+      "positive_nonaborted_execution": false,
+      "prompt_processing_seconds": 1.123459038,
+      "repeat_coverage_equal": true,
+      "repeat_stable": true,
+      "retrieval_seconds": 1.4442705479999631,
+      "statuses": [
+        "compile_failure",
+        "compile_failure"
+      ],
+      "syntax_parse": true,
+      "tests_first_run": {},
+      "truncated": false
+    },
+    {
+      "actual_calls": 1,
+      "arm": "rag_multi",
+      "assembled": false,
+      "body_schema": true,
+      "class_pass": false,
+      "compiled": false,
+      "coverage": null,
+      "coverage_reason": "generation_not_assembled",
+      "failure_category": "body_java_syntax_rejection",
+      "failure_detail": "Body is not balanced Java statements.",
+      "finish_reason": "stop",
+      "focal_invoked_accepted": false,
+      "generation_seconds": 1.419434054,
+      "id": "206427_280",
+      "input_tokens": 7243,
+      "load_seconds": 2.107460595,
+      "output_tokens": 100,
+      "per_test_outcomes_first_run": [],
+      "per_test_outcomes_repeat_equal": null,
+      "positive_execution_repeat_stable": false,
+      "positive_nonaborted_execution": false,
+      "prompt_processing_seconds": 2.873386555,
+      "repeat_stable": null,
+      "retrieval_seconds": 1.4213556680000465,
+      "syntax_parse": false,
+      "tests_first_run": {},
+      "truncated": false
+    }
+  ],
+  "proof": {
+    "all_twenty_unique_cells_charged_completed": true,
+    "coverage_denominators_match_reference_production": true,
+    "environment_sha256": "0bc33d7ec848d86763db38d1afe3040b6cdb32f60fc7faa44c5d88b7c7673982",
+    "freeze_sha256": "0be88fbaac0029bacdb1c05691c49aff58f498c754cee420f73a25c1a6ecc167",
+    "gold_absent_actual_dispatch_prompts": true,
+    "original_frozen_source_files_unchanged": true,
+    "reference_classes_passing_and_focal_invoked": true,
+    "report_helper_sha256": "67056b479948a7ec7084deb158caf6ebdee3a1cf03724dd3055770e2a34c4e8b"
+  },
+  "protocol": "methods2test_eval_five_v1",
+  "reference_coverage": {
+    "206427_280": {
+      "class": {
+        "counters": {
+          "branch": {
+            "covered": 4,
+            "missed": 2,
+            "ratio": 0.6666666666666666,
+            "reason": null,
+            "total": 6
+          },
+          "line": {
+            "covered": 9,
+            "missed": 2,
+            "ratio": 0.8181818181818182,
+            "reason": null,
+            "total": 11
+          },
+          "method": {
+            "covered": 1,
+            "missed": 1,
+            "ratio": 0.5,
+            "reason": null,
+            "total": 2
+          }
+        },
+        "name": "org.apache.tika.io.EndianUtils"
+      },
+      "focal_invoked": true,
+      "method": {
+        "counters": {
+          "branch": {
+            "covered": 4,
+            "missed": 2,
+            "ratio": 0.6666666666666666,
+            "reason": null,
+            "total": 6
+          },
+          "line": {
+            "covered": 9,
+            "missed": 1,
+            "ratio": 0.9,
+            "reason": null,
+            "total": 10
+          },
+          "method": {
+            "covered": 1,
+            "missed": 0,
+            "ratio": 1.0,
+            "reason": null,
+            "total": 1
+          }
+        },
+        "descriptor": "(Ljava/io/InputStream;)J",
+        "name": "readUE7"
+      },
+      "reason": null,
+      "status": "measured"
+    },
+    "206427_319": {
+      "class": {
+        "counters": {
+          "branch": {
+            "covered": 5,
+            "missed": 1,
+            "ratio": 0.8333333333333334,
+            "reason": null,
+            "total": 6
+          },
+          "line": {
+            "covered": 7,
+            "missed": 2,
+            "ratio": 0.7777777777777778,
+            "reason": null,
+            "total": 9
+          },
+          "method": {
+            "covered": 2,
+            "missed": 1,
+            "ratio": 0.6666666666666666,
+            "reason": null,
+            "total": 3
+          }
+        },
+        "name": "org.apache.tika.utils.RegexUtils"
+      },
+      "focal_invoked": true,
+      "method": {
+        "counters": {
+          "branch": {
+            "covered": 5,
+            "missed": 1,
+            "ratio": 0.8333333333333334,
+            "reason": null,
+            "total": 6
+          },
+          "line": {
+            "covered": 6,
+            "missed": 1,
+            "ratio": 0.8571428571428571,
+            "reason": null,
+            "total": 7
+          },
+          "method": {
+            "covered": 1,
+            "missed": 0,
+            "ratio": 1.0,
+            "reason": null,
+            "total": 1
+          }
+        },
+        "descriptor": "(Ljava/lang/String;)Ljava/util/List;",
+        "name": "extractLinks"
+      },
+      "reason": null,
+      "status": "measured"
+    },
+    "52804523_92": {
+      "class": {
+        "counters": {
+          "branch": {
+            "covered": 3,
+            "missed": 1,
+            "ratio": 0.75,
+            "reason": null,
+            "total": 4
+          },
+          "line": {
+            "covered": 2,
+            "missed": 1,
+            "ratio": 0.6666666666666666,
+            "reason": null,
+            "total": 3
+          },
+          "method": {
+            "covered": 1,
+            "missed": 1,
+            "ratio": 0.5,
+            "reason": null,
+            "total": 2
+          }
+        },
+        "name": "org.codice.alliance.libs.klv.Utilities"
+      },
+      "focal_invoked": true,
+      "method": {
+        "counters": {
+          "branch": {
+            "covered": 3,
+            "missed": 1,
+            "ratio": 0.75,
+            "reason": null,
+            "total": 4
+          },
+          "line": {
+            "covered": 2,
+            "missed": 0,
+            "ratio": 1.0,
+            "reason": null,
+            "total": 2
+          },
+          "method": {
+            "covered": 1,
+            "missed": 0,
+            "ratio": 1.0,
+            "reason": null,
+            "total": 1
+          }
+        },
+        "descriptor": "(Ljava/io/Serializable;)Z",
+        "name": "isNotStringNone"
+      },
+      "reason": null,
+      "status": "measured"
+    },
+    "56354946_19": {
+      "class": {
+        "counters": {
+          "branch": {
+            "covered": 1,
+            "missed": 3,
+            "ratio": 0.25,
+            "reason": null,
+            "total": 4
+          },
+          "line": {
+            "covered": 1,
+            "missed": 1,
+            "ratio": 0.5,
+            "reason": null,
+            "total": 2
+          },
+          "method": {
+            "covered": 1,
+            "missed": 1,
+            "ratio": 0.5,
+            "reason": null,
+            "total": 2
+          }
+        },
+        "name": "net.simno.klingar.util.Strings"
+      },
+      "focal_invoked": true,
+      "method": {
+        "counters": {
+          "branch": {
+            "covered": 1,
+            "missed": 3,
+            "ratio": 0.25,
+            "reason": null,
+            "total": 4
+          },
+          "line": {
+            "covered": 1,
+            "missed": 0,
+            "ratio": 1.0,
+            "reason": null,
+            "total": 1
+          },
+          "method": {
+            "covered": 1,
+            "missed": 0,
+            "ratio": 1.0,
+            "reason": null,
+            "total": 1
+          }
+        },
+        "descriptor": "(Ljava/lang/CharSequence;)Z",
+        "name": "isBlank"
+      },
+      "reason": null,
+      "status": "measured"
+    },
+    "79160472_49": {
+      "class": {
+        "counters": {
+          "branch": {
+            "covered": 1,
+            "missed": 1,
+            "ratio": 0.5,
+            "reason": null,
+            "total": 2
+          },
+          "line": {
+            "covered": 2,
+            "missed": 2,
+            "ratio": 0.5,
+            "reason": null,
+            "total": 4
+          },
+          "method": {
+            "covered": 1,
+            "missed": 1,
+            "ratio": 0.5,
+            "reason": null,
+            "total": 2
+          }
+        },
+        "name": "com.episode6.hackit.mockspresso.util.Preconditions"
+      },
+      "focal_invoked": true,
+      "method": {
+        "counters": {
+          "branch": {
+            "covered": 1,
+            "missed": 1,
+            "ratio": 0.5,
+            "reason": null,
+            "total": 2
+          },
+          "line": {
+            "covered": 2,
+            "missed": 1,
+            "ratio": 0.6666666666666666,
+            "reason": null,
+            "total": 3
+          },
+          "method": {
+            "covered": 1,
+            "missed": 0,
+            "ratio": 1.0,
+            "reason": null,
+            "total": 1
+          }
+        },
+        "descriptor": "(Ljava/lang/Object;Ljava/lang/String;)Ljava/lang/Object;",
+        "name": "assertNotNull"
+      },
+      "reason": null,
+      "status": "measured"
+    }
+  },
+  "repairs": 0,
+  "retries": 0,
+  "role": "pilot_validation",
+  "scientific_final_score": false,
+  "selection_exclusions": [
+    {
+      "id": "12650679_72",
+      "reason": "rich/corpus reference mismatch"
+    }
+  ],
+  "selection_scope": {
+    "bytes": 157291571,
+    "candidates": 652,
+    "projects": {
+      "102583752": 35,
+      "110584604": 5,
+      "111915134": 399,
+      "12485637": 35,
+      "125078412": 3,
+      "12650679": 83,
+      "129250921": 2,
+      "130363261": 9,
+      "1401298": 58,
+      "14528678": 468,
+      "147163148": 22,
+      "148404302": 2,
+      "161032188": 11,
+      "167330257": 177,
+      "17298162": 6,
+      "19110630": 85,
+      "200694582": 15,
+      "205407": 73,
+      "20544243": 11,
+      "206427": 395,
+      "208900041": 3,
+      "22062596": 14,
+      "224855469": 12,
+      "227847226": 2,
+      "23360533": 11,
+      "23418517": 3126,
+      "241224534": 10,
+      "24652385": 23,
+      "2499961": 2,
+      "25808536": 3,
+      "26259891": 31,
+      "2660111": 14,
+      "2686932": 2,
+      "26956767": 2,
+      "2958704": 5,
+      "29740235": 51,
+      "2996995": 2,
+      "317887": 1078,
+      "33185377": 51,
+      "33653374": 15,
+      "338397": 176,
+      "3405574": 10,
+      "35602142": 37,
+      "38578729": 21,
+      "41371218": 2,
+      "43017914": 23,
+      "44382767": 9,
+      "44446117": 13,
+      "46116537": 72,
+      "5144132": 7,
+      "52804523": 287,
+      "532194": 7,
+      "5372003": 32,
+      "56354946": 43,
+      "588395": 1,
+      "68661482": 51,
+      "69880796": 69,
+      "712229": 161,
+      "71704018": 10,
+      "72975288": 5,
+      "73266969": 113,
+      "79160472": 113,
+      "79636769": 21,
+      "81968413": 356,
+      "8313187": 66,
+      "83850760": 7,
+      "8455875": 49,
+      "84721935": 20,
+      "88274548": 1,
+      "88715252": 22,
+      "93025616": 9,
+      "95449551": 62,
+      "97011177": 1
+    },
+    "reasons": {
+      "dependencies_or_effects": 135,
+      "length": 280,
+      "no_assertion": 169,
+      "no_qualified_focal_call": 360,
+      "not_public_static": 6521,
+      "superclass": 110
+    },
+    "records": 8228
+  },
+  "split": "official eval"
+}
