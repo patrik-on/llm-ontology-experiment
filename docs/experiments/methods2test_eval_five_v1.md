@@ -295,3 +295,32 @@ evaluation after validation decisions; no additional calls are authorized here.
   prompt processing/generation/retrieval/token metadata are retained. Identity
   hashing was not separately timed and is explicitly null, not included in model
   generation timing; no cross-backend speed ranking is made.
+
+
+### Independent final QA and reuse boundaries
+
+Independent code/artifact review found no high/medium correctness issue affecting
+these recorded 20 cells. It independently confirmed case/source identities,
+verbatim focal/reference wrappers, the 20-cell ledger, XML/launcher counts and
+all published focal coverage counters. A further 25 non-build fixture tests
+passed in that review; 11 JVM-related tests were explicitly deselected. Parent
+verification additionally recalculated the complete JSON totals and ran seven
+scoped pilot/report tests successfully. No extra model calls were made.
+
+For the complete delivered report (ledger, per-test repeat proof and identity
+checks), use the finalizer rather than only the basic metrics aggregate:
+
+~~~bash
+.venv_wsl/bin/python -m llm_ontology.benchmarks.methods2test_report --run-id methods2test-eval-five-v1-20261112
+~~~
+
+This is a report-only verification/write operation, not generation authorization.
+It requires the recorded frozen dependencies to remain unchanged.
+
+Reuse caution: the current five-case aggregate divides branch case-macro success
+credit by five. All five selected focal methods have positive branch denominators,
+so every published number is unaffected. Before reusing that macro metric with
+branchless methods, exclude N/A cases from the applicable-case denominator; do
+not convert undefined branch coverage to zero or 100 percent. The present pilot
+results and frozen inference/evaluation source bytes were not rewritten for this
+future extension.
