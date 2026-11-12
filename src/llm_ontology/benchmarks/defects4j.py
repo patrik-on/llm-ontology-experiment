@@ -246,7 +246,24 @@ def prepare(config: Defects4JConfig, output: Path) -> dict[str, Any]:
     return prepared
 
 
-def verify_prepared(prepared: dict[str, Any], config: Defects4JConfig) -> None:
+def verify_prepared_binding(prepared: dict[str, Any], prepared_path: Path,
+                            *, expected_manifest_sha256: str | None = None) -> None:
+    manifest_path = prepared_path.parent / "benchmark_manifest.json"
+    if expected_manifest_sha256 is not None and file_sha256(manifest_path) != expected_manifest_sha256:
+        raise ValueError("Benchmark usage manifest changed after preparation.")
+    manifest = DatasetManifest.model_validate(json.loads(manifest_path.read_text(encoding="utf-8")))
+    if (manifest.usage_role != UsageRole.BENCHMARK or manifest.allowed_for_indexing
+            or manifest.source_paths or Path(manifest.source_path).resolve() != prepared_path.resolve()):
+        raise ValueError("Prepared file is not bound to its non-indexable benchmark usage manifest.")
+    if file_sha256(prepared_path) != manifest.content_hash:
+        raise ValueError("Actual prepared.json digest does not match benchmark_manifest.content_hash.")
+    if json.loads(prepared_path.read_text(encoding="utf-8")) != prepared:
+        raise ValueError("Prepared object differs from the manifest-bound file.")
+
+
+def verify_prepared(prepared: dict[str, Any], config: Defects4JConfig, *,
+                    prepared_path: Path, expected_manifest_sha256: str | None = None) -> None:
+    verify_prepared_binding(prepared, prepared_path, expected_manifest_sha256=expected_manifest_sha256)
     if prepared["defects4j_commit"] != D4J_COMMIT or prepared["protocol"] != PROTOCOL:
         raise ValueError("Prepared benchmark identity mismatch.")
     if prepared["case"]["case_id"] != config.case_id:

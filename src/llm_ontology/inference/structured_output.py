@@ -46,6 +46,15 @@ class StructuredGenerationResult(BaseModel):
     attempts: list[StructuredGenerationAttempt]
 
 
+class StructuredOutputError(RuntimeError):
+    """Backward-compatible RuntimeError retaining all received attempts for audit."""
+
+    def __init__(self, message: str, *, attempts: list[StructuredGenerationAttempt]) -> None:
+        super().__init__(message)
+        self.attempts = [attempt.model_copy(deep=True) for attempt in attempts]
+        self.failure_metadata: dict[str, Any] = {}
+
+
 AnswerModel = TypeVar("AnswerModel", RefactoringAnswer, TestingAnswer)
 
 
@@ -68,9 +77,12 @@ class StructuredOutputGenerator:
         attempts: list[StructuredGenerationAttempt] = []
         current_prompt = prompt
         for attempt_number in range(1, self.max_retries + 2):
-            raw, generation_metadata = self._generate_with_schema(
-                current_prompt, model.model_json_schema()
-            )
+            try:
+                raw, generation_metadata = self._generate_with_schema(
+                    current_prompt, model.model_json_schema()
+                )
+            except Exception as exc:
+                raise StructuredOutputError(str(exc), attempts=attempts) from exc
             try:
                 answer = model.model_validate(_parse_json_object(raw))
             except (ValidationError, ValueError, json.JSONDecodeError) as exc:
@@ -84,9 +96,9 @@ class StructuredOutputGenerator:
                     )
                 )
                 if attempt_number > self.max_retries:
-                    raise RuntimeError(
+                    raise StructuredOutputError(
                         f"Structured output remained invalid after {attempt_number} attempts: "
-                        + "; ".join(errors)
+                        + "; ".join(errors), attempts=attempts
                     ) from exc
                 current_prompt = _repair_prompt(raw, errors, model.model_json_schema())
                 continue

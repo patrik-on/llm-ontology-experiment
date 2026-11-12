@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import hashlib
+import json
+from uuid import uuid4
 from pathlib import Path
 from time import perf_counter
 from typing import Any
@@ -11,7 +13,7 @@ from llm_ontology.approaches import ApproachPromptBuilder, RetrievedContext
 from llm_ontology.core.config import read_yaml
 from llm_ontology.core.task_mode import CanonicalTask, resolve_task
 from llm_ontology.evaluation.experiment_log import ExperimentRecord, JsonlExperimentWriter
-from llm_ontology.inference.structured_output import StructuredOutputGenerator
+from llm_ontology.inference.structured_output import StructuredOutputGenerator, StructuredOutputError
 from llm_ontology.providers.contracts import LLMProvider
 from llm_ontology.retrieval.contracts import Retriever
 from llm_ontology.retrieval.models import RetrievalMode, RetrievalRequest
@@ -293,7 +295,26 @@ class RagExperimentRunner:
             config.prompt_artifacts_dir, case.case_id, prepared.text
         )
         digest = _resolve_digest(self.llm_provider)
-        structured = self.structured_generator.generate(prepared.text, config.canonical_task)
+        try:
+            structured = self.structured_generator.generate(prepared.text, config.canonical_task)
+        except StructuredOutputError as exc:
+            failure_path = prompt_path.with_name(f"{prompt_path.stem}-failure-{uuid4().hex}.json")
+            exc.failure_metadata.update({
+                "status": "structured_generation_failure", "error": str(exc),
+                "case_id": case.case_id, "configuration": config.model_dump(mode="json"),
+                "generation_model_digest": digest, "prompt_artifact_path": str(prompt_path),
+                "prompt_hash": prompt_hash, "failure_artifact_path": str(failure_path),
+                "duration_ms": (perf_counter() - started) * 1000,
+                "retrieval_trace": {**retrieval.trace.model_dump(mode="json"),
+                    "prompt_document_ids": selection.selected_document_ids,
+                    "estimated_context_tokens": selection.retrieval_tokens},
+                "structured_output_attempts": [attempt.model_dump(mode="json") for attempt in exc.attempts],
+            })
+            try:
+                failure_path.write_text(json.dumps(exc.failure_metadata, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+            except OSError as persistence_error:
+                exc.failure_metadata["persistence_error"] = str(persistence_error)
+            raise
         runtime_prompt_eval_count = _runtime_prompt_eval_count(structured.attempts)
         runtime_prompt_truncation_suspected = (
             runtime_prompt_eval_count is not None
