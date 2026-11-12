@@ -7,8 +7,18 @@ remain unchanged. No training, index rebuild, full benchmark, paid service or pu
 
 ## Experimental contract
 
-One candidate: **Lang-24**, active in Defects4J **v3.0.1**, framework commit
-**6d54320e0db5a357f9ab38a8e4d2e5aead7e1c09**. Fixed upstream revision
+Select **one configured active Defects4J case per run**. Project ID, positive bug ID,
+focal Java class/method (and optional parameter types for overloads), repository
+markers and configured local HF adapter name are not restricted to Lang-24.
+Selection must exist in active-bugs.csv under the pinned v3.0.1 installation;
+unknown/deprecated bugs, path traversal and missing project metadata fail closed.
+A different project needs explicit focal context and repository markers. There is
+no automatic download/init or batch matrix. Other subject builds/toolchains remain
+unverified until separately reviewed/provisioned; multi-root/nonjar classpaths may
+fail closed. **Only Lang-24 has been runtime-tested on this machine.**
+
+The default is **Lang-24**; framework commit is
+**6d54320e0db5a357f9ab38a8e4d2e5aead7e1c09**. Its fixed upstream revision
 8e2f4ddb9a1ecd7a1bf7d752c2c891d630287036; buggy parent
 7df70a8c6b14452767ac932a14640e32a1dc16da. Defects4J creates synthetic checkout
 commits; both actual checkout commit IDs and the upstream active-bug row are recorded.
@@ -20,7 +30,8 @@ source, reference/control tests and expected outcomes are evaluator-only. No
 benchmark material is inserted into retrieval or training. Preparation writes a
 DatasetManifest with usage_role=benchmark and allowed_for_indexing=false.
 
-- **ft_testing:** existing b2_testing_v2 PEFT specialist over the local HF Qwen2.5
+- **ft_testing:** selected configured local PEFT adapter (default b2_testing_v2
+  specialist) over the local HF Qwen2.5
   Coder 7B base, existing load_eval_model/generate_prediction, instruction-v1
   envelope, raw Java output. Local-only loading, no remote custom code. The new
   benchmark instruction explicitly asks for Jupiter; this does not rewrite the
@@ -79,6 +90,7 @@ The official binary PyPI wheel tree-sitter==0.25.2 was installed only into .venv
 (no dependency/global changes); the same parser then extracted all 47 NumberUtils
 methods successfully. This protocol checks that exact parser version before build.
 The project's broad allowed dependency range is deliberately not rewritten.
+The new protocol explicitly serializes java_parser_version=0.25.2 and seed 42.
 
 The HF base is /mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct. The adapter is
 /home/patrik/experiments/llm-ontology-v2/b2_testing/checkpoints/final_adapter.
@@ -104,7 +116,10 @@ python -m llm_ontology.benchmarks.defects4j_runner audit --run-id my-d4j-run
 python -m llm_ontology.benchmarks.defects4j_runner generate --run-id my-d4j-run --arm ft_testing --diagnostic
 # Inspect predictions/ft_testing/generated.java before executing it.
 python -m llm_ontology.benchmarks.defects4j_runner evaluate --run-id my-d4j-run --arm ft_testing --reviewed-local-execution
-# Repeat generation, review, evaluation for rag_single and optionally rag_multi.
+python -m llm_ontology.benchmarks.defects4j_runner generate --run-id my-d4j-run --arm rag_single --diagnostic
+# Inspect predictions/rag_single/generated.java before executing it.
+python -m llm_ontology.benchmarks.defects4j_runner evaluate --run-id my-d4j-run --arm rag_single --reviewed-local-execution
+# Optional: repeat generation/review/evaluation with --arm rag_multi.
 python -m llm_ontology.benchmarks.defects4j_runner report --run-id my-d4j-run
 ~~~
 
@@ -129,10 +144,16 @@ Failed generation attempts remain in reports rather than being silently omitted.
 The native Defects4J generated-suite path is JUnit4; this adapter **does not use it**
 for generated tests. javac -proc:none compiles one unmodified generated class;
 pinned Platform 1.11.4 selects exactly that class and only junit-jupiter. Fresh XML
-must show a positive non-skipped executed count for the selected class. Empty and
+and the pinned Console summary must show a positive non-aborted started-test
+count for the selected class. Container setup/teardown failures and aborted tests
+are rejected. In particular, synthetic XML testcases created for a BeforeAll
+failure cannot inflate the actual started-test count or become a bug detection. Empty and
 all-disabled classes fail acceptance; stale workspace/report directories are rejected.
 Compilation failure, no effective tests, discovery failure, assertion failure,
-execution error, timeout and infrastructure failure remain distinct.
+container_failure, test_aborted, execution error, timeout and infrastructure failure
+remain distinct. Generic controls run for any configured case. The known real-fault
+Lang24Canary executes only for Lang-24/NumberUtils.isNumber; other cases report
+fault_validation_status=not_validated_for_case, never a false fault-validation claim.
 
 Identical generated source runs independently at least twice against each revision,
 with matched production dependency checksums. Detection requires every fixed run
@@ -152,11 +173,17 @@ leakage-cleared multi-project case set. No credentials or paid APIs are required
 
 ## Leakage and results
 
-The audit reads the actual specialist training JSONL and actual SQLite documents
-and metadata for all three V3 collections through mode=ro, binding collection
+The audit reads actual training, validation and checkpoint-selection JSONL files
+and actual SQLite documents and metadata for all three V3 collections through mode=ro, binding collection
 manifest hashes and a deterministic metadata digest. It checks conservative
 repository/namespace markers and normalized production-method/class containment.
 Missing repository lineage is **unknown**, never treated as proof of disjointness.
+The selected adapter's saved training summary must identify train and validation/
+checkpoint-selection sources included in these lists. A validation file reused for
+checkpoint selection is bound and audited under both roles, not counted as two
+unique sample sets. Historical source identities remain unverified, so the audit
+always keeps scientifically_clean=false; current_inputs_disjoint is a separate
+conservative current-file observation.
 Namespace occurrences can be dependency imports, so candidate marker flags are
 not by themselves confirmed same-repository leakage.
 
@@ -168,3 +195,13 @@ The prior independently verified 188 train/test exact-pair leakages remain a kno
 limitation of combined/refactoring fine-tuning data, not a claim that the separate
 testing specialist has those same 188 leaks. Base-model pretraining contamination
 is unknown. See the [dated execution report](defects4j_jupiter_v1_execution_2026-11-12.md) for exact live attempts/results.
+
+## Post-review hardening and current Java smoke status
+
+The [hardening report](defects4j_jupiter_v1_hardening_2026-11-12.md) records the
+generalized selection tests, new model-free Lang-24 lifecycle controls and expanded
+audit. Historical negative model outputs and their run manifests are unchanged.
+Use a **new run ID** after any config/source change; no further model calls were
+made during hardening. The legacy smoke dependency selector now requires a coherent
+installed Jupiter 5.11.4 / Platform 1.11.4 set and rejects malformed/mixed explicit
+overrides instead of silently assembling incompatible versions.

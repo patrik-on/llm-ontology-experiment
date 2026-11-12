@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import gc
 import hashlib
+import importlib.metadata
 import json
 import os
 import sys
@@ -17,12 +18,13 @@ from typing import Any
 
 from llm_ontology.benchmarks.defects4j import (
     PROTOCOL, Defects4JConfig, audit_leakage, load_config, prepare, require_wsl, verify_prepared,
+    validate_subject_selection,
 )
 from llm_ontology.benchmarks.defects4j_execution import (
     D4J_COMMIT, evaluate_pair, evaluate_revision, file_sha256, write_json,
 )
 from llm_ontology.core.config import read_yaml
-from llm_ontology.evaluation.run_layout import EvaluationRunLayout
+from llm_ontology.evaluation.run_layout import EvaluationRunLayout, require_canonical_evaluation_path
 from llm_ontology.inference.experiment_runner import ExperimentCase, RagExperimentConfig, RagExperimentRunner
 from llm_ontology.evaluation.inference_eval import generate_prediction, load_eval_model, selected_models
 from llm_ontology.inference.prompting.instruction import format_inference_prompt
@@ -40,6 +42,8 @@ def hf_identity(config: Defects4JConfig, *, hashes: bool = True) -> dict[str, An
     models = read_yaml(config.hf_models_config)
     model = selected_models(models, config.hf_model_name)[0]
     root = Path(model["model_path"]).expanduser().resolve()
+    if not model.get("adapter_path") or str(model["adapter_path"]).lower() in {"baseline", "none", "null"}:
+        raise ValueError("The FT arm requires a configured local PEFT adapter, not a baseline model.")
     adapter = Path(model["adapter_path"]).expanduser().resolve()
     if not root.is_dir() or not adapter.is_dir():
         raise FileNotFoundError("Local model or testing specialist adapter is absent.")
@@ -59,7 +63,12 @@ def hf_identity(config: Defects4JConfig, *, hashes: bool = True) -> dict[str, An
                   provenance / "config_snapshot.yaml", provenance / "training_summary.json"])
     training = json.loads((provenance / "training_summary.json").read_text())
     if Path(training["train_file"]) not in config.training_sources:
-        raise ValueError("Leakage inputs do not include the specialist training-summary source.")
+        raise ValueError("Leakage inputs do not include the selected adapter training-summary source.")
+    if not training.get("val_file"):
+        raise ValueError("Selected adapter has no explicit validation/checkpoint-selection source lineage.")
+    validation = Path(training["val_file"])
+    if validation not in config.validation_sources or validation not in config.checkpoint_selection_sources:
+        raise ValueError("Leakage inputs must include the adapter validation/checkpoint-selection source.")
     identities = {}
     for path in files:
         if not path.is_file() or path.stat().st_size <= 0:
@@ -88,6 +97,8 @@ def readiness(config: Defects4JConfig) -> dict[str, Any]:
         "java": lambda: subprocess.check_output([str(config.java_home / "bin/java"), "-version"],
                                                 stderr=subprocess.STDOUT, text=True),
         "junit": lambda: file_sha256(config.junit_jar),
+        "subject_selection": lambda: validate_subject_selection(config),
+        "java_parser": lambda: importlib.metadata.version("tree-sitter"),
     }.items():
         try:
             checks[name] = call()
@@ -96,7 +107,9 @@ def readiness(config: Defects4JConfig) -> dict[str, Any]:
     checks["model_free_assets_ready"] = (
         checks["runtime"] == "WSL" and checks["defects4j"] == D4J_COMMIT
         and isinstance(checks["java"], str) and 'version "11.' in checks["java"]
-        and checks["junit"] == config.junit_sha256)
+        and checks["junit"] == config.junit_sha256
+        and isinstance(checks["subject_selection"], dict) and "error" not in checks["subject_selection"]
+        and checks["java_parser"] == config.java_parser_version)
     checks["scientific_ready"] = False
     checks["limitations"] = ["Readiness is not successful compilation/model loading.",
                               "Leakage audit and evaluator controls required separately.",
@@ -119,9 +132,9 @@ def generate_ft(config: Defects4JConfig, case: ExperimentCase, output: Path) -> 
         prompt_tokens = len(tokenizer(prompt)["input_ids"])
         if prompt_tokens + config.max_new_tokens + 256 > 32768:
             raise ValueError("FT prompt exceeds declared context; do not silently truncate.")
-        torch.manual_seed(42)
+        torch.manual_seed(config.random_seed)
         if torch.cuda.is_available():
-            torch.cuda.manual_seed_all(42)
+            torch.cuda.manual_seed_all(config.random_seed)
         with torch.inference_mode():
             prediction, generation = generate_prediction(
                 model, tokenizer, "testing", case.instruction, case.input_text,
@@ -140,7 +153,8 @@ def generate_ft(config: Defects4JConfig, case: ExperimentCase, output: Path) -> 
                 raise ValueError("Unclosed output fence; truncated generation.")
             source = "\n".join(lines[1:-1]).strip()
         return {"source": source, "prompt_contract": identity["prompt_contract"],
-                "model_identity": identity, "generation": generation, "prompt_tokens": prompt_tokens,
+                "model_identity": identity, "generation": generation, "random_seed": config.random_seed,
+                "prompt_tokens": prompt_tokens,
                 "prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest()}
     finally:
         del model, tokenizer
@@ -209,6 +223,13 @@ def generate_rag(config: Defects4JConfig, case: ExperimentCase, output: Path,
             "experiment_record": record.model_dump(mode="json"), "leakage_audit": audit}
 
 
+def lang24_fault_control_applicable(config: Defects4JConfig) -> bool:
+    return (config.project == "Lang" and config.bug_id == 24
+            and config.focal_class == "org.apache.commons.lang3.math.NumberUtils"
+            and config.focal_method == "isNumber"
+            and config.focal_parameter_types in (None, ["String"]))
+
+
 def canary(config: Defects4JConfig, prepared: dict[str, Any], output: Path) -> dict[str, Any]:
     # Evaluator-only reference: never passed into ExperimentCase/retrieval/training.
     header = "import org.junit.jupiter.api.*; import static org.junit.jupiter.api.Assertions.*; "
@@ -219,6 +240,9 @@ def canary(config: Defects4JConfig, prepared: dict[str, Any], output: Path) -> d
         "disabled": (header + "class Probe { @Disabled @Test void t() {} }", "no_tests"),
         "compile": (header + "class Probe { @Test void t() { missing(); } }", "compile_failure"),
         "runtime": (header + "class Probe { @Test void t() { throw new RuntimeException(); } }", "execution_error"),
+        "before_all_runtime": (header + "class Probe { @BeforeAll static void setup() { throw new IllegalStateException(); } @Test void t() {} }", "container_failure"),
+        "before_all_assertion": (header + "class Probe { @BeforeAll static void setup() { assertTrue(false); } @Test void t() {} }", "container_failure"),
+        "aborted": (header + "class Probe { @Test void t() { Assumptions.assumeTrue(false); } }", "test_aborted"),
         "timeout": (header + "class Probe { @Test void t() { while(true) {} } }", "timeout"),
     }
     results = {}
@@ -227,15 +251,24 @@ def canary(config: Defects4JConfig, prepared: dict[str, Any], output: Path) -> d
             java_home=config.java_home, junit_jar=config.junit_jar,
             junit_sha256=config.junit_sha256, timeout=3 if name == "timeout" else config.timeout_seconds)
         results[name] = {"expected": expected, "actual": result["status"],
+                         "executed": result.get("discovery", {}).get("executed", 0),
                          "ok": result["status"] == expected}
     reference = header + (
         "class Lang24Canary { @Test void decimalCannotHaveLongSuffix() { "
         'assertFalse(org.apache.commons.lang3.math.NumberUtils.isNumber("1.1L")); } }')
+    applicable = lang24_fault_control_applicable(config)
     pair = evaluate_pair(reference, prepared, output=output / "fault-pair",
         java_home=config.java_home, junit_jar=config.junit_jar, junit_sha256=config.junit_sha256,
-        timeout=config.timeout_seconds, repeats=config.repeats)
-    summary = {"controls": results, "real_fault_detected": pair["detected_bug"],
-               "passed": all(x["ok"] for x in results.values()) and pair["detected_bug"],
+        timeout=config.timeout_seconds, repeats=config.repeats) if applicable else None
+    generic_passed = all(x["ok"] for x in results.values())
+    fault_detected = pair["detected_bug"] if pair is not None else None
+    summary = {"controls": results, "generic_controls_passed": generic_passed,
+               "case_id": config.case_id, "case_sha256": prepared["case_sha256"],
+               "real_fault_detected": fault_detected,
+               "fault_validation_status": "validated_lang24" if fault_detected else
+                   "failed_lang24" if applicable else "not_validated_for_case",
+               "known_fault_control_applicable": applicable,
+               "passed": generic_passed and (bool(fault_detected) if applicable else True),
                "model_calls": 0, "diagnostic_only": True}
     write_json(output / "canary.json", summary)
     return summary
@@ -284,9 +317,12 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     config = load_config(args.config)
     layout = EvaluationRunLayout(args.run_id)
+    require_canonical_evaluation_path(layout.root)
     if args.action == "dry-run":
         print(json.dumps({"protocol": PROTOCOL, "case": config.case_id, "arms": ARMS,
                           "config": config.model_dump(mode="json"), "output": str(layout.root),
+                          "subject_selection": validate_subject_selection(config),
+                          "lang24_fault_control_applicable": lang24_fault_control_applicable(config),
                           "model_calls": 0, "writes": 0, "scientific_ready": False}, indent=2))
         return 0
     require_wsl()
@@ -345,8 +381,8 @@ def main(argv: list[str] | None = None) -> int:
             if not args.diagnostic:
                 raise ValueError("Only diagnostic generation is enabled until a sandbox and clean lineage exist.")
             control = json.loads((root / "canary/canary.json").read_text())
-            if not control["passed"]:
-                raise ValueError("Real evaluator controls must pass before model calls.")
+            if not control["passed"] or control.get("case_sha256") != prepared["case_sha256"]:
+                raise ValueError("Fresh evaluator controls for this exact case must pass before model calls.")
             out = root / "predictions" / args.arm
             out.mkdir(parents=True, exist_ok=False)
             case = ExperimentCase.model_validate(prepared["case"])
@@ -355,7 +391,9 @@ def main(argv: list[str] | None = None) -> int:
                 generated = (generate_ft(config, case, out) if args.arm == "ft_testing" else
                              generate_rag(config, case, out, args.arm, audit))
                 generated.update({"case_sha256": prepared["case_sha256"], "arm": args.arm,
-                                  "diagnostic_only": True, "duration_seconds": perf_counter()-started})
+                                  "diagnostic_only": True, "duration_seconds": perf_counter()-started,
+                                  "evaluator_controls": {key: control[key] for key in
+                                      ("case_sha256", "generic_controls_passed", "fault_validation_status")}})
                 (out / "generated.java").write_text(generated["source"], encoding="utf-8")
                 generated["source_sha256"] = file_sha256(out / "generated.java")
                 write_json(out / "generation.json", generated)
