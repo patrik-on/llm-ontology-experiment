@@ -34,6 +34,25 @@ class TestingAnswer(BaseModel):
     retrieved_evidence: list[RetrievedEvidence] = Field(default_factory=list)
 
 
+class TestingBodiesAnswer(BaseModel):
+    """Opt-in testing-bodies-v1; exactly two authored Java statement sequences."""
+
+    model_config = {"extra": "forbid", "strict": True}
+    testCase1: str = Field(min_length=1)
+    testCase2: str = Field(min_length=1)
+
+
+def parse_testing_bodies(raw: str) -> TestingBodiesAnswer:
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError("Duplicate body key: " + key)
+            result[key] = value
+        return result
+    return TestingBodiesAnswer.model_validate(json.loads(raw, object_pairs_hook=unique))
+
+
 class StructuredGenerationAttempt(BaseModel):
     attempt: int
     raw_response: str
@@ -42,7 +61,7 @@ class StructuredGenerationAttempt(BaseModel):
 
 
 class StructuredGenerationResult(BaseModel):
-    answer: RefactoringAnswer | TestingAnswer
+    answer: RefactoringAnswer | TestingAnswer | TestingBodiesAnswer
     attempts: list[StructuredGenerationAttempt]
 
 
@@ -61,19 +80,23 @@ AnswerModel = TypeVar("AnswerModel", RefactoringAnswer, TestingAnswer)
 class StructuredOutputGenerator:
     """Validate task-specific JSON and perform bounded format-only repairs."""
 
-    def __init__(self, provider: LLMProvider, *, max_retries: int = 2) -> None:
+    def __init__(self, provider: LLMProvider, *, max_retries: int = 2,
+                 answer_model: type[TestingBodiesAnswer] | None = None) -> None:
         if max_retries < 0:
             raise ValueError("max_retries must not be negative.")
         self.provider = provider
         self.max_retries = max_retries
+        self.answer_model = answer_model
+        if answer_model is not None and max_retries != 0:
+            raise ValueError("Body-only profiles forbid repairs/retries.")
 
     def generate(
         self,
         prompt: str,
         task: CanonicalTask,
     ) -> StructuredGenerationResult:
-        model: type[RefactoringAnswer | TestingAnswer]
-        model = RefactoringAnswer if task == CanonicalTask.REFACTORING else TestingAnswer
+        model: type[RefactoringAnswer | TestingAnswer | TestingBodiesAnswer]
+        model = self.answer_model or (RefactoringAnswer if task == CanonicalTask.REFACTORING else TestingAnswer)
         attempts: list[StructuredGenerationAttempt] = []
         current_prompt = prompt
         for attempt_number in range(1, self.max_retries + 2):
@@ -84,7 +107,8 @@ class StructuredOutputGenerator:
             except Exception as exc:
                 raise StructuredOutputError(str(exc), attempts=attempts) from exc
             try:
-                answer = model.model_validate(_parse_json_object(raw))
+                answer = (parse_testing_bodies(raw) if self.answer_model is not None
+                          else model.model_validate(_parse_json_object(raw)))
             except (ValidationError, ValueError, json.JSONDecodeError) as exc:
                 errors = _validation_messages(exc)
                 attempts.append(
