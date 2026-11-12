@@ -18,7 +18,7 @@ from llm_ontology.evaluation.run_layout import require_canonical_evaluation_path
 from llm_ontology.inference.experiment_runner import ExperimentCase, RagExperimentRunner
 from llm_ontology.inference.ollama_client import OllamaProvider
 from llm_ontology.inference.prompting.testing_bodies_v1 import (
-    PROFILE, CONTRACT, BodyPromptBuilder, apply_profile, assemble, scaffold, sha,
+    PROFILE, CONTRACT, assemble, scaffold, sha,
 )
 from llm_ontology.inference.structured_output import TestingBodiesAnswer, parse_testing_bodies
 from llm_ontology.retrieval.config import load_rag_config
@@ -27,6 +27,13 @@ from llm_ontology.retrieval.pipeline import VectorRetriever
 PROTOCOL = "defects4j_qwen_shared_bodies_v1"
 ARMS = ("qwen_base", "ft_testing", "rag_single", "rag_multi")
 CONFIG = Path("configs/benchmarks/defects4j_qwen_shared_bodies_v1.json")
+ONE_SHOT_CONFIG = Path("configs/benchmarks/defects4j_qwen_bodies_one_shot_v2.json")
+
+
+def profile_module(name):
+    from llm_ontology.inference.prompting import testing_bodies_v1, testing_bodies_one_shot_v2
+    profiles = {m.PROFILE: m for m in (testing_bodies_v1, testing_bodies_one_shot_v2)}
+    return profiles[name]
 
 
 def read(path):
@@ -48,9 +55,9 @@ def inputs():
     return c, path, prepared
 
 
-def pins(c, path):
-    return {"sources": build_dependency_identity(c), "config": file_sha256(CONFIG),
-            "prepared": file_sha256(path), "profile": PROFILE,
+def pins(c, path, config=CONFIG):
+    return {"sources": build_dependency_identity(c), "config": file_sha256(config),
+            "prepared": file_sha256(path), "profile": read(config)["prompt_profile"],
             "policy": sha(CONTRACT), "java": file_sha256(c.java_home / "bin/java"),
             "javac": file_sha256(c.java_home / "bin/javac"), "junit": file_sha256(c.junit_jar)}
 
@@ -71,16 +78,21 @@ class Ledger:
     """Exclusive per-arm dispatch; failed requests consume the call. No alternate client."""
     def __init__(self, root, arm):
         self.root, self.arm = root, arm
-        if arm not in ARMS:
+        plan = read(root / "job_plan.json") if (root / "job_plan.json").exists() else read(CONFIG)
+        self.maximum = plan["max_actual_generation_calls"]
+        if arm not in plan["arms"]:
             raise ValueError("Unknown arm.")
 
     def charge(self, request):
         if self.arm != "qwen_base" and not usable(self.root):
             raise ValueError("Direct-first functional execution gate not met; STOP.")
+        if self.maximum == 3:
+            from llm_ontology.benchmarks.defects4j_bodies_one_shot import verify_request
+            verify_request(self.root, self.arm, request)
         # The fixed finite arm set plus exclusive dispatch files imposes the atomic cap.
         path = self.root / "predictions" / self.arm / "dispatch.json"
         with path.open("x") as handle:
-            json.dump({"charged_to_budget": True, "maximum": 4, "arm": self.arm,
+            json.dump({"charged_to_budget": True, "maximum": self.maximum, "arm": self.arm,
                        "request": request}, handle, indent=2)
 
     def __call__(self, request, **kwargs):
@@ -112,15 +124,17 @@ class Ledger:
             raise
 
 
-def freeze(root, c, path, prepared):
+def freeze(root, c, path, prepared, config=CONFIG):
     root.mkdir(parents=True, exist_ok=False)
     original = ExperimentCase.model_validate(prepared["case"])
-    case = apply_profile(original)
-    case.metadata["protocol"] = PROTOCOL
+    plan = read(config)
+    profile = profile_module(plan["prompt_profile"])
+    case = profile.apply_profile(original)
+    case.metadata["protocol"] = plan["protocol"]
     write_json(root / "case.json", case.model_dump(mode="json"))
     (root / "scaffold.java").write_text(scaffold(original))
     write_json(root / "schema.json", TestingBodiesAnswer.model_json_schema())
-    write_json(root / "job_plan.json", read(CONFIG))
+    write_json(root / "job_plan.json", plan)
     # Evaluator-only nonvacuous launcher/scaffold controls, never part of case/prompt.
     controls = TestingBodiesAnswer(testCase1="assertEquals(4, 2 + 2);", testCase2='assertThrows(IllegalArgumentException.class, () -> { throw new IllegalArgumentException(); });')
     good = assemble(scaffold(original), controls)
@@ -146,13 +160,17 @@ def freeze(root, c, path, prepared):
         target = root / "source_snapshot" / source.relative_to(Path.cwd())
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(source.read_bytes())
-    write_json(root / "freeze.json", {"pins": pins(c, path), "files": {
-        name: file_sha256(root / name) for name in ("case.json", "scaffold.java", "schema.json", "job_plan.json", "ollama_model.json", "hf_identity.json", "index_identity.json")}})
+    extra = []
+    if plan["prompt_profile"] != PROFILE:
+        from llm_ontology.benchmarks.defects4j_bodies_one_shot import preflight
+        extra = preflight(root, c, case)
+    write_json(root / "freeze.json", {"pins": pins(c, path, config), "files": {
+        name: file_sha256(root / name) for name in ("case.json", "scaffold.java", "schema.json", "job_plan.json", "ollama_model.json", "hf_identity.json", "index_identity.json", *extra)}})
 
 
-def verify(root, c, path):
+def verify(root, c, path, config=CONFIG):
     frozen = read(root / "freeze.json")
-    if frozen["pins"] != pins(c, path):
+    if frozen["pins"] != pins(c, path, config):
         raise ValueError("Frozen source/config/prepared identity changed; no resume generation.")
     for name, digest in frozen["files"].items():
         if file_sha256(root / name) != digest:
@@ -170,6 +188,8 @@ def generate(root, c, arm):
     case = ExperimentCase.model_validate(read(root / "case.json"))
     c = c.model_copy(update={"prompt_profile": None, "max_new_tokens": 4096})
     ledger = Ledger(root, arm)
+    plan = read(root / "job_plan.json")
+    profile = profile_module(plan["prompt_profile"])
     try:
         if arm == "ft_testing":
             # Same functional task/scaffold/API, historical raw instruction envelope only.
@@ -189,8 +209,8 @@ def generate(root, c, arm):
                 llm_provider=provider, token_counter=tokens, total_context_tokens=32768,
                 reserved_output_tokens=4096, runtime_context_tokens=32768,
                 fail_on_prompt_budget_exceeded=True, structured_retries=0,
-                prompt_builder=BodyPromptBuilder(), structured_answer_model=TestingBodiesAnswer)
-            exp = direct.experiment(out, arm, tokens).model_copy(update={"baseline_id": PROTOCOL})
+                prompt_builder=profile.BodyPromptBuilder(), structured_answer_model=TestingBodiesAnswer)
+            exp = direct.experiment(out, arm, tokens).model_copy(update={"baseline_id": plan["protocol"]})
             record = runner.run_case(exp, case)
             generated = {"experiment_record": record.model_dump(mode="json")}
             raw = record.structured_output_attempts[0]["raw_response"]
@@ -215,7 +235,8 @@ def generate(root, c, arm):
 
 def report(root):
     rows = []
-    for arm in ARMS:
+    plan = read(root / "job_plan.json")
+    for arm in plan["arms"]:
         out = root / "predictions" / arm
         evpath = out / "metrics/evaluation.json"
         ev = read(evpath) if evpath.exists() else {}
@@ -232,7 +253,7 @@ def report(root):
             "input_tokens": server.get("prompt_eval_count", ft.get("input_tokens")),
             "truncated": server.get("done_reason") == "length" or ft.get("output_truncated", False),
             "infrastructure_failure": any(r["status"] in {"infrastructure_error", "timeout", "container_failure"} for rs in revisions.values() for r in rs)})
-    result = {"protocol": PROTOCOL, "case": "Lang-26", "max_actual_calls": 4,
+    result = {"protocol": plan["protocol"], "case": "Lang-26", "max_actual_calls": plan["max_actual_generation_calls"],
         "actual_calls": sum(r["actual_calls"] for r in rows), "direct_usable": usable(root), "arms": rows,
         "retries": 0, "repairs": 0, "coverage": "not_measured", "scientific_score": False,
         "limitations": ["One diagnostic same-project case; no improvement or isolated FT ablation claim.",
@@ -247,6 +268,7 @@ def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("action", choices=("freeze", "generate", "evaluate", "report"))
     p.add_argument("--run-id", required=True)
+    p.add_argument("--config", type=Path, default=CONFIG, choices=(CONFIG, ONE_SHOT_CONFIG))
     p.add_argument("--arm", choices=ARMS)
     p.add_argument("--diagnostic", action="store_true")
     p.add_argument("--reviewed-source-sha256")
@@ -256,9 +278,11 @@ def main(argv=None):
     root = require_canonical_evaluation_path(Path("artifacts/evaluation/runs") / args.run_id).resolve()
     c, path, prepared = inputs()
     if args.action == "freeze":
-        freeze(root, c, path, prepared)
+        freeze(root, c, path, prepared, args.config)
         return
-    verify(root, c, path)
+    verify(root, c, path, args.config)
+    if args.arm and args.arm not in read(root / "job_plan.json")["arms"]:
+        raise ValueError("Arm not authorized by frozen protocol.")
     if args.action == "report":
         report(root)
     elif args.action == "generate":

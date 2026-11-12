@@ -1,0 +1,709 @@
+{
+  "actual_calls": 3,
+  "arms": [
+    {
+      "arm": "qwen_base",
+      "baseline_v1": {
+        "actual_calls": 1,
+        "all_repeats_compiled": true,
+        "assembled": true,
+        "failure": null,
+        "finish": "stop",
+        "fixed_pass": true,
+        "format_parsed": true,
+        "genuine_bug_detection": false,
+        "input_tokens": 1848,
+        "nonempty_execution_all_repeats": true,
+        "output_tokens": 62,
+        "output_truncated": false,
+        "revisions": {
+          "buggy": [
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 0,
+              "status": "passed",
+              "tests_aborted": 0,
+              "tests_failed": 0,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 2
+            },
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 0,
+              "status": "passed",
+              "tests_aborted": 0,
+              "tests_failed": 0,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 2
+            }
+          ],
+          "fixed": [
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 0,
+              "status": "passed",
+              "tests_aborted": 0,
+              "tests_failed": 0,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 2
+            },
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 0,
+              "status": "passed",
+              "tests_aborted": 0,
+              "tests_failed": 0,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 2
+            }
+          ]
+        },
+        "source_sha256": "5e6381158e9f334d33f15c5292b0f521b7baf2522196cadc6c47cdff0992e4c3",
+        "token_budget": {
+          "counting_method": "huggingface_tokenizer",
+          "dropped_document_ids": [],
+          "final_prompt_tokens": 1819,
+          "fixed_prompt_tokens": 1819,
+          "max_document_tokens": null,
+          "pair_aware_truncated_document_ids": [],
+          "prompt_budget_exceeded": false,
+          "required_context_tokens": 6171,
+          "reserved_output_tokens": 4096,
+          "retrieval_token_budget": null,
+          "retrieval_tokens": 0,
+          "runtime_context_tokens": 32768,
+          "runtime_prompt_eval_count": 1848,
+          "runtime_prompt_truncation_suspected": false,
+          "safety_margin_tokens": 256,
+          "selected_document_ids": [],
+          "tokenizer_model": "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct",
+          "tokenizer_revision": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+          "total_context_tokens": 32768,
+          "truncated_document_ids": []
+        }
+      },
+      "comparison": {
+        "baseline_prompt_sha256": "d623ace048db61812427171398da65fdda825413e3a9d2272ddf1d7fd6174df1",
+        "frozen_prompt_matched_actual": true,
+        "generation_request_equal_except_prompt": true,
+        "only_demo_prompt_difference": true,
+        "prompt_sha256": "a3440cc82285aba0e5e33209cb29333a6cf3507b655309ab8806eac25994b7f8"
+      },
+      "manual_source_review": {
+        "baseline_v1": {
+          "assertion_presence": {
+            "testCase1": true,
+            "testCase2": true
+          },
+          "exact_four_argument_focal_invocation": false,
+          "focal_method_name_invocation": true,
+          "observation": "Non-null construction and invalid-style exception via two-argument getDateTimeInstance overloads; fixed and buggy both pass."
+        },
+        "one_shot": {
+          "assertion_presence": {
+            "testCase1": true,
+            "testCase2": true
+          },
+          "exact_four_argument_focal_invocation": false,
+          "focal_method_name_invocation": true,
+          "observation": "Two-argument overloads only. Hard-coded FULL/FULL pattern assertion is wrong on fixed code; invalid-style assertThrows passes. Not bug detection."
+        }
+      },
+      "one_shot": {
+        "actual_calls": 1,
+        "all_repeats_compiled": true,
+        "assembled": true,
+        "failure": null,
+        "finish": "stop",
+        "fixed_pass": false,
+        "format_parsed": true,
+        "genuine_bug_detection": false,
+        "input_tokens": 2193,
+        "nonempty_execution_all_repeats": true,
+        "output_tokens": 70,
+        "output_truncated": false,
+        "revisions": {
+          "buggy": [
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 1,
+              "status": "assertion_failure",
+              "tests_aborted": 0,
+              "tests_failed": 1,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 1
+            },
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 1,
+              "status": "assertion_failure",
+              "tests_aborted": 0,
+              "tests_failed": 1,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 1
+            }
+          ],
+          "fixed": [
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 1,
+              "status": "assertion_failure",
+              "tests_aborted": 0,
+              "tests_failed": 1,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 1
+            },
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 1,
+              "status": "assertion_failure",
+              "tests_aborted": 0,
+              "tests_failed": 1,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 1
+            }
+          ]
+        },
+        "source_sha256": "a57dc39953287d79bb1ed4e114e0192b47d9f796be1f7438b5d1f1a43ca597dd",
+        "token_budget": {
+          "counting_method": "huggingface_tokenizer",
+          "dropped_document_ids": [],
+          "final_prompt_tokens": 2164,
+          "fixed_prompt_tokens": 2164,
+          "max_document_tokens": null,
+          "pair_aware_truncated_document_ids": [],
+          "prompt_budget_exceeded": false,
+          "required_context_tokens": 6516,
+          "reserved_output_tokens": 4096,
+          "retrieval_token_budget": null,
+          "retrieval_tokens": 0,
+          "runtime_context_tokens": 32768,
+          "runtime_prompt_eval_count": 2193,
+          "runtime_prompt_truncation_suspected": false,
+          "safety_margin_tokens": 256,
+          "selected_document_ids": [],
+          "tokenizer_model": "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct",
+          "tokenizer_revision": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+          "total_context_tokens": 32768,
+          "truncated_document_ids": []
+        }
+      }
+    },
+    {
+      "arm": "ft_testing",
+      "baseline_v1": {
+        "actual_calls": 1,
+        "all_repeats_compiled": true,
+        "assembled": true,
+        "failure": null,
+        "finish": "eos",
+        "fixed_pass": true,
+        "format_parsed": true,
+        "genuine_bug_detection": false,
+        "input_tokens": 1565,
+        "nonempty_execution_all_repeats": true,
+        "output_tokens": 33,
+        "output_truncated": false,
+        "revisions": {
+          "buggy": [
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 0,
+              "status": "passed",
+              "tests_aborted": 0,
+              "tests_failed": 0,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 2
+            },
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 0,
+              "status": "passed",
+              "tests_aborted": 0,
+              "tests_failed": 0,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 2
+            }
+          ],
+          "fixed": [
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 0,
+              "status": "passed",
+              "tests_aborted": 0,
+              "tests_failed": 0,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 2
+            },
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 0,
+              "status": "passed",
+              "tests_aborted": 0,
+              "tests_failed": 0,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 2
+            }
+          ]
+        },
+        "source_sha256": "61b5b9e05fc167e419dd67c797859ebb7c81183232f253d6de6a88fe716cd6e7",
+        "token_budget": {}
+      },
+      "comparison": {
+        "baseline_prompt_sha256": "34f26fd011acbdb779293f5c87c85fdcb17f69061b2afe2f4078123730d41825",
+        "frozen_prompt_matched_actual": true,
+        "generation_request_equal_except_prompt": true,
+        "only_demo_prompt_difference": true,
+        "prompt_sha256": "98bd418bdbe366414ea82f3efa6b4605463fe5ea42a1cdc1cf79a5415292859f"
+      },
+      "manual_source_review": {
+        "baseline_v1": {
+          "assertion_presence": {
+            "testCase1": false,
+            "testCase2": false
+          },
+          "exact_four_argument_focal_invocation": false,
+          "focal_method_name_invocation": false,
+          "observation": "Both bodies only getInstance(); green execution is nonfocal and assertion-free, not semantic success."
+        },
+        "one_shot": {
+          "assertion_presence": {
+            "testCase1": true,
+            "testCase2": true
+          },
+          "exact_four_argument_focal_invocation": false,
+          "focal_method_name_invocation": false,
+          "observation": "Both bodies use getInstance, not focal getDateTimeInstance. Expected formatted output includes literal square brackets like the unrelated demo and ignores default timezone; null timezone/locale expected exception is unsupported. Both assertions fail on fixed code. Assertion presence increased, but no valid semantic improvement."
+        }
+      },
+      "one_shot": {
+        "actual_calls": 1,
+        "all_repeats_compiled": true,
+        "assembled": true,
+        "failure": null,
+        "finish": "eos",
+        "fixed_pass": false,
+        "format_parsed": true,
+        "genuine_bug_detection": false,
+        "input_tokens": 1910,
+        "nonempty_execution_all_repeats": true,
+        "output_tokens": 93,
+        "output_truncated": false,
+        "revisions": {
+          "buggy": [
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 1,
+              "status": "assertion_failure",
+              "tests_aborted": 0,
+              "tests_failed": 2,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 0
+            },
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 1,
+              "status": "assertion_failure",
+              "tests_aborted": 0,
+              "tests_failed": 2,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 0
+            }
+          ],
+          "fixed": [
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 1,
+              "status": "assertion_failure",
+              "tests_aborted": 0,
+              "tests_failed": 2,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 0
+            },
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 1,
+              "status": "assertion_failure",
+              "tests_aborted": 0,
+              "tests_failed": 2,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 0
+            }
+          ]
+        },
+        "source_sha256": "1bd75fb136952be933a1e85d1f84831d79d71f68b48e4392861594a34c2396b9",
+        "token_budget": {}
+      }
+    },
+    {
+      "arm": "rag_single",
+      "baseline_v1": {
+        "actual_calls": 1,
+        "all_repeats_compiled": true,
+        "assembled": true,
+        "failure": null,
+        "finish": "stop",
+        "fixed_pass": false,
+        "format_parsed": true,
+        "genuine_bug_detection": false,
+        "input_tokens": 4097,
+        "nonempty_execution_all_repeats": true,
+        "output_tokens": 151,
+        "output_truncated": false,
+        "revisions": {
+          "buggy": [
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 1,
+              "status": "assertion_failure",
+              "tests_aborted": 0,
+              "tests_failed": 2,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 0
+            },
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 1,
+              "status": "assertion_failure",
+              "tests_aborted": 0,
+              "tests_failed": 2,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 0
+            }
+          ],
+          "fixed": [
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 1,
+              "status": "assertion_failure",
+              "tests_aborted": 0,
+              "tests_failed": 2,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 0
+            },
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 1,
+              "status": "assertion_failure",
+              "tests_aborted": 0,
+              "tests_failed": 2,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 0
+            }
+          ]
+        },
+        "source_sha256": "23f3fc85acfb86b29510fe0cc0dd65d98098e29d5acc119882852fa8aad4ffa3",
+        "token_budget": {
+          "counting_method": "huggingface_tokenizer",
+          "dropped_document_ids": [],
+          "final_prompt_tokens": 4068,
+          "fixed_prompt_tokens": 1819,
+          "max_document_tokens": null,
+          "pair_aware_truncated_document_ids": [],
+          "prompt_budget_exceeded": false,
+          "required_context_tokens": 8420,
+          "reserved_output_tokens": 4096,
+          "retrieval_token_budget": 12000,
+          "retrieval_tokens": 2075,
+          "runtime_context_tokens": 32768,
+          "runtime_prompt_eval_count": 4097,
+          "runtime_prompt_truncation_suspected": false,
+          "safety_margin_tokens": 256,
+          "selected_document_ids": [
+            "109a11e37a8d02928b3c2a476d8e95d6612407c9306b88988e12c132a6cf8704",
+            "44e92f3d2ecac37e7b8e945c5c26904a218c60fff5cdedd69b19938aca622460"
+          ],
+          "tokenizer_model": "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct",
+          "tokenizer_revision": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+          "total_context_tokens": 32768,
+          "truncated_document_ids": []
+        }
+      },
+      "comparison": {
+        "baseline_prompt_sha256": "9aa1939fb266470e0071f351f8dad4831f018fe9f388e44026d24a05acb39dc3",
+        "frozen_prompt_matched_actual": true,
+        "generation_request_equal_except_prompt": true,
+        "only_demo_prompt_difference": true,
+        "prompt_sha256": "2c0945534df27c7c376fc9a87dd16ba49a52b306032fc6cf4142ccea6444440c"
+      },
+      "manual_source_review": {
+        "baseline_v1": {
+          "assertion_presence": {
+            "testCase1": true,
+            "testCase2": true
+          },
+          "exact_four_argument_focal_invocation": true,
+          "focal_method_name_invocation": true,
+          "observation": "First slot invokes four-argument focal method; second uses getInstance. Both hard-coded formatted-output assertions fail on fixed and buggy."
+        },
+        "one_shot": {
+          "assertion_presence": {
+            "testCase1": true,
+            "testCase2": true
+          },
+          "exact_four_argument_focal_invocation": true,
+          "focal_method_name_invocation": true,
+          "observation": "First slot uses two-argument getDateTimeInstance and a wrong formatted-output assertion; second directly invokes four-argument focal method in assertThrows with an unsupported invalid-locale exception expectation. Both fail on fixed code. Presence of assertions and focal calls is not semantic correctness or bug detection."
+        }
+      },
+      "one_shot": {
+        "actual_calls": 1,
+        "all_repeats_compiled": true,
+        "assembled": true,
+        "failure": null,
+        "finish": "stop",
+        "fixed_pass": false,
+        "format_parsed": true,
+        "genuine_bug_detection": false,
+        "input_tokens": 4442,
+        "nonempty_execution_all_repeats": true,
+        "output_tokens": 105,
+        "output_truncated": false,
+        "revisions": {
+          "buggy": [
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 1,
+              "status": "assertion_failure",
+              "tests_aborted": 0,
+              "tests_failed": 2,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 0
+            },
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 1,
+              "status": "assertion_failure",
+              "tests_aborted": 0,
+              "tests_failed": 2,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 0
+            }
+          ],
+          "fixed": [
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 1,
+              "status": "assertion_failure",
+              "tests_aborted": 0,
+              "tests_failed": 2,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 0
+            },
+            {
+              "compile_returncode": 0,
+              "containers_failed": 0,
+              "execution_returncode": 1,
+              "status": "assertion_failure",
+              "tests_aborted": 0,
+              "tests_failed": 2,
+              "tests_found": 2,
+              "tests_skipped": 0,
+              "tests_started": 2,
+              "tests_successful": 0
+            }
+          ]
+        },
+        "source_sha256": "a0413bcb0ca13135cd8947be12556a2405d37ab67b8a95ff26dc9023f74cc0e0",
+        "token_budget": {
+          "counting_method": "huggingface_tokenizer",
+          "dropped_document_ids": [],
+          "final_prompt_tokens": 4413,
+          "fixed_prompt_tokens": 2164,
+          "max_document_tokens": null,
+          "pair_aware_truncated_document_ids": [],
+          "prompt_budget_exceeded": false,
+          "required_context_tokens": 8765,
+          "reserved_output_tokens": 4096,
+          "retrieval_token_budget": 12000,
+          "retrieval_tokens": 2075,
+          "runtime_context_tokens": 32768,
+          "runtime_prompt_eval_count": 4442,
+          "runtime_prompt_truncation_suspected": false,
+          "safety_margin_tokens": 256,
+          "selected_document_ids": [
+            "109a11e37a8d02928b3c2a476d8e95d6612407c9306b88988e12c132a6cf8704",
+            "44e92f3d2ecac37e7b8e945c5c26904a218c60fff5cdedd69b19938aca622460"
+          ],
+          "tokenizer_model": "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct",
+          "tokenizer_revision": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+          "total_context_tokens": 32768,
+          "truncated_document_ids": []
+        }
+      }
+    }
+  ],
+  "baseline_run_id": "qwen-shared-bodies-v1-20261112",
+  "case": "Lang-26",
+  "comparability": {
+    "complete_pipeline_source_equal": false,
+    "hf_identity_equal": true,
+    "index_identity_equal": true,
+    "input_context_scaffold_body_contract_equal": true,
+    "no_source_reset": true,
+    "ollama_identity_equal": true,
+    "prepared_identity_equal": true,
+    "single_query_equal": true,
+    "single_query_sha256": "f83d706201472f16db36f559ef0d2e8f92ba9b8cabb204f11aa1de181ad0e3ab",
+    "single_selected_ids": [
+      "109a11e37a8d02928b3c2a476d8e95d6612407c9306b88988e12c132a6cf8704",
+      "44e92f3d2ecac37e7b8e945c5c26904a218c60fff5cdedd69b19938aca622460"
+    ],
+    "single_selected_ids_equal": true,
+    "source_identity_changed_files": [
+      "src/llm_ontology/benchmarks/defects4j_bodies_one_shot.py",
+      "src/llm_ontology/benchmarks/defects4j_bodies_pilot.py",
+      "src/llm_ontology/benchmarks/defects4j_runner.py",
+      "src/llm_ontology/inference/prompting/testing_bodies_one_shot_v2.py"
+    ],
+    "source_identity_interpretation": "Operational target production context/prompt/evidence/settings held equal apart from the demo; complete shared Python source identity changed. Not a strict whole-pipeline byte-identical ablation.",
+    "toolchain_equal": true,
+    "toolchain_hashes": {
+      "java": "325f7cdb36d978d6bb44758e885cfae0119fc66ab516e7a0209fa250a4cd1d0b",
+      "javac": "39901c4cb80bc3de884ca80af8f5192e076d3744af71ff2fd6cbbbebe88c306b",
+      "junit": "b016ef6b1c3454d6d7c2c88ce081dabf289699686af6622d6e4e2e1b54b4a2fc"
+    }
+  },
+  "demo_evaluation": {
+    "console_summary": {
+      "containers_failed": 0,
+      "tests_aborted": 0,
+      "tests_failed": 0,
+      "tests_found": 2,
+      "tests_skipped": 0,
+      "tests_started": 2,
+      "tests_successful": 2
+    },
+    "junit_sha256": "b016ef6b1c3454d6d7c2c88ce081dabf289699686af6622d6e4e2e1b54b4a2fc",
+    "source_sha256": "3fbb81d74e3ef40ce5ea2483ca577bf897e4edbce7ca0e1edeeec169c13f57f7",
+    "status": "passed"
+  },
+  "ft_model_loads": 1,
+  "gpt_calls": 0,
+  "identities": {
+    "adapter_sha256": "82259c6862f1fd3b042fd9ca9459abe03f202227317e0e075f8b860e60000c2f",
+    "freeze_sha256": "18a9d91345e9887d383827a8c8e9dfd0b232a09db6d3b2b95f658e5c6c12b7c9",
+    "generation_model_digest": "dae161e27b0e90dd1856c8bb3209201fd6736d8eb66298e75ed87571486f4364",
+    "profile": "testing-bodies-one-shot-v2"
+  },
+  "limitations": [
+    "One previously explored real Lang-26 case, descriptive comparison only; no general improvement guarantee or scientific score.",
+    "HF PEFT NF4/raw instruction vs Ollama Q4/schema-constrained generate remain different contracts; not an isolated FT ablation.",
+    "Assertion presence and observed focal invocations are separate manual source observations, not full semantic proof or a new gate.",
+    "Known retrieval identity/query/reranking defects unchanged; dataset overlap investigation deferred by user.",
+    "Coverage not measured; reviewed local execution is not a security sandbox; token counts retain backend accounting limits."
+  ],
+  "maximum_calls": 3,
+  "model_free_preflight": {
+    "demo_passed": true,
+    "demo_role": "synthetic-only; never indexed or trained",
+    "demo_source_sha256": "3fbb81d74e3ef40ce5ea2483ca577bf897e4edbce7ca0e1edeeec169c13f57f7",
+    "demo_tests_started": 2,
+    "evidence_freeze": "Reconstructed from old trace; dispatch rejects any actual rendered evidence/prompt difference.",
+    "historical_run": "artifacts/evaluation/runs/qwen-shared-bodies-v1-20261112",
+    "prepared_sha256": "acd7adde46224befc5612218362631c917ba97b2ed528926d45d75d1f510030a",
+    "prompt_document_ids": [
+      "109a11e37a8d02928b3c2a476d8e95d6612407c9306b88988e12c132a6cf8704",
+      "44e92f3d2ecac37e7b8e945c5c26904a218c60fff5cdedd69b19938aca622460"
+    ],
+    "prompts": {
+      "ft_testing": {
+        "base_prompt_equal": true,
+        "baseline_sha256": "34f26fd011acbdb779293f5c87c85fdcb17f69061b2afe2f4078123730d41825",
+        "sha256": "98bd418bdbe366414ea82f3efa6b4605463fe5ea42a1cdc1cf79a5415292859f"
+      },
+      "qwen_base": {
+        "base_prompt_equal": true,
+        "baseline_sha256": "d623ace048db61812427171398da65fdda825413e3a9d2272ddf1d7fd6174df1",
+        "sha256": "a3440cc82285aba0e5e33209cb29333a6cf3507b655309ab8806eac25994b7f8"
+      },
+      "rag_single": {
+        "base_prompt_equal": true,
+        "baseline_sha256": "9aa1939fb266470e0071f351f8dad4831f018fe9f388e44026d24a05acb39dc3",
+        "sha256": "2c0945534df27c7c376fc9a87dd16ba49a52b306032fc6cf4142ccea6444440c"
+      }
+    },
+    "query_sha256": "f83d706201472f16db36f559ef0d2e8f92ba9b8cabb204f11aa1de181ad0e3ab",
+    "scaffold_sha256": "7620b00da89833e2299cd5167849f2c181903e554a48aa265970eca9919d931b"
+  },
+  "multirag_calls": 0,
+  "protocol": "defects4j_qwen_bodies_one_shot_v2",
+  "repairs": 0,
+  "retries": 0,
+  "run_id": "qwen-bodies-one-shot-v2-20261112",
+  "validation": {
+    "diff_check": "passed",
+    "full_suite": "not_run",
+    "scoped_pytest_passed": 74,
+    "scoped_ruff": "passed"
+  }
+}

@@ -267,3 +267,24 @@ format rejection, truncation, infrastructure failure, repair or retry.
 See docs/experiments/defects4j_qwen_shared_bodies_v1.md and its compact JSON.
 The four-call budget is exhausted. Known retrieval defects and deferred overlap
 work remain unresolved; no isolated FT ablation or improvement claim is justified.
+
+## Opt-in Qwen body one-shot diagnostic (2026-11-12)
+
+The separately versioned testing-bodies-one-shot-v2 profile appends exactly one
+unrelated synthetic Labels solved body example; v1/full-class defaults and the
+strict body/scaffold/evaluator contract are unchanged. Same frozen prepared
+Lang-26, models/adapter, decoding settings and Single-RAG query/evidence/index.
+The example compiled and passed 2/2 tests before dispatch. Actual prompts minus
+ONLY the demo block equal old per-arm prompts byte-for-byte. Four owned support/
+profile source files changed; full source identity is not an identical ablation.
+
+Exactly three authorized generations completed (pure Qwen, FT, Single-RAG), no
+Multi/GPT/retries/repairs. All parsed/assembled/compiled and started two tests on
+fixed/buggy twice. Pure had one failing assertion per repeat on both revisions;
+FT/Single had two failures per repeat on both. Fixed pass 0/3, detection 0/3.
+FT now has assertions but uses getInstance/format, not focal getDateTimeInstance;
+its new assertions are wrong. This is not semantic improvement or a scientific
+score. 74 affected tests and scoped Ruff passed; no full suite, subject rebuild,
+training, retrieval fixes/index work, overlap investigation or extra calls.
+See docs/experiments/defects4j_qwen_bodies_one_shot_v2.md and compact results JSON.
+The three-call budget is exhausted; no automatic follow-up generation.
