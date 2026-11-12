@@ -298,28 +298,41 @@ def discover_java_toolchain() -> JavaToolchain | None:
 
 
 def discover_junit_classpath() -> tuple[Path, ...]:
+    """Use one installed, pinned JUnit set; never mix independently chosen versions.
+
+    An explicit override must contain exactly these seven existing jar files.
+    Invalid overrides raise rather than silently falling back to a local cache.
+    """
+
+    versions = ("5.11.4", "5.11.4", "1.11.4", "1.11.4", "1.11.4", "1.3.0", "1.1.2")
+    locked_artifacts = tuple(zip(JUNIT_ARTIFACTS, versions, strict=True))
+    expected_names = {
+        f"{artifact}-{version}.jar"
+        for (_, artifact), version in locked_artifacts
+    }
     override = os.environ.get("SMOKE_JUNIT_CLASSPATH")
-    if override:
-        return tuple(Path(item) for item in override.split(os.pathsep) if item)
+    if override is not None:
+        items = override.split(os.pathsep)
+        jars = tuple(Path(item) for item in items)
+        if (
+            any(not item for item in items)
+            or len(jars) != len(locked_artifacts)
+            or {jar.name for jar in jars} != expected_names
+            or not all(jar.is_file() for jar in jars)
+        ):
+            raise ValueError(
+                "SMOKE_JUNIT_CLASSPATH must contain exactly the existing pinned jars: "
+                + ", ".join(sorted(expected_names))
+            )
+        return jars
 
     for repository in _candidate_maven_repositories():
-        jars = []
-        for group, artifact in JUNIT_ARTIFACTS:
-            artifact_root = repository / group / artifact
-            candidates = sorted(
-                (
-                    jar
-                    for jar in artifact_root.glob(f"*/{artifact}-*.jar")
-                    if not jar.name.endswith(("-sources.jar", "-javadoc.jar"))
-                ),
-                reverse=True,
-            )
-            if not candidates:
-                jars = []
-                break
-            jars.append(candidates[0])
-        if jars:
-            return tuple(jars)
+        jars = tuple(
+            repository / group / artifact / version / f"{artifact}-{version}.jar"
+            for (group, artifact), version in locked_artifacts
+        )
+        if all(jar.is_file() for jar in jars):
+            return jars
     return ()
 
 

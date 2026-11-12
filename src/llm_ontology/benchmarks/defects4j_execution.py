@@ -120,6 +120,19 @@ def read_jupiter_reports(reports: Path, selected_class: str) -> dict[str, Any]:
                         for p in sorted(reports.glob("TEST-*.xml"))]}
 
 
+def read_console_summary(text: str) -> dict[str, int]:
+    """Pinned Console summary distinguishes XML-synthesized setup errors from tests started."""
+    fields = ("tests found", "tests skipped", "tests started", "tests aborted",
+              "tests successful", "tests failed", "containers failed")
+    summary = {}
+    for field in fields:
+        values = re.findall(r"\[\s*(\d+)\s+" + re.escape(field) + r"\s*\]", text)
+        if len(values) != 1:
+            raise ValueError(f"Expected one fresh JUnit summary count for {field!r}.")
+        summary[field.replace(" ", "_")] = int(values[0])
+    return summary
+
+
 def evaluate_revision(source: str, revision: dict[str, Any], *, output: Path,
                       java_home: Path, junit_jar: Path, junit_sha256: str,
                       timeout: int = 30) -> dict[str, Any]:
@@ -157,14 +170,38 @@ def evaluate_revision(source: str, revision: dict[str, Any], *, output: Path,
             [str(java_home / "bin/java"), "-Xmx512m", "-jar", str(junit_jar), "execute",
              "--class-path", f"{classes}:{classpath}", "--select-class", qualified,
              "--include-engine", "junit-jupiter", "--fail-if-no-tests",
-             "--reports-dir", str(reports), "--disable-banner"],
+             "--reports-dir", str(reports), "--disable-banner", "--disable-ansi-colors", "--details=summary"],
             output, env, timeout, output / "execution.log")
         result["execution"] = execution
         report = read_jupiter_reports(reports, qualified)
         result["discovery"] = report
+        if execution["status"] == "completed":
+            try:
+                summary = read_console_summary((output / "execution.log").read_text(encoding="utf-8"))
+                result["console_summary"] = summary
+                report["xml_executed"] = report.get("executed", 0)
+                report["executed"] = summary["tests_started"] - summary["tests_aborted"]
+                report["aborted"] = summary["tests_aborted"]
+                if report["status"] == "infrastructure_error":
+                    pass  # A launcher summary cannot repair malformed/missing XML evidence.
+                elif summary["containers_failed"]:
+                    report["status"] = "container_failure"
+                elif summary["tests_aborted"]:
+                    report["status"] = "test_aborted"
+                elif report["executed"] <= 0:
+                    report["status"] = "no_tests"
+                elif report.get("xml_executed", 0) <= 0:
+                    report["status"] = "infrastructure_error"
+                elif summary["tests_failed"] and report["status"] == "passed":
+                    report["status"] = "execution_error"
+            except (ValueError, OSError) as exc:
+                report["status"] = "infrastructure_error"
+                report["summary_error"] = str(exc)
         result["status"] = (execution["status"] if execution["status"] != "completed"
                             else report["status"])
         if result["status"] == "passed" and execution["returncode"] != 0:
+            result["status"] = "infrastructure_error"
+        if result["status"] == "assertion_failure" and execution["returncode"] != 1:
             result["status"] = "infrastructure_error"
         if result["status"] == "no_tests" and execution["returncode"] not in (0, 2):
             result["status"] = "discovery_failure"

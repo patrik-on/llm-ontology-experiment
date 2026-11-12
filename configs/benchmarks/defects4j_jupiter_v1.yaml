@@ -19,6 +19,11 @@ focal_class: org.apache.commons.lang3.math.NumberUtils
 focal_method: isNumber
 training_sources:
   - data/processed/testing/train.jsonl
+validation_sources:
+  - data/processed/testing/val.jsonl
+checkpoint_selection_sources:
+  - data/processed/testing/val.jsonl
+java_parser_version: "0.25.2"
 retrieval_config: configs/retrieval/ollama_bge_m3_v3.yaml
 hf_models_config: configs/evaluation/eval_models_v2_only.yaml
 hf_model_name: b2_testing_v2

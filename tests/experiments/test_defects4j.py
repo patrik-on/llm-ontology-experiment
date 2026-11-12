@@ -114,12 +114,18 @@ def test_audit_reads_actual_index_and_unknown_lineage_is_not_clean(tmp_path):
     for name in ("mixed", "testing_db", "refactoring_db"):
         (manifests / f"{name}.json").write_text("{}")
     config = Defects4JConfig(defects4j_home=tmp_path, java_home=tmp_path, work_root=tmp_path,
-                           junit_jar=tmp_path, junit_sha256="0"*64, training_sources=[train])
+                           junit_jar=tmp_path, junit_sha256="0"*64, training_sources=[train],
+                           validation_sources=[train], checkpoint_selection_sources=[train])
     result = audit_leakage(config, {"fixed_source_normalized": "class X {}",
                                    "focal_method": "unrelated", "case_sha256": "a"}, index)
     assert result["index_documents"] == 1
     assert result["overlaps"][0]["record"] == "mixed:doc"
     assert result["unknown_training_repository_rows"] == 1
+    assert result["unknown_validation_repository_rows"] == 1
+    assert result["unknown_checkpoint_selection_repository_rows"] == 1
+    assert result["validation_inputs"] == result["checkpoint_selection_inputs"]
+    assert result["source_role_counts"] == {"training": 1, "validation": 1, "checkpoint_selection": 1, "retrieval": 1}
+    assert result["historical_data_identity_verified"] is False
     assert not result["scientifically_clean"]
     assert result["diagnostic_only"]
 
