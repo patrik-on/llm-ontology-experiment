@@ -232,3 +232,14 @@ not a blocked/incomplete pilot. Requested 2-4 tests is adherence only, not a gat
 See docs/experiments/defects4j_three_case_full_class_v2.md and its small aggregate
 JSON for evidence and limitations. Historical defaults/runs remain unchanged;
 no automatic extra calls, retraining, index work or full benchmark is authorized.
+
+## Opt-in GPT-OSS chat compatibility case (2026-11-12)
+
+OllamaProvider now supports explicit transport="chat" while the default remains
+"generate"; Qwen and global configs are unchanged. The separately authorized
+one-call Lang-24 compatibility run returned valid full-class JSON, compiled three
+Jupiter tests, passed fixed code twice and produced a genuine buggy assertion
+failure twice, without repairs. Its one-call budget is exhausted. See
+ docs/experiments/defects4j_gptoss_chat_single_full_class_v2.md for the request,
+ledger, token-accounting caveat and limits; this is not general capability proof
+or a new scientific benchmark score. No extra generations are authorized.
