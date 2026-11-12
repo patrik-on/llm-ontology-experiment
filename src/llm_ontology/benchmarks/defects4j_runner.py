@@ -136,12 +136,17 @@ def readiness(config: Defects4JConfig) -> dict[str, Any]:
     return checks
 
 
-def generate_ft(config: Defects4JConfig, case: ExperimentCase, output: Path) -> dict[str, Any]:
+def generate_ft(config: Defects4JConfig, case: ExperimentCase, output: Path, *,
+                loaded_model: tuple[Any, Any] | None = None,
+                model_identity: dict[str, Any] | None = None) -> dict[str, Any]:
     import torch
     # Local paths only, no tokenizer/model/adapter downloads or remote custom code.
     os.environ["HF_HUB_OFFLINE"] = "1"
     os.environ["TRANSFORMERS_OFFLINE"] = "1"
-    identity = hf_identity(config)
+    if config.prompt_profile:
+        from llm_ontology.inference.prompting.testing_full_class_v2 import apply_profile
+        case = apply_profile(case, envelope="ft")
+    identity = model_identity or hf_identity(config)
     write_json(output / "model_identity.json", identity)
     inference = {**identity["inference"], "local_files_only": True, "trust_remote_code": False}
     prompt = format_inference_prompt(case.instruction, case.input_text)
@@ -151,7 +156,7 @@ def generate_ft(config: Defects4JConfig, case: ExperimentCase, output: Path) -> 
         "instruction_sha256": hashlib.sha256(case.instruction.encode()).hexdigest(),
         "template": "instruction-v1", "case_metadata": case.metadata,
         "random_seed": config.random_seed, "max_new_tokens": config.max_new_tokens})
-    model, tokenizer = load_eval_model(identity["model"], inference)
+    model, tokenizer = loaded_model or load_eval_model(identity["model"], inference)
     try:
         prompt_tokens = len(tokenizer(prompt)["input_ids"])
         if prompt_tokens + config.max_new_tokens + 256 > 32768:
@@ -183,14 +188,18 @@ def generate_ft(config: Defects4JConfig, case: ExperimentCase, output: Path) -> 
                 "prompt_tokens": prompt_tokens,
                 "prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest()}
     finally:
-        del model, tokenizer
-        gc.collect()
-        if torch.cuda.is_available():
-            torch.cuda.empty_cache()
+        if loaded_model is None:
+            del model, tokenizer
+            gc.collect()
+            if torch.cuda.is_available():
+                torch.cuda.empty_cache()
 
 
 def generate_rag(config: Defects4JConfig, case: ExperimentCase, output: Path,
                  arm: str, audit: dict[str, Any]) -> dict[str, Any]:
+    if config.prompt_profile:
+        from llm_ontology.inference.prompting.testing_full_class_v2 import apply_profile
+        case = apply_profile(case, envelope="rag")
     rag = load_rag_config(config.retrieval_config)
     if (rag.runtime.environment != "wsl" or rag.llm.base_url != "http://localhost:11434"
             or rag.embeddings.base_url != "http://localhost:11434"):

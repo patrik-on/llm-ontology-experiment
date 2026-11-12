@@ -218,3 +218,17 @@ and random seed are part of the config and must also be preserved.
    outputs.
 4. Add `literature_db` only after an approved, versioned retrieval manifest.
 5. Keep ontology, GraphRAG, routers and rerankers as separate future work.
+
+## Completed opt-in real testing pilot (2026-11-12)
+
+The separately versioned defects4j_three_case_full_class_v2 config composes the
+existing Defects4J preparation, local FT generator, RagExperimentRunner and shared
+Jupiter evaluator with testing-full-class-v2 / 4096 tokens. Lang-24, Lang-26 and
+Lang-27 fixed/buggy pairs now have model-free build/launcher health evidence.
+Exactly nine generation calls were completed (three per arm), no retries/repairs:
+FT emitted three invalid snippets (two truncated); all six schema-valid RAG Java
+classes failed compilation. Generated class pass and real-bug detection are 0/9,
+not a blocked/incomplete pilot. Requested 2-4 tests is adherence only, not a gate.
+See docs/experiments/defects4j_three_case_full_class_v2.md and its small aggregate
+JSON for evidence and limitations. Historical defaults/runs remain unchanged;
+no automatic extra calls, retraining, index work or full benchmark is authorized.

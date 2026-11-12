@@ -61,6 +61,7 @@ class Defects4JConfig(BaseModel):
     timeout_seconds: int = Field(default=30, ge=1, le=120)
     repeats: int = Field(default=2, ge=2, le=3)
     random_seed: Literal[42] = 42
+    prompt_profile: Literal["testing-full-class-v2"] | None = None
 
     @model_validator(mode="after")
     def require_project_specific_context(self) -> Defects4JConfig:
@@ -219,9 +220,15 @@ def prepare(config: Defects4JConfig, output: Path) -> dict[str, Any]:
     if not parsed.parse_success or len(candidates) != 1:
         raise ValueError("Focal method must resolve uniquely with the existing JavaParser.")
     method = candidates[0]
-    case = {"case_id": config.case_id, "instruction": INSTRUCTION, "input_text": method.content,
+    context = method.content
+    if config.prompt_profile:
+        public_api = [m.method_signature for m in parsed.methods
+                      if m.class_name == method.class_name and m.method_signature.startswith("public ")]
+        context += chr(10) + "Visible public API signatures (production only):" + chr(10) + chr(10).join(public_api)
+    case = {"case_id": config.case_id, "instruction": INSTRUCTION, "input_text": context,
             "structured_identity": {"class_name": config.focal_class, "method_name": config.focal_method},
-            "metadata": {"protocol": PROTOCOL, "source_role": "fixed-production-only"}}
+            "metadata": {"protocol": PROTOCOL, "source_role": "fixed-production-only",
+                         **({"prompt_profile": config.prompt_profile} if config.prompt_profile else {})}}
     method_source = "\n".join(fixed_source.splitlines()[method.start_line-1:method.end_line])
     prepared = {"protocol": PROTOCOL, "subject": subject, "case": case, "focal_method": method_source,
                 "fixed_source_normalized": normalize_java_for_hash(fixed_source),

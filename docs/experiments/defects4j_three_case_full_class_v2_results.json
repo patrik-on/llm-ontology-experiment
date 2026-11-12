@@ -1,0 +1,1122 @@
+{
+  "arms": {
+    "ft_testing": {
+      "attempted": 3,
+      "compile_invalid": 3,
+      "compiled": 0,
+      "fixed_class_pass": 0,
+      "generated": 3,
+      "genuine_bug_detection": 0,
+      "infrastructure_failure": 0,
+      "javac_attempts": 0,
+      "javac_failure": 0,
+      "jupiter_launches": 0,
+      "per_revision_test_counts_by_repeat": {
+        "buggy": [
+          {
+            "containers_failed": 0,
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "containers_failed": 0,
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ],
+        "fixed": [
+          {
+            "containers_failed": 0,
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "containers_failed": 0,
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ]
+      },
+      "schema_failure": 0,
+      "source_invalid": 3,
+      "truncated": 2
+    },
+    "rag_multi": {
+      "attempted": 3,
+      "compile_invalid": 3,
+      "compiled": 0,
+      "fixed_class_pass": 0,
+      "generated": 3,
+      "genuine_bug_detection": 0,
+      "infrastructure_failure": 0,
+      "javac_attempts": 12,
+      "javac_failure": 3,
+      "jupiter_launches": 0,
+      "per_revision_test_counts_by_repeat": {
+        "buggy": [
+          {
+            "containers_failed": 0,
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "containers_failed": 0,
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ],
+        "fixed": [
+          {
+            "containers_failed": 0,
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "containers_failed": 0,
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ]
+      },
+      "schema_failure": 0,
+      "source_invalid": 0,
+      "truncated": 0
+    },
+    "rag_single": {
+      "attempted": 3,
+      "compile_invalid": 3,
+      "compiled": 0,
+      "fixed_class_pass": 0,
+      "generated": 3,
+      "genuine_bug_detection": 0,
+      "infrastructure_failure": 0,
+      "javac_attempts": 12,
+      "javac_failure": 3,
+      "jupiter_launches": 0,
+      "per_revision_test_counts_by_repeat": {
+        "buggy": [
+          {
+            "containers_failed": 0,
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "containers_failed": 0,
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ],
+        "fixed": [
+          {
+            "containers_failed": 0,
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "containers_failed": 0,
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ]
+      },
+      "schema_failure": 0,
+      "source_invalid": 0,
+      "truncated": 0
+    }
+  },
+  "artifact_root": "/mnt/c/Users/patri/OneDrive/Dokumenty/GitHub/llm-ontology-experiment/artifacts/evaluation/runs/real-d4j-fullclass-v2-20261112",
+  "backend_identities": {
+    "ft": {
+      "adapter_files": {
+        "/home/patrik/experiments/llm-ontology-v2/b2_testing/checkpoints/final_adapter/adapter_model.safetensors": {
+          "bytes": 40400200,
+          "sha256": "82259c6862f1fd3b042fd9ca9459abe03f202227317e0e075f8b860e60000c2f"
+        }
+      },
+      "model": {
+        "adapter_path": "~/experiments/llm-ontology-v2/b2_testing/checkpoints/final_adapter",
+        "model_path": "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct",
+        "name": "b2_testing_v2",
+        "type": "lora"
+      },
+      "model_identity_artifact": "cases/Lang-24/predictions/ft_testing/model_identity.json",
+      "quantization": {
+        "bnb_4bit_compute_dtype": "float16",
+        "bnb_4bit_quant_type": "nf4",
+        "bnb_4bit_use_double_quant": true,
+        "device_map": "auto",
+        "load_in_4bit": true,
+        "offload_dir": "~/experiments/llm-ontology/eval_offload",
+        "torch_dtype": "float16"
+      }
+    },
+    "rag": {
+      "details": {
+        "families": [
+          "qwen2"
+        ],
+        "family": "qwen2",
+        "format": "gguf",
+        "parameter_size": "7.6B",
+        "parent_model": "",
+        "quantization_level": "Q4_K_M"
+      },
+      "embedding_digest": "7907646426070047a77226ac3e684fbbe8410524f7b4a74d02837e43f2146bab",
+      "generation_digest": "dae161e27b0e90dd1856c8bb3209201fd6736d8eb66298e75ed87571486f4364",
+      "output_envelope": "canonical TestingAnswer JSON"
+    }
+  },
+  "case_ids": [
+    "Lang-24",
+    "Lang-26",
+    "Lang-27"
+  ],
+  "case_toolchain_identities": {
+    "Lang-24": {
+      "allowed_for_indexing": false,
+      "benchmark_manifest_sha256": "f0b491f41dc5b4e8c7fd071de607dabf9983020224d38167e135f48b09324bc1",
+      "buggy_checkout_revision": "f92e27f8c82ff0a213061b1ee181306403e901bd",
+      "buggy_source_sha256": "7e89f2ef6e11667c298d6d2ed6ed0288098241b53d5dc66ae1477b029fbd84e6",
+      "fixed_checkout_revision": "20546cb8d9a7f14d0b774a116bf306cf53d3d5f8",
+      "fixed_source_sha256": "a3cd8c25a53a655a644c11accf68724e583d5e1388c1f0be40e67e5e130bca6e",
+      "java_sha256": "325f7cdb36d978d6bb44758e885cfae0119fc66ab516e7a0209fa250a4cd1d0b",
+      "javac_sha256": "39901c4cb80bc3de884ca80af8f5192e076d3744af71ff2fd6cbbbebe88c306b",
+      "junit_sha256": "b016ef6b1c3454d6d7c2c88ce081dabf289699686af6622d6e4e2e1b54b4a2fc",
+      "prepared_sha256": "755175e987f11d6ef8cdcb1bfa720953f09a3d4109ad90c7de50e53078bc469d",
+      "upstream_buggy_fixed_revisions": [
+        "7df70a8c6b14452767ac932a14640e32a1dc16da",
+        "8e2f4ddb9a1ecd7a1bf7d752c2c891d630287036"
+      ],
+      "usage_role": "benchmark"
+    },
+    "Lang-26": {
+      "allowed_for_indexing": false,
+      "benchmark_manifest_sha256": "4cb7fd72a53d6af90877f7939c8c58c9839712563567d5caa3ebc8c5979758be",
+      "buggy_checkout_revision": "8291a1e360587b179ed4a74e2579925bec4c0144",
+      "buggy_source_sha256": "e1125b7735c12260eccbfbb16b18723dabe01afe900a1ad2ed3729ea9fdc0642",
+      "fixed_checkout_revision": "d7128da26f9de7c04b27e6078cd3a1edc5f2d32a",
+      "fixed_source_sha256": "825d055232cd3f94b823a6e279099830e6ce7888070615a2150ac4deec472d03",
+      "java_sha256": "325f7cdb36d978d6bb44758e885cfae0119fc66ab516e7a0209fa250a4cd1d0b",
+      "javac_sha256": "39901c4cb80bc3de884ca80af8f5192e076d3744af71ff2fd6cbbbebe88c306b",
+      "junit_sha256": "b016ef6b1c3454d6d7c2c88ce081dabf289699686af6622d6e4e2e1b54b4a2fc",
+      "prepared_sha256": "acd7adde46224befc5612218362631c917ba97b2ed528926d45d75d1f510030a",
+      "upstream_buggy_fixed_revisions": [
+        "f7f19a3d2f98f48924d38fec2308dc3db83445d8",
+        "14a0cc2a9baf84a97348263975082ef3857daf97"
+      ],
+      "usage_role": "benchmark"
+    },
+    "Lang-27": {
+      "allowed_for_indexing": false,
+      "benchmark_manifest_sha256": "b8febf2e0610b6ba9526b3a043442426432ee7a49362b3abeb547f898cd5deb7",
+      "buggy_checkout_revision": "6bbcc7e9215da7e81a9f3db34978409f762d4223",
+      "buggy_source_sha256": "3faffe02bb7a26fb0a9ed94fb1d20b7f5d095c76ad36035cbde3edd5cd56510c",
+      "fixed_checkout_revision": "74e9f5020a932fc1d9c6bdd2b910ab77276f3ea3",
+      "fixed_source_sha256": "28aeedc76f1e1c552e0289d74d28eb1286ca0f0df5590dc95bfcbb3b366aa64f",
+      "java_sha256": "325f7cdb36d978d6bb44758e885cfae0119fc66ab516e7a0209fa250a4cd1d0b",
+      "javac_sha256": "39901c4cb80bc3de884ca80af8f5192e076d3744af71ff2fd6cbbbebe88c306b",
+      "junit_sha256": "b016ef6b1c3454d6d7c2c88ce081dabf289699686af6622d6e4e2e1b54b4a2fc",
+      "prepared_sha256": "3f19946998e899d48e8a08cea586e218348c9a15b60fcf1545073fc724834785",
+      "upstream_buggy_fixed_revisions": [
+        "bbcba273ad4322e76a90bcb867cbea108134717c",
+        "50c1fdecb4ed33ec1bb0d449f294c299d5369701"
+      ],
+      "usage_role": "benchmark"
+    }
+  },
+  "cells": [
+    {
+      "arm": "ft_testing",
+      "artifacts": "cases/Lang-24/predictions/ft_testing",
+      "attempted": 1,
+      "buggy_class_status": "invalid_source",
+      "case": "Lang-24",
+      "compile_invalid": true,
+      "compiled": false,
+      "executed_test_count_within_request": false,
+      "fixed_class_pass": false,
+      "fixed_class_status": "invalid_source",
+      "generated": 1,
+      "generation": {
+        "finish_reason": "length",
+        "input_tokens": 2298,
+        "output_tokens": 4096,
+        "truncated": true
+      },
+      "generation_failure": null,
+      "genuine_bug_detection": false,
+      "infrastructure_failure": false,
+      "javac_attempts": 0,
+      "javac_failure": false,
+      "jupiter_launches": 0,
+      "planned": 1,
+      "prompt_sha256": "643eddd990429679e804da8f038a59071f8b5a3b79bf242dfa9000b3c886fecc",
+      "raw_sha256": "56a39f520c6814aea05aa7b6acd1f79356accb26a08de7fd126d6ccf09ed72c7",
+      "revisions": {
+        "buggy": [
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "invalid_source",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "invalid_source",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ],
+        "fixed": [
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "invalid_source",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "invalid_source",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ]
+      },
+      "schema_failure": false,
+      "schema_valid": null,
+      "source_annotation_note": "Prompt-adherence syntax proxy, not valid methods or executed tests; never a functional gate.",
+      "source_annotations_within_requested_2_4": false,
+      "source_invalid": true,
+      "source_sha256": "56a39f520c6814aea05aa7b6acd1f79356accb26a08de7fd126d6ccf09ed72c7",
+      "source_test_annotations": 1,
+      "truncated": true,
+      "unstable": false
+    },
+    {
+      "arm": "rag_single",
+      "artifacts": "cases/Lang-24/predictions/rag_single",
+      "attempted": 1,
+      "buggy_class_status": "compile_failure",
+      "case": "Lang-24",
+      "compile_invalid": true,
+      "compiled": false,
+      "executed_test_count_within_request": false,
+      "fixed_class_pass": false,
+      "fixed_class_status": "compile_failure",
+      "generated": 1,
+      "generation": {
+        "finish_reason": "stop",
+        "input_tokens": 5764,
+        "output_tokens": 528,
+        "prompt_budget": {},
+        "truncated": false
+      },
+      "generation_failure": null,
+      "genuine_bug_detection": false,
+      "index_manifests_sha256": "f54c51c9df391420749b617a844b6897b1b4029de936e2f41a68caf460664b77",
+      "infrastructure_failure": false,
+      "javac_attempts": 4,
+      "javac_failure": true,
+      "jupiter_launches": 0,
+      "normalized_prompt_sha256": "0723ccf61821e2fa7eab866caf59ff02948ac14f893db29e9158286c869b4372",
+      "planned": 1,
+      "prompt_sha256": "afb00ad6d145158e51c3fdbec0d3b414d02169e2ca29a76ae2f573a423a2e9f3",
+      "raw_sha256": "46204bb6b37b90a0e46898d877cd37a5b81b6129250affb8ed73b0c2624ef4d6",
+      "revisions": {
+        "buggy": [
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ],
+        "fixed": [
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ]
+      },
+      "schema_failure": false,
+      "schema_sha256": "5a163c96ae0c5062f4564298d90b198f2430c0611ca9c9f3631bbc9e260cff2c",
+      "schema_valid": true,
+      "source_annotation_note": "Prompt-adherence syntax proxy, not valid methods or executed tests; never a functional gate.",
+      "source_annotations_within_requested_2_4": true,
+      "source_invalid": false,
+      "source_sha256": "3471294f74fac5e406cc469406391aabf4c231752a4d474d7995baa83631652f",
+      "source_test_annotations": 3,
+      "truncated": false,
+      "unstable": false
+    },
+    {
+      "arm": "rag_multi",
+      "artifacts": "cases/Lang-24/predictions/rag_multi",
+      "attempted": 1,
+      "buggy_class_status": "compile_failure",
+      "case": "Lang-24",
+      "compile_invalid": true,
+      "compiled": false,
+      "executed_test_count_within_request": false,
+      "fixed_class_pass": false,
+      "fixed_class_status": "compile_failure",
+      "generated": 1,
+      "generation": {
+        "finish_reason": "stop",
+        "input_tokens": 8243,
+        "output_tokens": 585,
+        "prompt_budget": {},
+        "truncated": false
+      },
+      "generation_failure": null,
+      "genuine_bug_detection": false,
+      "index_manifests_sha256": "f54c51c9df391420749b617a844b6897b1b4029de936e2f41a68caf460664b77",
+      "infrastructure_failure": false,
+      "javac_attempts": 4,
+      "javac_failure": true,
+      "jupiter_launches": 0,
+      "normalized_prompt_sha256": "0723ccf61821e2fa7eab866caf59ff02948ac14f893db29e9158286c869b4372",
+      "planned": 1,
+      "prompt_sha256": "3b0f13568da4436ce65ea08e45cd628c8fcbc5659495e19c15f9e3adc603970a",
+      "raw_sha256": "7c431758811a6514b2b050a1b18fb030cf7a223c6f67f92a8e93dbacabb106e5",
+      "revisions": {
+        "buggy": [
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ],
+        "fixed": [
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ]
+      },
+      "schema_failure": false,
+      "schema_sha256": "5a163c96ae0c5062f4564298d90b198f2430c0611ca9c9f3631bbc9e260cff2c",
+      "schema_valid": true,
+      "source_annotation_note": "Prompt-adherence syntax proxy, not valid methods or executed tests; never a functional gate.",
+      "source_annotations_within_requested_2_4": true,
+      "source_invalid": false,
+      "source_sha256": "6dc5231c706375238e10add5ab16cd020111aa6b3f41bc62f115e021fed60875",
+      "source_test_annotations": 3,
+      "truncated": false,
+      "unstable": false
+    },
+    {
+      "arm": "ft_testing",
+      "artifacts": "cases/Lang-26/predictions/ft_testing",
+      "attempted": 1,
+      "buggy_class_status": "invalid_source",
+      "case": "Lang-26",
+      "compile_invalid": true,
+      "compiled": false,
+      "executed_test_count_within_request": false,
+      "fixed_class_pass": false,
+      "fixed_class_status": "invalid_source",
+      "generated": 1,
+      "generation": {
+        "finish_reason": "eos",
+        "input_tokens": 1523,
+        "output_tokens": 49,
+        "truncated": false
+      },
+      "generation_failure": null,
+      "genuine_bug_detection": false,
+      "infrastructure_failure": false,
+      "javac_attempts": 0,
+      "javac_failure": false,
+      "jupiter_launches": 0,
+      "planned": 1,
+      "prompt_sha256": "a6b1ba0da9f443d9a4715ddd64718b7e621179adc142b19e8a88ea4ccea59537",
+      "raw_sha256": "f77d2f3a220583487d97af28ff46313123751d84354d4a8e32b8e1d1e2c3508e",
+      "revisions": {
+        "buggy": [
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "invalid_source",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "invalid_source",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ],
+        "fixed": [
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "invalid_source",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "invalid_source",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ]
+      },
+      "schema_failure": false,
+      "schema_valid": null,
+      "source_annotation_note": "Prompt-adherence syntax proxy, not valid methods or executed tests; never a functional gate.",
+      "source_annotations_within_requested_2_4": false,
+      "source_invalid": true,
+      "source_sha256": "f77d2f3a220583487d97af28ff46313123751d84354d4a8e32b8e1d1e2c3508e",
+      "source_test_annotations": 1,
+      "truncated": false,
+      "unstable": false
+    },
+    {
+      "arm": "rag_single",
+      "artifacts": "cases/Lang-26/predictions/rag_single",
+      "attempted": 1,
+      "buggy_class_status": "compile_failure",
+      "case": "Lang-26",
+      "compile_invalid": true,
+      "compiled": false,
+      "executed_test_count_within_request": false,
+      "fixed_class_pass": false,
+      "fixed_class_status": "compile_failure",
+      "generated": 1,
+      "generation": {
+        "finish_reason": "stop",
+        "input_tokens": 4774,
+        "output_tokens": 361,
+        "prompt_budget": {},
+        "truncated": false
+      },
+      "generation_failure": null,
+      "genuine_bug_detection": false,
+      "index_manifests_sha256": "f54c51c9df391420749b617a844b6897b1b4029de936e2f41a68caf460664b77",
+      "infrastructure_failure": false,
+      "javac_attempts": 4,
+      "javac_failure": true,
+      "jupiter_launches": 0,
+      "normalized_prompt_sha256": "3d5233a95f3d40a61f0fa456d585e06fed0f748d939e6a3b1d8071fc66d7eb5c",
+      "planned": 1,
+      "prompt_sha256": "4631d081dd80f8a7d2ccc6fe12caf0ca60c0d0036dc49d43f5fae4f0a9f70719",
+      "raw_sha256": "35a3a44d4cb6be6c97798a065b1eaed9c1af122b72cbfb367d10b9352562058f",
+      "revisions": {
+        "buggy": [
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ],
+        "fixed": [
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ]
+      },
+      "schema_failure": false,
+      "schema_sha256": "5a163c96ae0c5062f4564298d90b198f2430c0611ca9c9f3631bbc9e260cff2c",
+      "schema_valid": true,
+      "source_annotation_note": "Prompt-adherence syntax proxy, not valid methods or executed tests; never a functional gate.",
+      "source_annotations_within_requested_2_4": true,
+      "source_invalid": false,
+      "source_sha256": "64a9ae6473a24a8bc148e09ef203d7a4f3f500861f3afa32e3eefd32a0485b34",
+      "source_test_annotations": 4,
+      "truncated": false,
+      "unstable": false
+    },
+    {
+      "arm": "rag_multi",
+      "artifacts": "cases/Lang-26/predictions/rag_multi",
+      "attempted": 1,
+      "buggy_class_status": "compile_failure",
+      "case": "Lang-26",
+      "compile_invalid": true,
+      "compiled": false,
+      "executed_test_count_within_request": false,
+      "fixed_class_pass": false,
+      "fixed_class_status": "compile_failure",
+      "generated": 1,
+      "generation": {
+        "finish_reason": "stop",
+        "input_tokens": 10624,
+        "output_tokens": 362,
+        "prompt_budget": {},
+        "truncated": false
+      },
+      "generation_failure": null,
+      "genuine_bug_detection": false,
+      "index_manifests_sha256": "f54c51c9df391420749b617a844b6897b1b4029de936e2f41a68caf460664b77",
+      "infrastructure_failure": false,
+      "javac_attempts": 4,
+      "javac_failure": true,
+      "jupiter_launches": 0,
+      "normalized_prompt_sha256": "3d5233a95f3d40a61f0fa456d585e06fed0f748d939e6a3b1d8071fc66d7eb5c",
+      "planned": 1,
+      "prompt_sha256": "d8331c0f5453bcc25aa66c319538ccb0e60ea280cbf2493c7050b6726570f94e",
+      "raw_sha256": "c9a75f2e75f700b2dce606ffe7fa27485d023c1780983a032b532de393959bde",
+      "revisions": {
+        "buggy": [
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ],
+        "fixed": [
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ]
+      },
+      "schema_failure": false,
+      "schema_sha256": "5a163c96ae0c5062f4564298d90b198f2430c0611ca9c9f3631bbc9e260cff2c",
+      "schema_valid": true,
+      "source_annotation_note": "Prompt-adherence syntax proxy, not valid methods or executed tests; never a functional gate.",
+      "source_annotations_within_requested_2_4": true,
+      "source_invalid": false,
+      "source_sha256": "f25a8d705bed37f6ef89e2af1d696b64f3d053b187632f142b9220419c084c82",
+      "source_test_annotations": 4,
+      "truncated": false,
+      "unstable": false
+    },
+    {
+      "arm": "ft_testing",
+      "artifacts": "cases/Lang-27/predictions/ft_testing",
+      "attempted": 1,
+      "buggy_class_status": "invalid_source",
+      "case": "Lang-27",
+      "compile_invalid": true,
+      "compiled": false,
+      "executed_test_count_within_request": false,
+      "fixed_class_pass": false,
+      "fixed_class_status": "invalid_source",
+      "generated": 1,
+      "generation": {
+        "finish_reason": "length",
+        "input_tokens": 2791,
+        "output_tokens": 4096,
+        "truncated": true
+      },
+      "generation_failure": null,
+      "genuine_bug_detection": false,
+      "infrastructure_failure": false,
+      "javac_attempts": 0,
+      "javac_failure": false,
+      "jupiter_launches": 0,
+      "planned": 1,
+      "prompt_sha256": "3d9d8ee3f22bce190a5591d327940b867f70157dadc20c9e72f674065b1f7cd1",
+      "raw_sha256": "a175292070c8fff2e0f9c4e28a1733837e32746b0f4c3936398e782e40d7ac4f",
+      "revisions": {
+        "buggy": [
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "invalid_source",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "invalid_source",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ],
+        "fixed": [
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "invalid_source",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "invalid_source",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ]
+      },
+      "schema_failure": false,
+      "schema_valid": null,
+      "source_annotation_note": "Prompt-adherence syntax proxy, not valid methods or executed tests; never a functional gate.",
+      "source_annotations_within_requested_2_4": false,
+      "source_invalid": true,
+      "source_sha256": "a175292070c8fff2e0f9c4e28a1733837e32746b0f4c3936398e782e40d7ac4f",
+      "source_test_annotations": 1,
+      "truncated": true,
+      "unstable": false
+    },
+    {
+      "arm": "rag_single",
+      "artifacts": "cases/Lang-27/predictions/rag_single",
+      "attempted": 1,
+      "buggy_class_status": "compile_failure",
+      "case": "Lang-27",
+      "compile_invalid": true,
+      "compiled": false,
+      "executed_test_count_within_request": false,
+      "fixed_class_pass": false,
+      "fixed_class_status": "compile_failure",
+      "generated": 1,
+      "generation": {
+        "finish_reason": "stop",
+        "input_tokens": 4557,
+        "output_tokens": 601,
+        "prompt_budget": {},
+        "truncated": false
+      },
+      "generation_failure": null,
+      "genuine_bug_detection": false,
+      "index_manifests_sha256": "f54c51c9df391420749b617a844b6897b1b4029de936e2f41a68caf460664b77",
+      "infrastructure_failure": false,
+      "javac_attempts": 4,
+      "javac_failure": true,
+      "jupiter_launches": 0,
+      "normalized_prompt_sha256": "836a3deb20afd1e21ad0fae2470f2569bb4bd9023d5d10771e74076a00fd1fa9",
+      "planned": 1,
+      "prompt_sha256": "c4e4a4fbf79797075f507a9c73625c1f39b5024f67eba16702f8254750ffb111",
+      "raw_sha256": "6d3ca137e52041de5cfa6417dcfb6bc944beabefad42c483415c3962406165d0",
+      "revisions": {
+        "buggy": [
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ],
+        "fixed": [
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ]
+      },
+      "schema_failure": false,
+      "schema_sha256": "5a163c96ae0c5062f4564298d90b198f2430c0611ca9c9f3631bbc9e260cff2c",
+      "schema_valid": true,
+      "source_annotation_note": "Prompt-adherence syntax proxy, not valid methods or executed tests; never a functional gate.",
+      "source_annotations_within_requested_2_4": false,
+      "source_invalid": false,
+      "source_sha256": "da04effe326517d9cd0e6689fb15757223e0e22c5957e92a795d3012c296c28a",
+      "source_test_annotations": 6,
+      "truncated": false,
+      "unstable": false
+    },
+    {
+      "arm": "rag_multi",
+      "artifacts": "cases/Lang-27/predictions/rag_multi",
+      "attempted": 1,
+      "buggy_class_status": "compile_failure",
+      "case": "Lang-27",
+      "compile_invalid": true,
+      "compiled": false,
+      "executed_test_count_within_request": false,
+      "fixed_class_pass": false,
+      "fixed_class_status": "compile_failure",
+      "generated": 1,
+      "generation": {
+        "finish_reason": "stop",
+        "input_tokens": 12179,
+        "output_tokens": 629,
+        "prompt_budget": {},
+        "truncated": false
+      },
+      "generation_failure": null,
+      "genuine_bug_detection": false,
+      "index_manifests_sha256": "f54c51c9df391420749b617a844b6897b1b4029de936e2f41a68caf460664b77",
+      "infrastructure_failure": false,
+      "javac_attempts": 4,
+      "javac_failure": true,
+      "jupiter_launches": 0,
+      "normalized_prompt_sha256": "836a3deb20afd1e21ad0fae2470f2569bb4bd9023d5d10771e74076a00fd1fa9",
+      "planned": 1,
+      "prompt_sha256": "f5e7dc91b42ea0e585f41b56f6aa93b404cf5f66dce1bdbf38bae4ff50de86af",
+      "raw_sha256": "73b3dd6781c8578161a3d61891b5f04c101f577fb9ae093098aba56136275301",
+      "revisions": {
+        "buggy": [
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ],
+        "fixed": [
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          },
+          {
+            "compiled": false,
+            "containers_failed": 0,
+            "status": "compile_failure",
+            "tests_aborted": 0,
+            "tests_failed": 0,
+            "tests_skipped": 0,
+            "tests_started": 0,
+            "tests_successful": 0
+          }
+        ]
+      },
+      "schema_failure": false,
+      "schema_sha256": "5a163c96ae0c5062f4564298d90b198f2430c0611ca9c9f3631bbc9e260cff2c",
+      "schema_valid": true,
+      "source_annotation_note": "Prompt-adherence syntax proxy, not valid methods or executed tests; never a functional gate.",
+      "source_annotations_within_requested_2_4": false,
+      "source_invalid": false,
+      "source_sha256": "1013e76c8f78e7a4dad161cf0f8608b0f3a64fef2844cffae2d0892909c5fc64",
+      "source_test_annotations": 6,
+      "truncated": false,
+      "unstable": false
+    }
+  ],
+  "coverage": "not_measured",
+  "denominator": 9,
+  "failure_categories": "Source-invalid and javac-failure distinct; truncation overlaps source-invalid. Compilation/setup failure is never a bug detection.",
+  "generation_definition": "Nonempty extracted source, not a claim of a valid complete class.",
+  "interpretation": "Exploratory systems comparison; overlap audit deferred by user. Same-project small sample; Lang-24 previously explored. HF PEFT/NF4 raw vs Ollama Q4 JSON is not causal FT ablation.",
+  "overall": {
+    "attempted": 9,
+    "compile_invalid": 9,
+    "compiled": 0,
+    "fixed_class_pass": 0,
+    "generated": 9,
+    "genuine_bug_detection": 0,
+    "infrastructure_failure": 0,
+    "javac_attempts": 24,
+    "javac_failure": 6,
+    "jupiter_launches": 0,
+    "per_revision_test_counts_by_repeat": {
+      "buggy": [
+        {
+          "containers_failed": 0,
+          "tests_aborted": 0,
+          "tests_failed": 0,
+          "tests_skipped": 0,
+          "tests_started": 0,
+          "tests_successful": 0
+        },
+        {
+          "containers_failed": 0,
+          "tests_aborted": 0,
+          "tests_failed": 0,
+          "tests_skipped": 0,
+          "tests_started": 0,
+          "tests_successful": 0
+        }
+      ],
+      "fixed": [
+        {
+          "containers_failed": 0,
+          "tests_aborted": 0,
+          "tests_failed": 0,
+          "tests_skipped": 0,
+          "tests_started": 0,
+          "tests_successful": 0
+        },
+        {
+          "containers_failed": 0,
+          "tests_aborted": 0,
+          "tests_failed": 0,
+          "tests_skipped": 0,
+          "tests_started": 0,
+          "tests_successful": 0
+        }
+      ]
+    },
+    "schema_failure": 0,
+    "source_invalid": 3,
+    "truncated": 2
+  },
+  "per_arm_denominator": 3,
+  "protocol": "defects4j_three_case_full_class_v2",
+  "repairs": 0,
+  "requested_test_count_is_not_acceptance_gate": true,
+  "retries": 0,
+  "run_id": "real-d4j-fullclass-v2-20261112",
+  "sandbox": "none-reviewed-local-execution",
+  "test_counts": "Per-run counts (two repeats per revision); do not sum repeats as distinct tests. 2-4 is adherence only, not acceptance.",
+  "verification": {
+    "candidate_evaluations": 36,
+    "case_replacements": 0,
+    "checks": [
+      "scoped ruff",
+      "py_compile changed modules",
+      "git diff --check",
+      "frozen identity and generated-source hashes",
+      "one structured attempt per RAG cell",
+      "Single/Multi normalized prompt parity per real case"
+    ],
+    "completed_at_utc": "2026-11-12T15:05:58.879928+00:00",
+    "generation_retries": 0,
+    "jupiter_candidate_launches": 0,
+    "model_free_revision_health_passes": 6,
+    "source_repairs": 0,
+    "targeted_tests": "38 passed; existing harmless Pydantic collection warning",
+    "xml": "No candidate XML: all candidates rejected before Jupiter. Fresh XML exists for all six model-free health canaries."
+  },
+  "verified_actual_generation_calls": 9
+}
