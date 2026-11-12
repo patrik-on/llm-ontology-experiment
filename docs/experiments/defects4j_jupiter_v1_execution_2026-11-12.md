@@ -65,7 +65,7 @@ real fault-control evidence for the Jupiter adapter, **not an LLM-generated bug
 finding**. The official existing JUnit4 trigger also passed fixed/failed buggy in
 provisioning; it was not sent to the models or used as the generated-suite runner.
 
-The regression suite additionally checks real process-tree timeout termination,
+The regression suite additionally checks real original-process-group timeout termination (not detached-child containment),
 stale-directory rejection, selected-class/no-tests/report semantics, malformed
 XML, environment secret stripping, non-indexability, dependency/stability gates,
 local-only HF options and provider metadata transport. Provider/HF-loader fixtures

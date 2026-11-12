@@ -133,7 +133,10 @@ excludes existing developer-test binaries and native JUnit4 test dependencies.
 Artifacts are exclusively under artifacts/evaluation/runs/<run_id>/, including
 run_manifest.json, prepared.json, benchmark_manifest.json, leakage_audit.json,
 prepare logs, canary controls, predictions/<arm>/ and metrics/<arm>/. Config,
-referenced configs and integration-source identities are checked on resume. A
+referenced configs, all actual Python source bytes under src/llm_ontology (including
+dirty/untracked shared modules), and pyproject.toml are checked on resume. The actual
+prepared-file digest is bound to benchmark_manifest.content_hash; both file and
+usage-manifest digests are pinned in the run manifest before later stages. A
 changed protocol/code requires a new run ID. Existing preparation, generation and
 evaluation directories are never overwritten. Successful stages are separately
 recorded; a completed stage is not a claim of completed scientific evaluation.
@@ -163,9 +166,12 @@ rates over all attempted arms and conditional rates only over eligible outputs.
 JaCoCo coverage/native mutation are **not measured**; no coverage proxy is relabeled.
 
 Execution has a scrubbed allowlist environment, separate process groups, group
-termination (including descendants), CPU/file-descriptor/file-size/core limits,
+termination of members remaining in the original group, CPU/file-descriptor/file-size/core limits,
 bounded Java heap and fresh work/report directories. **This is not a security
-sandbox**: same-user filesystem/network access is not OS-isolated. Do not run
+sandbox**: same-user filesystem/network access is not OS-isolated. Detached children
+that create a new session/process group can survive; whole-tree termination is not
+promised. Console text is not a security boundary: duplicate/missing counts fail
+closed, but malicious test stdout could spoof text; reviewed diagnostics only. Do not run
 unreviewed/generated or service-using code merely because a timeout exists. The
 review acknowledgement is mandatory; local runs remain diagnostic-only. A future
 scientific protocol needs OS isolation/network restrictions and a preregistered,
@@ -205,3 +211,8 @@ Use a **new run ID** after any config/source change; no further model calls were
 made during hardening. The legacy smoke dependency selector now requires a coherent
 installed Jupiter 5.11.4 / Platform 1.11.4 set and rejects malformed/mixed explicit
 overrides instead of silently assembling incompatible versions.
+
+The [final reviewer QA report](defects4j_jupiter_v1_final_qa_2026-11-12.md) records
+exact setup-failure/abnormal-exit probes, complete shared-source identity and raw
+structured-error retention. These checks used the existing reviewed subject pair
+with a fresh QA namespace and zero new model calls.

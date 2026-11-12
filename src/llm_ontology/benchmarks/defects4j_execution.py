@@ -73,7 +73,8 @@ def run_process(command: list[str], cwd: Path, env: dict[str, str], timeout: int
             os.killpg(process.pid, signal.SIGKILL)
             code = process.wait()
         finally:
-            # Also terminate descendants if the parent exited without waiting for them.
+            # Signal remaining members of the original process group only.
+            # Detached children/new sessions can survive; this is not process-tree containment.
             try:
                 os.killpg(process.pid, signal.SIGKILL)
             except ProcessLookupError:
@@ -121,7 +122,11 @@ def read_jupiter_reports(reports: Path, selected_class: str) -> dict[str, Any]:
 
 
 def read_console_summary(text: str) -> dict[str, int]:
-    """Pinned Console summary distinguishes XML-synthesized setup errors from tests started."""
+    """Diagnostic text counts distinguish setup errors; not authenticated listener events.
+
+    Missing/duplicate counters fail closed, but hostile stdout can spoof text.
+    Reviewed local diagnostics only; no security/sandbox claim.
+    """
     fields = ("tests found", "tests skipped", "tests started", "tests aborted",
               "tests successful", "tests failed", "containers failed")
     summary = {}

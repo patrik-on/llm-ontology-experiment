@@ -76,7 +76,7 @@ def test_other_case_generic_controls_never_execute_lang24_reference(tmp_path, mo
     expected = {"pass": "passed", "assertion": "assertion_failure", "empty": "no_tests",
                 "disabled": "no_tests", "compile": "compile_failure", "runtime": "execution_error",
                 "before_all_runtime": "container_failure", "before_all_assertion": "container_failure",
-                "aborted": "test_aborted", "timeout": "timeout"}
+                "aborted": "test_aborted", "abnormal_shutdown": "infrastructure_error", "timeout": "timeout"}
     def fake(source, revision, **kwargs):
         assert "Lang24Canary" not in source
         return {"status": expected[kwargs["output"].name]}

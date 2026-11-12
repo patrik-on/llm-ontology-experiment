@@ -18,7 +18,7 @@ from typing import Any
 
 from llm_ontology.benchmarks.defects4j import (
     PROTOCOL, Defects4JConfig, audit_leakage, load_config, prepare, require_wsl, verify_prepared,
-    validate_subject_selection,
+    validate_subject_selection, verify_prepared_binding,
 )
 from llm_ontology.benchmarks.defects4j_execution import (
     D4J_COMMIT, evaluate_pair, evaluate_revision, file_sha256, write_json,
@@ -36,6 +36,25 @@ from llm_ontology.retrieval.pipeline import VectorRetriever
 from llm_ontology.retrieval.token_budget import HuggingFaceTokenCounter
 
 ARMS = ("ft_testing", "rag_single", "rag_multi")
+
+
+def build_dependency_identity(config: Defects4JConfig, *, source_root: Path | None = None) -> dict[str, str]:
+    """Hash actual scoped Python source bytes, including dirty/untracked shared code."""
+    package = source_root or Path(__file__).resolve().parent.parent
+    paths = set(package.rglob("*.py"))
+    paths.update((config.retrieval_config, config.hf_models_config))
+    project_metadata = package.parent.parent / "pyproject.toml"
+    if project_metadata.is_file():
+        paths.add(project_metadata)
+    return {str(path.resolve()): file_sha256(path) for path in sorted(paths)}
+
+
+def generation_failure_payload(exc: Exception, *, case_sha256: str, arm: str) -> dict[str, Any]:
+    return {"status": "generation_failure", "error": str(exc), "case_sha256": case_sha256,
+            "arm": arm, "diagnostic_only": True,
+            "structured_output_attempts": [attempt.model_dump(mode="json")
+                                           for attempt in getattr(exc, "attempts", [])],
+            "failure_metadata": getattr(exc, "failure_metadata", {})}
 
 
 def hf_identity(config: Defects4JConfig, *, hashes: bool = True) -> dict[str, Any]:
@@ -243,6 +262,7 @@ def canary(config: Defects4JConfig, prepared: dict[str, Any], output: Path) -> d
         "before_all_runtime": (header + "class Probe { @BeforeAll static void setup() { throw new IllegalStateException(); } @Test void t() {} }", "container_failure"),
         "before_all_assertion": (header + "class Probe { @BeforeAll static void setup() { assertTrue(false); } @Test void t() {} }", "container_failure"),
         "aborted": (header + "class Probe { @Test void t() { Assumptions.assumeTrue(false); } }", "test_aborted"),
+        "abnormal_shutdown": (header + "class Probe { @Test void t() { Runtime.getRuntime().addShutdownHook(new Thread(() -> Runtime.getRuntime().halt(137))); assertTrue(false); } }", "infrastructure_error"),
         "timeout": (header + "class Probe { @Test void t() { while(true) {} } }", "timeout"),
     }
     results = {}
@@ -260,6 +280,17 @@ def canary(config: Defects4JConfig, prepared: dict[str, Any], output: Path) -> d
     pair = evaluate_pair(reference, prepared, output=output / "fault-pair",
         java_home=config.java_home, junit_jar=config.junit_jar, junit_sha256=config.junit_sha256,
         timeout=config.timeout_seconds, repeats=config.repeats) if applicable else None
+    setup_reference = header + (
+        "class SetupFaultProbe { @BeforeAll static void setup() { "
+        'assertFalse(org.apache.commons.lang3.math.NumberUtils.isNumber("1.1L")); } '
+        "@Test void emptyTest() {} }")
+    setup_pair = evaluate_pair(setup_reference, prepared, output=output / "setup-fault-negative-pair",
+        java_home=config.java_home, junit_jar=config.junit_jar, junit_sha256=config.junit_sha256,
+        timeout=config.timeout_seconds, repeats=config.repeats) if applicable else None
+    setup_not_bug = (setup_pair["fixed_pass"] and not setup_pair["detected_bug"]
+                     and all(item["status"] == "container_failure"
+                             and item["console_summary"]["tests_started"] == 0
+                             for item in setup_pair["outcomes"]["buggy"])) if setup_pair else None
     generic_passed = all(x["ok"] for x in results.values())
     fault_detected = pair["detected_bug"] if pair is not None else None
     summary = {"controls": results, "generic_controls_passed": generic_passed,
@@ -268,7 +299,8 @@ def canary(config: Defects4JConfig, prepared: dict[str, Any], output: Path) -> d
                "fault_validation_status": "validated_lang24" if fault_detected else
                    "failed_lang24" if applicable else "not_validated_for_case",
                "known_fault_control_applicable": applicable,
-               "passed": generic_passed and (bool(fault_detected) if applicable else True),
+               "setup_assertion_not_bug": setup_not_bug,
+               "passed": generic_passed and (bool(fault_detected) and bool(setup_not_bug) if applicable else True),
                "model_calls": 0, "diagnostic_only": True}
     write_json(output / "canary.json", summary)
     return summary
@@ -327,16 +359,22 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     require_wsl()
     identity = config.model_dump(mode="json")
-    code_root = Path(__file__).parent
-    dependency_identity = {str(p): file_sha256(p) for p in (config.retrieval_config, config.hf_models_config,
-        code_root / "defects4j.py", code_root / "defects4j_execution.py", Path(__file__))}
+    dependency_identity = build_dependency_identity(config)
     if layout.root.exists() and any(layout.root.iterdir()) and not layout.manifest_path.exists():
         raise FileExistsError("Nonempty run directory without a manifest; choose a new run_id.")
+    prepared_pins: dict[str, str] = {}
     if layout.manifest_path.exists():
         old = json.loads(layout.manifest_path.read_text())["metadata"]["config"]
         previous_dependencies = json.loads(layout.manifest_path.read_text())["metadata"].get("dependencies")
         if old != identity or previous_dependencies != dependency_identity:
             raise ValueError("Run/config mismatch: choose a new run_id; no overwrite.")
+        prepared_pins = json.loads(layout.manifest_path.read_text())["metadata"].get("prepared_identity", {})
+        existing_prepared = layout.root.resolve() / "prepared.json"
+        if existing_prepared.exists():
+            if not prepared_pins or file_sha256(existing_prepared) != prepared_pins.get("prepared_sha256"):
+                raise ValueError("Prepared bytes changed or lack a pinned run identity; use a new run_id.")
+            verify_prepared_binding(json.loads(existing_prepared.read_text()), existing_prepared,
+                expected_manifest_sha256=prepared_pins["benchmark_manifest_sha256"])
     layout.write_manifest(status="in_progress", metadata={"config": identity, "dependencies": dependency_identity, "protocol": PROTOCOL,
         "diagnostic_only": True, "methodology": "shared case/evaluator, different declared prompts/backends"})
     root = layout.root.resolve()
@@ -353,10 +391,14 @@ def main(argv: list[str] | None = None) -> int:
             if prepared_path.exists():
                 raise FileExistsError("Preparation already exists; never overwrite it.")
             result = prepare(config, prepared_path)
+            layout.write_manifest(status="prepared", metadata={"prepared_identity": {
+                "prepared_sha256": file_sha256(prepared_path),
+                "benchmark_manifest_sha256": file_sha256(root / "benchmark_manifest.json")}})
             print(f"Prepared {result['case']['case_id']}; no model calls.")
             return 0
         prepared = json.loads(prepared_path.read_text())
-        verify_prepared(prepared, config)
+        verify_prepared(prepared, config, prepared_path=prepared_path,
+                        expected_manifest_sha256=prepared_pins["benchmark_manifest_sha256"])
         rag = load_rag_config(config.retrieval_config)
         audit_path = root / "leakage_audit.json"
         if args.action in ("audit", "generate"):
@@ -399,8 +441,8 @@ def main(argv: list[str] | None = None) -> int:
                 write_json(out / "generation.json", generated)
                 print(f"Generated {args.arm}; diagnostic only; inspect {out / 'generated.java'} before execution.")
             except Exception as exc:
-                write_json(out / "failure.json", {"status": "generation_failure", "error": str(exc),
-                    "case_sha256": prepared["case_sha256"], "arm": args.arm, "diagnostic_only": True})
+                write_json(out / "failure.json", generation_failure_payload(
+                    exc, case_sha256=prepared["case_sha256"], arm=args.arm))
                 raise
             return 0
         if args.action == "evaluate":

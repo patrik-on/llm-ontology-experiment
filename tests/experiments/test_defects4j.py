@@ -210,7 +210,7 @@ def test_shared_hf_loader_explicit_local_only_preserves_defaults(monkeypatch):
 
 
 @pytest.mark.skipif(__import__('os').name != 'posix', reason="Linux process groups")
-def test_timeout_terminates_descendants(tmp_path):
+def test_timeout_terminates_children_in_original_process_group(tmp_path):
     import sys
     from llm_ontology.benchmarks.defects4j_execution import run_process
     command = [sys.executable, "-c", "import subprocess,sys,time; "
