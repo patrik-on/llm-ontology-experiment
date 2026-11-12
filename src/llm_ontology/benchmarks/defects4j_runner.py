@@ -254,7 +254,7 @@ def generate_rag(config: Defects4JConfig, case: ExperimentCase, output: Path,
         reserved_output_tokens=config.max_new_tokens, safety_margin_tokens=256,
         retrieval_token_budget=12000, runtime_context_tokens=32768,
         fail_on_prompt_budget_exceeded=True, structured_retries=0,
-        **body_options(body_profile))
+        **body_options(body_profile, profile=case.metadata.get("prompt_profile")))
     write_json(output / "schema.json", (TestingBodiesAnswer if body_profile else TestingAnswer).model_json_schema())
     write_json(output / "index_manifests.json", manifests)
     write_json(output / "effective_generation.json", {
@@ -271,10 +271,13 @@ def generate_rag(config: Defects4JConfig, case: ExperimentCase, output: Path,
             "experiment_record": record.model_dump(mode="json"), "leakage_audit": audit}
 
 
-def body_options(enabled: bool) -> dict[str, Any]:
+def body_options(enabled: bool, *, profile: str | None = None) -> dict[str, Any]:
     if not enabled:
         return {}
-    from llm_ontology.inference.prompting.testing_bodies_v1 import BodyPromptBuilder
+    if profile == "testing-bodies-one-shot-v2":
+        from llm_ontology.inference.prompting.testing_bodies_one_shot_v2 import BodyPromptBuilder
+    else:
+        from llm_ontology.inference.prompting.testing_bodies_v1 import BodyPromptBuilder
     return {"prompt_builder": BodyPromptBuilder(), "structured_answer_model": TestingBodiesAnswer}
 
 
