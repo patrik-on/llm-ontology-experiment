@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import socket
 from time import perf_counter
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -13,6 +13,7 @@ from pydantic import BaseModel, Field
 class OllamaGenerationResult(BaseModel):
     response: str
     model: str
+    transport: Literal["generate", "chat"] = "generate"
     model_digest: str | None = None
     total_duration_ns: int | None = None
     load_duration_ns: int | None = None
@@ -44,6 +45,7 @@ class OllamaProvider:
         seed: int | None = 42,
         timeout_seconds: float = 120.0,
         think: bool | str | None = None,
+        transport: Literal["generate", "chat"] = "generate",
         opener: Callable[..., Any] = urlopen,
     ) -> None:
         self.model_name = model_name
@@ -59,6 +61,9 @@ class OllamaProvider:
         if think is not None and not (isinstance(think, bool) or think in ("low", "medium", "high")):
             raise ValueError("think must be a boolean or low/medium/high.")
         self.think = think
+        if transport not in ("generate", "chat"):
+            raise ValueError("transport must be generate or chat.")
+        self.transport = transport
         self._opener = opener
         self.model_digest: str | None = None
 
@@ -84,21 +89,34 @@ class OllamaProvider:
             options["seed"] = self.seed
         payload: dict[str, Any] = {
             "model": self.model_name,
-            "prompt": prompt,
             "stream": False,
             "options": options,
         }
+        if self.transport == "chat":
+            # Canonical visible prompt, server-side model template, no raw override.
+            payload["messages"] = [{"role": "user", "content": prompt}]
+        else:
+            payload["prompt"] = prompt
         if self.think is not None:
             payload["think"] = self.think
         if json_schema is not None:
             payload["format"] = json_schema
         started = perf_counter()
-        data = self._request_json("/api/generate", payload)
+        data = self._request_json(f"/api/{self.transport}", payload)
         latency_ms = (perf_counter() - started) * 1000
-        if "response" not in data:
-            raise RuntimeError(f"Ollama response did not contain a 'response' field: {data}")
+        if self.transport == "chat":
+            message = data.get("message")
+            if not isinstance(message, dict) or not isinstance(message.get("content"), str):
+                # Never include private thinking in exceptions or user-facing logs.
+                raise RuntimeError("Ollama chat response missing string message.content.")
+            content = message["content"]
+        else:
+            if "response" not in data:
+                raise RuntimeError("Ollama response did not contain a response field.")
+            content = str(data["response"])
         return OllamaGenerationResult(
-            response=str(data["response"]),
+            response=content,
+            transport=self.transport,
             model=str(data.get("model", self.model_name)),
             model_digest=self.model_digest,
             total_duration_ns=_optional_int(data.get("total_duration")),
