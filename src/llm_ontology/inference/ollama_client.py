@@ -20,6 +20,8 @@ class OllamaGenerationResult(BaseModel):
     prompt_eval_duration_ns: int | None = None
     eval_count: int | None = None
     eval_duration_ns: int | None = None
+    done: bool | None = None
+    done_reason: str | None = None
     client_latency_ms: float
     raw: dict[str, Any] = Field(default_factory=dict)
 
@@ -99,6 +101,8 @@ class OllamaProvider:
             prompt_eval_duration_ns=_optional_int(data.get("prompt_eval_duration")),
             eval_count=_optional_int(data.get("eval_count")),
             eval_duration_ns=_optional_int(data.get("eval_duration")),
+            done=data.get("done"),
+            done_reason=data.get("done_reason"),
             client_latency_ms=latency_ms,
             raw=data,
         )
