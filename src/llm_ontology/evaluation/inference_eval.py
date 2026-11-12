@@ -83,7 +83,11 @@ def load_eval_model(model_config: dict[str, Any], inference_config: dict[str, An
     from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
     model_path = str(Path(model_config["model_path"]).expanduser())
-    tokenizer = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(
+        model_path,
+        trust_remote_code=bool(inference_config.get("trust_remote_code", True)),
+        local_files_only=bool(inference_config.get("local_files_only", False)),
+    )
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     device_map = inference_config.get("device_map", "auto")
@@ -95,7 +99,8 @@ def load_eval_model(model_config: dict[str, Any], inference_config: dict[str, An
 
     dtype = torch_dtype_from_name(torch, inference_config.get("torch_dtype"))
     kwargs: dict[str, Any] = {
-        "trust_remote_code": True,
+        "trust_remote_code": bool(inference_config.get("trust_remote_code", True)),
+        "local_files_only": bool(inference_config.get("local_files_only", False)),
         "low_cpu_mem_usage": True,
         "device_map": device_map,
     }

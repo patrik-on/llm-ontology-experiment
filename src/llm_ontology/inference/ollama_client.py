@@ -103,6 +103,10 @@ class OllamaProvider:
             raw=data,
         )
 
+    def describe_model(self) -> dict[str, Any]:
+        """Read template/quantization identity through the existing local client."""
+        return self._request_json("/api/show", {"model": self.model_name})
+
     def resolve_model_digest(self) -> str:
         data = self._request_json("/api/tags", None, method="GET")
         for model in data.get("models", []):
