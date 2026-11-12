@@ -28,7 +28,7 @@ from llm_ontology.evaluation.run_layout import EvaluationRunLayout, require_cano
 from llm_ontology.inference.experiment_runner import ExperimentCase, RagExperimentConfig, RagExperimentRunner
 from llm_ontology.evaluation.inference_eval import generate_prediction, load_eval_model, selected_models
 from llm_ontology.inference.prompting.instruction import format_inference_prompt
-from llm_ontology.inference.structured_output import TestingAnswer
+from llm_ontology.inference.structured_output import TestingAnswer, TestingBodiesAnswer
 from llm_ontology.retrieval.config import load_rag_config
 from llm_ontology.retrieval.factory import create_llm_provider, create_vector_store
 from llm_ontology.retrieval.models import RetrievalMode
@@ -138,7 +138,7 @@ def readiness(config: Defects4JConfig) -> dict[str, Any]:
 
 def generate_ft(config: Defects4JConfig, case: ExperimentCase, output: Path, *,
                 loaded_model: tuple[Any, Any] | None = None,
-                model_identity: dict[str, Any] | None = None) -> dict[str, Any]:
+                model_identity: dict[str, Any] | None = None, before_generation=None) -> dict[str, Any]:
     import torch
     # Local paths only, no tokenizer/model/adapter downloads or remote custom code.
     os.environ["HF_HUB_OFFLINE"] = "1"
@@ -164,6 +164,8 @@ def generate_ft(config: Defects4JConfig, case: ExperimentCase, output: Path, *,
         torch.manual_seed(config.random_seed)
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(config.random_seed)
+        if before_generation is not None:
+            before_generation(prompt)
         with torch.inference_mode():
             prediction, generation = generate_prediction(
                 model, tokenizer, "testing", case.instruction, case.input_text,
@@ -196,7 +198,7 @@ def generate_ft(config: Defects4JConfig, case: ExperimentCase, output: Path, *,
 
 
 def generate_rag(config: Defects4JConfig, case: ExperimentCase, output: Path,
-                 arm: str, audit: dict[str, Any]) -> dict[str, Any]:
+                 arm: str, audit: dict[str, Any], *, body_profile: bool = False, opener=None) -> dict[str, Any]:
     if config.prompt_profile:
         from llm_ontology.inference.prompting.testing_full_class_v2 import apply_profile
         case = apply_profile(case, envelope="rag")
@@ -214,6 +216,8 @@ def generate_rag(config: Defects4JConfig, case: ExperimentCase, output: Path,
     tokenizer_digest = file_sha256(tokenizer_path / "tokenizer.json")
     counter = HuggingFaceTokenCounter(model_identifier=str(tokenizer_path), model_revision=tokenizer_digest)
     provider = create_llm_provider(rag.llm.model_copy(update={"max_tokens": config.max_new_tokens}))
+    if opener is not None:
+        provider._opener = opener
     generation_digest = provider.resolve_model_digest()
     if generation_digest != config.generation_model_digest:
         raise ValueError("Pinned local generation model digest changed.")
@@ -249,8 +253,9 @@ def generate_rag(config: Defects4JConfig, case: ExperimentCase, output: Path,
         token_counter=counter, total_context_tokens=32768,
         reserved_output_tokens=config.max_new_tokens, safety_margin_tokens=256,
         retrieval_token_budget=12000, runtime_context_tokens=32768,
-        fail_on_prompt_budget_exceeded=True, structured_retries=0)
-    write_json(output / "schema.json", TestingAnswer.model_json_schema())
+        fail_on_prompt_budget_exceeded=True, structured_retries=0,
+        **body_options(body_profile))
+    write_json(output / "schema.json", (TestingBodiesAnswer if body_profile else TestingAnswer).model_json_schema())
     write_json(output / "index_manifests.json", manifests)
     write_json(output / "effective_generation.json", {
         "seed": provider.seed, "temperature": provider.temperature, "top_p": provider.top_p,
@@ -259,10 +264,18 @@ def generate_rag(config: Defects4JConfig, case: ExperimentCase, output: Path,
     record = runner.run_case(exp, case)
     if record.generation_model_digest != generation_digest:
         raise ValueError("Generation model digest changed during run.")
-    source = TestingAnswer.model_validate_json(record.response).generated_tests
+    source = (record.response if body_profile
+              else TestingAnswer.model_validate_json(record.response).generated_tests)
     return {"source": source, "prompt_contract": ("canonical-json-v2+" + case.metadata["prompt_profile"]
             if case.metadata.get("prompt_profile") else "canonical-json-v2-junit5"),
             "experiment_record": record.model_dump(mode="json"), "leakage_audit": audit}
+
+
+def body_options(enabled: bool) -> dict[str, Any]:
+    if not enabled:
+        return {}
+    from llm_ontology.inference.prompting.testing_bodies_v1 import BodyPromptBuilder
+    return {"prompt_builder": BodyPromptBuilder(), "structured_answer_model": TestingBodiesAnswer}
 
 
 def lang24_fault_control_applicable(config: Defects4JConfig) -> bool:

@@ -167,6 +167,7 @@ class RagExperimentRunner:
         fail_on_prompt_budget_exceeded: bool = False,
         structured_retries: int = 2,
         prompt_builder: ApproachPromptBuilder | None = None,
+        structured_answer_model=None,
     ) -> None:
         self.retriever = retriever
         self.llm_provider = llm_provider
@@ -183,7 +184,7 @@ class RagExperimentRunner:
         self.runtime_context_tokens = runtime_context_tokens
         self.fail_on_prompt_budget_exceeded = fail_on_prompt_budget_exceeded
         self.structured_generator = StructuredOutputGenerator(
-            llm_provider, max_retries=structured_retries
+            llm_provider, max_retries=structured_retries, answer_model=structured_answer_model
         )
 
     def run_case(

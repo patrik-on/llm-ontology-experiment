@@ -243,3 +243,27 @@ failure twice, without repairs. Its one-call budget is exhausted. See
  docs/experiments/defects4j_gptoss_chat_single_full_class_v2.md for the request,
 ledger, token-accounting caveat and limits; this is not general capability proof
 or a new scientific benchmark score. No extra generations are authorized.
+
+
+## Opt-in Qwen shared-body scaffold pilot (2026-11-12)
+
+The separately versioned testing-bodies-v1 / defects4j_qwen_shared_bodies_v1
+profile supplies a production-metadata-derived Jupiter scaffold with neutral
+testCase1/testCase2 slots. Models return exactly two JSON body strings; the
+existing structured boundary and JavaParser reject declarations/escapes, then
+assemble verbatim before the unchanged shared evaluator. Historical full-class
+profiles, FT defaults and retrieval logic/indexes remain unchanged.
+
+Exactly four authorized calls completed on frozen prepared Lang-26: direct
+Qwen first passed the compile/positive-execution gate, then one FT, Single-RAG
+and MultiRAG call each. All four parsed/assembled/compiled and started two tests
+per revision, twice. Direct passed both revisions without detection. FT also
+passed mechanically but only called getInstance(), with no assertion/focal call:
+this is a semantic failure, not a test-generation win. Both RAG candidates had
+two assertion failures on fixed and buggy code. Genuine detection: 0/4; no
+format rejection, truncation, infrastructure failure, repair or retry.
+
+92 scoped tests and scoped Ruff passed; no full suite or extra generations.
+See docs/experiments/defects4j_qwen_shared_bodies_v1.md and its compact JSON.
+The four-call budget is exhausted. Known retrieval defects and deferred overlap
+work remain unresolved; no isolated FT ablation or improvement claim is justified.

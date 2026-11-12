@@ -47,6 +47,9 @@ _OUTPUT_REQUIREMENTS = {
 class CanonicalPromptBuilder:
     """Render one task-specific contract whose only mode-dependent block is evidence."""
 
+    def template(self, task: CanonicalTask) -> str:
+        return canonical_prompt_template(task)
+
     def build(
         self,
         *,
@@ -86,7 +89,7 @@ class CanonicalPromptBuilder:
         elif normalized_approach == "multi_rag":
             evidence = render_grouped_contexts(request.contexts)
 
-        template = canonical_prompt_template(canonical_task)
+        template = self.template(canonical_task)
         case_requirements = _combine_requirements(request.instruction, request.requirements)
         replacements = {
             _REQUIREMENTS_MARKER: case_requirements,
