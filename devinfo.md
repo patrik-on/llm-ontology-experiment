@@ -159,6 +159,18 @@ impact, then freeze the final prompt. `RagExperimentRunner` writes the exact
 prompt artifact and SHA-256 hash. Do not change prompts as part of runtime or
 infrastructure work.
 
+### Opt-in testing prompt format validation
+
+The separately versioned testing-full-class-v2 instruction overlay and
+ testing_format_validation_v2 protocol add a compiled synthetic demonstration,
+explicit target FQN/package/API requirements and one independent non-indexable
+format-validation fixture. They do not change frozen canonical/instruction prompts,
+retrain an adapter or establish a scientific benchmark score. Use the existing
+FT/RAG generators and Jupiter evaluator; no second client/retrieval/evaluator stack.
+See docs/experiments/testing_full_class_v2.md for the exact example, bounded
+one-case/three-arm diagnostic protocol and actual outcomes. Do not reuse explored
+Lang-24 outcomes as a same-case baseline or run extra calls automatically.
+
 ## Experiment Reproducibility
 
 Every run must store at least generation provider/model/digest, embedding

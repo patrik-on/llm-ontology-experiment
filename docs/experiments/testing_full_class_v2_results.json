@@ -1,0 +1,178 @@
+{
+  "arms": {
+    "ft_testing": {
+      "compilation_status": "passed",
+      "execution_status": "assertion_failure",
+      "output_envelope": "instruction-v1+testing-full-class-v2",
+      "prompt_hash": "67919630a37b35d22229d41331221be90ee1cf1c416624d4ba8c6d70bf4fcc06",
+      "source_sha256": "5374a250869f4f2ac15a64674d8bb95036b1d9fc70133ce860fd938263b763d8",
+      "tests_failed": 1,
+      "tests_started": 9,
+      "tests_successful": 8
+    },
+    "rag_multi": {
+      "compilation_status": "passed",
+      "dataset_manifest_ids": [
+        "65566aa4b7dae00e08bbda4df18ea382e4614673367dac2f61a37b7c5f5da48f",
+        "cee3de073f7d5736379cda3db66d9252183f68138827ff6dcb08f4528009b00d"
+      ],
+      "execution_status": "passed",
+      "model_digest": "dae161e27b0e90dd1856c8bb3209201fd6736d8eb66298e75ed87571486f4364",
+      "normalized_hash": "f1bac2dad97ea4daabdf52d9fb70e2a1d96fc0a741e57e864521f8bfa5764efe",
+      "output_envelope": "canonical-json-v2+testing-full-class-v2",
+      "prompt_hash": "133f1f0451295bd1eaa215057c8b6d6b4264c0624937a3f7540cf8535474a7d7",
+      "retrieved_document_ids": [
+        "ae98d3f82921392a0b00b5e71468df6a2b3bf9225e00e4b7de60a412b1400869",
+        "8884b476d6dbc1f75f86d1843ead672945186caa48f04ec092037dd71734b922",
+        "9b84cceb372b27268967f2675526ec519d9339b13626ca84fd380f3cc66ea768"
+      ],
+      "source_sha256": "d4cba54cea525fcf5e0e4ed664d8f68002a7b5bca8ad065a86a87ba2b60572d6",
+      "tests_failed": 0,
+      "tests_started": 5,
+      "tests_successful": 5,
+      "token_budget": {
+        "counting_method": "huggingface_tokenizer",
+        "dropped_document_ids": [],
+        "final_prompt_tokens": 5134,
+        "fixed_prompt_tokens": 1002,
+        "max_document_tokens": null,
+        "pair_aware_truncated_document_ids": [],
+        "prompt_budget_exceeded": false,
+        "required_context_tokens": 9486,
+        "reserved_output_tokens": 4096,
+        "retrieval_token_budget": 12000,
+        "retrieval_tokens": 3852,
+        "runtime_context_tokens": 32768,
+        "runtime_prompt_eval_count": 5163,
+        "runtime_prompt_truncation_suspected": false,
+        "safety_margin_tokens": 256,
+        "selected_document_ids": [
+          "ae98d3f82921392a0b00b5e71468df6a2b3bf9225e00e4b7de60a412b1400869",
+          "8884b476d6dbc1f75f86d1843ead672945186caa48f04ec092037dd71734b922",
+          "9b84cceb372b27268967f2675526ec519d9339b13626ca84fd380f3cc66ea768"
+        ],
+        "tokenizer_model": "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct",
+        "tokenizer_revision": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+        "total_context_tokens": 32768,
+        "truncated_document_ids": []
+      }
+    },
+    "rag_single": {
+      "compilation_status": "passed",
+      "dataset_manifest_ids": [
+        "65566aa4b7dae00e08bbda4df18ea382e4614673367dac2f61a37b7c5f5da48f",
+        "cee3de073f7d5736379cda3db66d9252183f68138827ff6dcb08f4528009b00d"
+      ],
+      "execution_status": "assertion_failure",
+      "model_digest": "dae161e27b0e90dd1856c8bb3209201fd6736d8eb66298e75ed87571486f4364",
+      "normalized_hash": "f1bac2dad97ea4daabdf52d9fb70e2a1d96fc0a741e57e864521f8bfa5764efe",
+      "output_envelope": "canonical-json-v2+testing-full-class-v2",
+      "prompt_hash": "678afed70718a765aa597ab714de6bf482e5253ce4ee4eea4c085cf46aaa8464",
+      "retrieved_document_ids": [
+        "ae98d3f82921392a0b00b5e71468df6a2b3bf9225e00e4b7de60a412b1400869",
+        "f04eab79316f56d55907bae805f744b830b50bbc7ac1c844fbe70c2c20ca7530",
+        "fe35adfffc97f5edd23e13f80ac50ef79fb09f2c6a0095bcc859a87aeea526db"
+      ],
+      "source_sha256": "abef19d23bc73230204a505f0f839b33105157726d2d4f39e51c017a01fb850f",
+      "tests_failed": 1,
+      "tests_started": 4,
+      "tests_successful": 3,
+      "token_budget": {
+        "counting_method": "huggingface_tokenizer",
+        "dropped_document_ids": [],
+        "final_prompt_tokens": 2253,
+        "fixed_prompt_tokens": 1002,
+        "max_document_tokens": null,
+        "pair_aware_truncated_document_ids": [],
+        "prompt_budget_exceeded": false,
+        "required_context_tokens": 6605,
+        "reserved_output_tokens": 4096,
+        "retrieval_token_budget": 12000,
+        "retrieval_tokens": 1001,
+        "runtime_context_tokens": 32768,
+        "runtime_prompt_eval_count": 2282,
+        "runtime_prompt_truncation_suspected": false,
+        "safety_margin_tokens": 256,
+        "selected_document_ids": [
+          "ae98d3f82921392a0b00b5e71468df6a2b3bf9225e00e4b7de60a412b1400869",
+          "f04eab79316f56d55907bae805f744b830b50bbc7ac1c844fbe70c2c20ca7530",
+          "fe35adfffc97f5edd23e13f80ac50ef79fb09f2c6a0095bcc859a87aeea526db"
+        ],
+        "tokenizer_model": "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct",
+        "tokenizer_revision": "c0382117ea329cdf097041132f6d735924b697924d6f6fc3945713e96ce87539",
+        "total_context_tokens": 32768,
+        "truncated_document_ids": []
+      }
+    }
+  },
+  "artifact_checks": {
+    "all_compile": true,
+    "all_execute_nonempty": true,
+    "all_sources_unmodified": true,
+    "no_gold_or_defects4j_target_in_actual_prompts": true,
+    "no_output_truncation": true,
+    "no_retries": true,
+    "rag_no_prompt_truncation_suspected": true,
+    "same_rag_normalized_prompt": true
+  },
+  "new_generation_calls": 3,
+  "run_id": "format-v2-20261112",
+  "summary": {
+    "arms": {
+      "ft_testing": {
+        "accepted": false,
+        "attempted": 1,
+        "executed": 9,
+        "generated": 1,
+        "generation": {
+          "finish_reason": "eos",
+          "input_tokens": 683,
+          "output_tokens": 307,
+          "truncated": false
+        },
+        "planned": 1,
+        "status": "assertion_failure"
+      },
+      "rag_multi": {
+        "accepted": false,
+        "attempted": 1,
+        "executed": 5,
+        "generated": 1,
+        "generation": {
+          "finish_reason": "stop",
+          "input_tokens": 5163,
+          "output_tokens": 252,
+          "prompt_budget": {},
+          "truncated": false
+        },
+        "planned": 1,
+        "status": "passed"
+      },
+      "rag_single": {
+        "accepted": false,
+        "attempted": 1,
+        "executed": 4,
+        "generated": 1,
+        "generation": {
+          "finish_reason": "stop",
+          "input_tokens": 2282,
+          "output_tokens": 299,
+          "prompt_budget": {},
+          "truncated": false
+        },
+        "planned": 1,
+        "status": "assertion_failure"
+      }
+    },
+    "bug_detection": "not_applicable_no_buggy_revision",
+    "comparison": "new fixture/profile; no comparable baseline or causal improvement claim",
+    "diagnostic_only": true,
+    "index_contamination": "unknown_unchanged_existing_index",
+    "planned_arms": 3,
+    "planned_cases": 1,
+    "prompt_profile": "testing-full-class-v2",
+    "protocol": "testing_format_validation_v2",
+    "sandbox": "none-reviewed-local-execution",
+    "scientific_scores": false
+  }
+}

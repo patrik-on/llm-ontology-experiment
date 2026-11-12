@@ -187,7 +187,19 @@ def generate_prediction(
         print(f"raw decoded generated text:\n{raw_generated_text}")
         print(f"final extracted prediction:\n{prediction}")
         print("=== END DEBUG PROMPT ===\n")
-    return prediction, generate_kwargs
+    # Observed metadata, not additional generate() arguments. Keep exact decoded continuation.
+    count = int(new_tokens.shape[-1])
+    eos_ids = getattr(getattr(model, "generation_config", None), "eos_token_id", None)
+    if eos_ids is None:
+        eos_ids = tokenizer.eos_token_id
+    eos_ids = eos_ids if isinstance(eos_ids, (list, tuple)) else [eos_ids]
+    ended_eos = bool(count and int(new_tokens[-1]) in eos_ids)
+    finish = ("eos" if ended_eos else "length" if count >= generate_kwargs["max_new_tokens"]
+              else "stopped_unknown")
+    return prediction, {**generate_kwargs, "input_tokens": int(input_ids.shape[-1]),
+                        "output_tokens": count, "finish_reason": finish,
+                        "output_truncated": finish == "length",
+                        "raw_response": tokenizer.decode(new_tokens, skip_special_tokens=True)}
 
 
 def build_prediction_record(

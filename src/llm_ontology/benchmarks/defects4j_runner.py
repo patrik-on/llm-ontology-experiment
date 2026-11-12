@@ -146,6 +146,11 @@ def generate_ft(config: Defects4JConfig, case: ExperimentCase, output: Path) -> 
     inference = {**identity["inference"], "local_files_only": True, "trust_remote_code": False}
     prompt = format_inference_prompt(case.instruction, case.input_text)
     (output / "prompt.txt").write_text(prompt, encoding="utf-8")
+    write_json(output / "prompt_identity.json", {
+        "prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest(),
+        "instruction_sha256": hashlib.sha256(case.instruction.encode()).hexdigest(),
+        "template": "instruction-v1", "case_metadata": case.metadata,
+        "random_seed": config.random_seed, "max_new_tokens": config.max_new_tokens})
     model, tokenizer = load_eval_model(identity["model"], inference)
     try:
         prompt_tokens = len(tokenizer(prompt)["input_ids"])
@@ -159,7 +164,8 @@ def generate_ft(config: Defects4JConfig, case: ExperimentCase, output: Path) -> 
                 model, tokenizer, "testing", case.instruction, case.input_text,
                 {"max_new_tokens": config.max_new_tokens, "do_sample": False,
                  "top_p": 0.9, "repetition_penalty": 1.0})
-        (output / "raw.txt").write_text(prediction, encoding="utf-8")
+        (output / "raw.txt").write_text(generation.get("raw_response", prediction), encoding="utf-8")
+        write_json(output / "generation_metadata.json", generation)
         # Only an exact surrounding Markdown fence may be removed; never rewrite Java/JUnit4.
         source = prediction.strip()
         if chr(0) in source:
@@ -171,7 +177,8 @@ def generate_ft(config: Defects4JConfig, case: ExperimentCase, output: Path) -> 
             if lines[-1].strip() != chr(96) * 3:
                 raise ValueError("Unclosed output fence; truncated generation.")
             source = "\n".join(lines[1:-1]).strip()
-        return {"source": source, "prompt_contract": identity["prompt_contract"],
+        return {"source": source, "prompt_contract": ("instruction-v1+" + case.metadata["prompt_profile"]
+                if case.metadata.get("prompt_profile") else identity["prompt_contract"]),
                 "model_identity": identity, "generation": generation, "random_seed": config.random_seed,
                 "prompt_tokens": prompt_tokens,
                 "prompt_sha256": hashlib.sha256(prompt.encode()).hexdigest()}
@@ -212,10 +219,10 @@ def generate_rag(config: Defects4JConfig, case: ExperimentCase, output: Path,
     if embedding_digest != config.embedding_model_digest:
         raise ValueError("Pinned embedding model/index digest changed.")
     exp = RagExperimentConfig(
-        enabled=True, baseline_id=PROTOCOL, requested_task="testing", retrieval_mode=mode,
+        enabled=True, baseline_id=case.metadata.get("protocol", PROTOCOL), requested_task="testing", retrieval_mode=mode,
         collection="mixed" if arm == "rag_single" else None,
         collections=[] if arm == "rag_single" else ["testing_db", "refactoring_db"],
-        dataset_version="defects4j-3.0.1-canary", embedding_model=rag.embeddings.model,
+        dataset_version=case.metadata.get("dataset_version", "defects4j-3.0.1-canary"), embedding_model=rag.embeddings.model,
         embedding_revision=embedding_digest, llm_model=rag.llm.model,
         generation_max_tokens=config.max_new_tokens,
         dataset_manifest_ids=sorted({d for m in manifests for d in m["dataset_manifests"]}),
@@ -234,11 +241,18 @@ def generate_rag(config: Defects4JConfig, case: ExperimentCase, output: Path,
         reserved_output_tokens=config.max_new_tokens, safety_margin_tokens=256,
         retrieval_token_budget=12000, runtime_context_tokens=32768,
         fail_on_prompt_budget_exceeded=True, structured_retries=0)
+    write_json(output / "schema.json", TestingAnswer.model_json_schema())
+    write_json(output / "index_manifests.json", manifests)
+    write_json(output / "effective_generation.json", {
+        "seed": provider.seed, "temperature": provider.temperature, "top_p": provider.top_p,
+        "max_tokens": provider.max_tokens, "context_window_tokens": provider.context_window_tokens,
+        "protocol": case.metadata.get("protocol", PROTOCOL), "case_metadata": case.metadata})
     record = runner.run_case(exp, case)
     if record.generation_model_digest != generation_digest:
         raise ValueError("Generation model digest changed during run.")
     source = TestingAnswer.model_validate_json(record.response).generated_tests
-    return {"source": source, "prompt_contract": "canonical-json-v2-junit5",
+    return {"source": source, "prompt_contract": ("canonical-json-v2+" + case.metadata["prompt_profile"]
+            if case.metadata.get("prompt_profile") else "canonical-json-v2-junit5"),
             "experiment_record": record.model_dump(mode="json"), "leakage_audit": audit}
 
 
