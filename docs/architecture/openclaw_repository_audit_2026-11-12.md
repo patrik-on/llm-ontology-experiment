@@ -419,3 +419,15 @@ The existing smoke `--dry-run` is not a strictly read-only command: the runner w
 | Methodology/reporting | Proxy success confused with executable correctness; stale leakage identity binding; fine-tuning and Ollama prompt/runtime families not automatically comparable |
 
 The recommended integration is conservative: retain the working shared architecture and historical evidence, close the benchmark execution/provenance contracts, repair and version materialized data, and only then run approved final comparisons.
+
+## Dated correction: SWE-Refactor Zenodo acquisition (2026-11-12)
+
+This additive correction supersedes the earlier missing-data/unresolved-deposit-license findings for SWE only; the preceding investigation remains a historical record. The user-selected source is now pinned to <https://zenodo.org/records/17196850>, DOI **10.5281/zenodo.17196850**, deposited by **anonymous**, with explicit **CC-BY-4.0** record licensing. This establishes a licensed deposit, not independently authenticated paper-author endorsement or blanket licensing of underlying Java projects.
+
+The exact 207,329,781-byte ZIP was downloaded and its published MD5 **f06ee0ce4c8034d57d4d2d1b4c32a24d** matched; computed SHA-256 is **e1bd6eedcdf65c4c6cf4454cf07d3db558cd4ba1706419a409489297f8ea6a65**. Only 10 allowlisted dataset/build-metadata/evaluator-inspection files (67,599,668 bytes) were extracted into the existing configured root, including pure_refactoring_data.json. No old SWE data was present to delete, and reusable adapter/research history was preserved. Newer record 23194601 was noted but not substituted.
+
+Actual local inventory: **1,099 unique cases, 18 projects, six operation types**, 922 atomic/177 compound. All cases load with nonempty before/reference code; three use existing whole-file input fallback. A narrow loader fix prevents explicit JSON null becoming literal None and keeps its fallback flag consistent (the pinned real data has no explicit top-level nulls). WSL adapter/edge tests: **6 passed**; all **1,099 prompt-only records** were prepared and checked without model calls. No upstream scripts, Java builds, installs or indexing were run; canonical prompts, frozen baselines and dataset YAML remain unchanged.
+
+Status is now **DATASET_READY (loading/prompt inspection), EXECUTION_NOT_READY**. Stored metadata is not uniformly successful/complete: two current-compilation flags are false; hasTestC is absent from 1,098 cases; coverage has heterogeneous shapes; 300 commands skip tests and 93 have unmatched quoting. The deposited evaluator retains early success/verification bypasses and test-skipping builds. A safe shared application/evaluator contract, pinned subject checkouts/toolchains, actual baseline/test/operation controls, leakage clearance and controlled three-mode runner integration remain outstanding. Testing benchmark and unrelated audit findings are unchanged.
+
+Full source/license/checksum, selected/excluded asset inventory, schema/counts, caveats and executed verification: [SWE-Refactor Zenodo acquisition](../datasets/swe_refactor_zenodo_acquisition_2026-11-12.md).
