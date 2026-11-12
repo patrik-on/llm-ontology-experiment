@@ -43,6 +43,7 @@ class OllamaProvider:
         context_window_tokens: int | None = None,
         seed: int | None = 42,
         timeout_seconds: float = 120.0,
+        think: bool | str | None = None,
         opener: Callable[..., Any] = urlopen,
     ) -> None:
         self.model_name = model_name
@@ -55,6 +56,9 @@ class OllamaProvider:
         self.context_window_tokens = context_window_tokens
         self.seed = seed
         self.timeout_seconds = timeout_seconds
+        if think is not None and not (isinstance(think, bool) or think in ("low", "medium", "high")):
+            raise ValueError("think must be a boolean or low/medium/high.")
+        self.think = think
         self._opener = opener
         self.model_digest: str | None = None
 
@@ -84,6 +88,8 @@ class OllamaProvider:
             "stream": False,
             "options": options,
         }
+        if self.think is not None:
+            payload["think"] = self.think
         if json_schema is not None:
             payload["format"] = json_schema
         started = perf_counter()
