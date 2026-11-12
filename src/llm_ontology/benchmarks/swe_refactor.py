@@ -12,7 +12,10 @@ DEFAULT_ROOT = Path("benchmarks/swe-refactor/SWE-Refactor")
 
 def _first_text(record: dict[str, object], *keys: str) -> str:
     for key in keys:
-        value = str(record.get(key, "")).strip()
+        raw_value = record.get(key)
+        if raw_value is None:
+            continue
+        value = str(raw_value).strip()
         if value:
             return value
     return ""
@@ -60,7 +63,7 @@ def load_swe_refactor(root: str | Path = DEFAULT_ROOT) -> list[BenchmarkCase]:
                     "compile_result_before": record.get("compileResultBefore"),
                     "compile_result_current": record.get("compileResultCurrent"),
                     "has_test": record.get("hasTestC"),
-                    "used_whole_file_fallback": not bool(str(record.get("sourceCodeBeforeRefactoring", "")).strip()),
+                    "used_whole_file_fallback": not bool(_first_text(record, "sourceCodeBeforeRefactoring")),
                     "source_file": path.as_posix(),
                 },
             )
