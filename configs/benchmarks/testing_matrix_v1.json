@@ -33,7 +33,7 @@
     "reference_bytes": 6000,
     "static_only": true
   },
-  "skill": "Unmodified si-context-eval/skills/testing/SKILL.md; direct Qwen with extra process context only, no AGENTS/tool loop.",
+  "skill": "Unmodified si-context-eval/skills/testing/SKILL.md, pinned in configs/skills/testing/SKILL.md; direct Qwen with extra process context only, no AGENTS/tool loop.",
   "backend_caveat": "Systems comparison: Ollama Q4_K_M structured generation versus HF PEFT NF4 raw instruction. Not an isolated FT adapter ablation.",
   "sampling_caveat": "Dependency/convenience filtered extracted methods, not representative random sampling or original-project builds.",
   "no_fault_detection_claim": true,
