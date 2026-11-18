@@ -31,8 +31,15 @@ a parsovaním gold výstupu cez `parse_testing_bodies` / `parse_answer`.
 | `data/processed/v3/combined` | oba v3 datasety | vyvážené počtom riadkov (B1) |
 
 Val split je projektovo disjunktný s train (`grouped_split_by_ratios`, 90/10).
-Záznamy nad `--max-seq-length` sa **zahodia**, nikdy neskracujú; počet je v
-`build_report.json`.
+Záznamy nad `--max-seq-length` (default = `max_seq_length` z model configu, 8192) sa
+**zahodia**, nikdy neskracujú; počet je v `build_report.json`. Odhad z eval kohorty:
+testing má ~1,3 tis. tokenov fixnej inštrukcie + trieda + 2 telá, teda ~2 tis., zahodí sa
+prakticky nič; refactoring zarovnané kontextové jednotky (prompt + JSON výstup) majú
+medián ~2,6 tis. a p90 ~5,8 tis. tokenov, pri 8192 sa zmestí ~96 % (91 z 95 eval
+prípadov), pri 2048 iba ~35 %.
+
+Tréningové configy `configs/finetuning/training_*_wsl.yaml` a model config sú teraz v3;
+v2 sa reprodukuje z Git histórie a `config_snapshot.yaml` adaptérov.
 
 Rozdiely voči eval, ktoré zostávajú (vedome):
 - testing gold nie je overený kompiláciou ani JaCoCo (eval referencie áno);
@@ -65,16 +72,16 @@ Skontroluj `data/processed/v3/*/build_report.json`: počty, typy refactoringu,
 
 ## Tréning
 
-`max_seq_length` je 8192 (`configs/shared/models/qwen25_coder_7b_hf_wsl_v3.yaml`).
+`max_seq_length` je 8192 (`configs/shared/models/qwen25_coder_7b_hf_wsl.yaml`).
 Gradient checkpointing zapína `prepare_model_for_kbit_training`. Ak nestačí VRAM,
 znížiť limit v model configu **aj** `--max-seq-length` pri builde a dataset prebudovať.
 
 ```bash
-python scripts/finetuning/check_finetuning_ready.py --config configs/finetuning/training_b2_testing_v3_wsl.yaml
-python scripts/finetuning/train_finetuning.py --config configs/finetuning/training_b2_testing_v3_wsl.yaml --max_steps 2   # smoke
-python scripts/finetuning/train_finetuning.py --config configs/finetuning/training_b2_testing_v3_wsl.yaml
-python scripts/finetuning/train_finetuning.py --config configs/finetuning/training_b2_refactoring_v3_wsl.yaml
-python scripts/finetuning/train_finetuning.py --config configs/finetuning/training_b1_shared_v3_wsl.yaml
+python scripts/finetuning/check_finetuning_ready.py --config configs/finetuning/training_b2_testing_wsl.yaml
+python scripts/finetuning/train_finetuning.py --config configs/finetuning/training_b2_testing_wsl.yaml --max_steps 2   # smoke
+python scripts/finetuning/train_finetuning.py --config configs/finetuning/training_b2_testing_wsl.yaml
+python scripts/finetuning/train_finetuning.py --config configs/finetuning/training_b2_refactoring_wsl.yaml
+python scripts/finetuning/train_finetuning.py --config configs/finetuning/training_b1_shared_wsl.yaml
 ```
 
 Pred v3 tréningom bol tréningový skript nefunkčný: `run_training` volal
@@ -86,8 +93,9 @@ oba tvary configu a kvantizáciu z `lora_config.yaml`.
 
 Zámerne nie je v tomto kroku, lebo by rozbilo aktuálne prípravné behy:
 
-1. `configs/benchmarks/java_evaluation_runtime_v1.yaml`: `hf_models_config:
-   configs/evaluation/eval_models_v3.yaml`, `hf_model_name: b2_testing_v3`,
+1. `configs/evaluation/eval_models_v2_only.yaml`: adapter paths (a názov súboru) na
+   `~/experiments/llm-ontology-v3/*/checkpoints/final_adapter`;
+   `configs/benchmarks/java_evaluation_runtime_v1.yaml`: `hf_model_name: b2_testing_v3`,
    `training_sources`/`validation_sources`/`checkpoint_selection_sources` na
    `data/processed/v3/testing/{train,val}.jsonl`.
 2. `refactoring_matrix.runtime()`: `b2_refactoring_v3` a v3 refactoring súbory.
