@@ -1,6 +1,6 @@
 {
   "assertj-core": {
-    "path": "/home/patrik/benchmark-work/downloads/assertj-core-3.27.3.jar",
+    "path": "${LLM_ONTOLOGY_WORK_ROOT}/downloads/assertj-core-3.27.3.jar",
     "version": "3.27.3",
     "sha256": "5b8a26205f6d5ea60ad9ce65ce4a40a2afe4c48abeec61bd0740a088c24e89f5",
     "url": "https://repo.maven.apache.org/maven2/org/assertj/assertj-core/3.27.3/assertj-core-3.27.3.jar",
@@ -8,7 +8,7 @@
     "upstream_sha256_verified": true
   },
   "hamcrest": {
-    "path": "/home/patrik/benchmark-work/downloads/hamcrest-2.2.jar",
+    "path": "${LLM_ONTOLOGY_WORK_ROOT}/downloads/hamcrest-2.2.jar",
     "version": "2.2",
     "sha256": "5e62846a89f05cd78cd9c1a553f340d002458380c320455dd1f8fc5497a8a1c1",
     "url": "https://repo.maven.apache.org/maven2/org/hamcrest/hamcrest/2.2/hamcrest-2.2.jar",

@@ -4,6 +4,8 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
+from llm_ontology.core.paths import expand_placeholders
+
 try:
     import yaml
 except ImportError:  # pragma: no cover - exercised only in minimal runtimes.
@@ -29,8 +31,8 @@ def read_yaml(path: str | Path) -> Config:
     with Path(path).open("r", encoding="utf-8") as handle:
         text = handle.read()
     if yaml is not None:
-        return yaml.safe_load(text) or {}
-    return _parse_simple_yaml(text)
+        return expand_placeholders(yaml.safe_load(text) or {})
+    return expand_placeholders(_parse_simple_yaml(text))
 
 
 def _parse_scalar(value: str) -> Any:

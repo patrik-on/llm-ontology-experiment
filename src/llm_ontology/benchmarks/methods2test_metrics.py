@@ -10,6 +10,8 @@ from llm_ontology.benchmarks.java_execution import file_sha256, write_json
 
 from llm_ontology.benchmarks.matrix_support import ARMS, read, runtime
 
+from llm_ontology.core.paths import work_root_path
+
 from llm_ontology.evaluation.coverage_runner import run_jacoco_coverage
 
 from llm_ontology.ingestion.java import JavaParser
@@ -18,8 +20,8 @@ def measure(source, prepared, output):
     c = runtime()
     pins = read(Path("configs/evaluation/jacoco_v1.json"))
     # Tool paths are separately pinned by the coverage runner's embedded SHA-256.
-    agent = Path("/home/patrik/benchmark-work/downloads/org.jacoco.agent-0.8.13-runtime.jar")
-    cli = Path("/home/patrik/benchmark-work/downloads/org.jacoco.cli-0.8.13-nodeps.jar")
+    agent = work_root_path("downloads", "org.jacoco.agent-0.8.13-runtime.jar")
+    cli = work_root_path("downloads", "org.jacoco.cli-0.8.13-nodeps.jar")
     if not pins:
         raise ValueError("Missing coverage manifest")
     return run_jacoco_coverage(source, prepared["revision"], output=output,

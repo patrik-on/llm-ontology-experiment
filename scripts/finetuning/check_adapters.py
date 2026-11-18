@@ -6,7 +6,11 @@ import argparse
 from pathlib import Path
 from typing import Any
 
-import yaml
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+
+from llm_ontology.core.config import read_yaml  # noqa: E402
 
 
 REQUIRED_FILES = ("adapter_config.json", "adapter_model.safetensors", "tokenizer_config.json")
@@ -18,8 +22,7 @@ V2_ADAPTERS = {
 
 
 def load_lora_adapters_from_config(config_path: str | Path) -> dict[str, Path]:
-    with Path(config_path).open("r", encoding="utf-8") as handle:
-        payload: dict[str, Any] = yaml.safe_load(handle) or {}
+    payload: dict[str, Any] = read_yaml(config_path)
 
     adapters: dict[str, Path] = {}
     for model_config in payload.get("models", []):
