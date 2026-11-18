@@ -60,14 +60,13 @@ konfigurácie, reporty a výstupy boli odstránené z aktívneho projektu.
 
 ## Zvyšok projektu
 
-Tréning, surové/spracované datasety, modely/adaptéry, RAG indexy a interaktívne UI
+Tréning, surové/spracované datasety, modely/adaptéry, a RAG indexy
 zostávajú oddelené od evaluácie. Datasetové audity a nástroje ako RefactoringMiner
 či JaCoCo sú podklady/závislosti aktuálnych matíc, nie dodatočné eval runnery.
 
 - [Mapa projektu](docs/architecture/project_map.md)
 - [Tréning](docs/finetuning/v2_runbook.md)
 - [Aktuálny retrieval](docs/retrieval/rag_v3.md)
-- [UI](docs/ui/overview.md)
 - [Eval dokumentácia](docs/evaluation/README.md)
 - [Podklady na písanie práce](thesis_materials/README.md) — metodické reporty,
   archivované handcrafted výsledky a dôkazy; nie ďalší aktívny eval runner.
@@ -77,7 +76,7 @@ zostávajú oddelené od evaluácie. Datasetové audity a nástroje ako Refactor
 
 ```bash
 python -m venv .venv_wsl && source .venv_wsl/bin/activate
-pip install -r requirements.txt          # = pip install -e ".[dev,rag,ui]"
+pip install -r requirements.txt          # = pip install -e ".[dev,rag]"
 pip install -e ".[training]"             # iba pre reálny fine-tuning
 ```
 

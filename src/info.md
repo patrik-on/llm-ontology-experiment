@@ -15,7 +15,7 @@ Knižničný Python kód projektu je v `src/llm_ontology/`.
 | `vectorstore/` | Chroma persistence a collection lifecycle |
 | `retrieval/` | search, RRF fusion, token budget a trace |
 | `evaluation/` | inference evaluation, task metriky, agregácie a reporty |
-| `ui/` | Gradio prezentácia a environment status |
+| `env/` | kontrola runtime prostredia (`python -m llm_ontology.env check`) |
 
 Implementačná logika patrí sem; `scripts/` zostávajú tenké CLI wrappery.
 Architektonické hranice sú v `docs/architecture/system_architecture.md`.

@@ -10,8 +10,8 @@ TestBench, smoke or earlier five/hundred-case pilot runners or their outputs.
 
 ## Boundaries
 
-- Keep training/model provenance, raw/processed datasets, index contents and UI
-  behavior separate from evaluation cleanup.
+- Keep training/model provenance, raw/processed datasets, index contents
+  separate from evaluation cleanup.
 - `matrix_support` contains only helpers used by the current matrices. Selection,
   statistics, source review, HF inference and Java execution helpers have no CLI.
 - No training, index rebuild, generated-answer repair or retries in either matrix.
@@ -37,7 +37,7 @@ execution logs are rewritten. Earlier explored Methods2Test IDs remain excluded
 through the active matrix configuration, without keeping old model answers.
 
 Dataset audits, model/checkpoint metadata, RAG indexes and tool caches are not
-additional evaluation results. UI inference logs are also independent of eval.
+additional evaluation results.
 
 ## Machine-specific paths
 

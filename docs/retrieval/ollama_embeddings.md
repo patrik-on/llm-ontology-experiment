@@ -65,14 +65,12 @@ was present, so `literature_db` was not created.
 Set `RUN_REAL_OLLAMA_EMBEDDING_TEST=1` to enable the opt-in provider integration
 test. Regular tests mock the HTTP boundary and do not require Ollama.
 
-## Lifecycle and UI
+## Lifecycle and status check
 
 Collection sidecar manifests record `embedding_provider`, `embedding_model`,
 `embedding_model_digest`, `embedding_dimension`, and `ollama_runtime`. Compatibility validation
 rejects a Jina collection when Ollama is configured (and vice versa); rebuilding
 is always explicit.
 
-The Environment panel reads provider runtime metadata through the service layer.
-With the Ollama retrieval configuration it reports provider, model, digest,
-dimension, base URL, and embedding/Ollama readiness. The UI does not embed text
-or access Ollama directly.
+`python -m llm_ontology.env check` reads provider runtime metadata and reports
+provider, model, digest, dimension, base URL, and embedding/Ollama readiness.
