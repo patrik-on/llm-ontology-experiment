@@ -140,8 +140,13 @@ def generate_prediction(
     debug: bool = False,
     model_name: str = "",
     index: int = 0,
+    on_prompt: Any = None,
 ) -> tuple[str, dict[str, Any]]:
     input_ids, attention_mask, rendered_prompt = encode_prompt(tokenizer, instruction, input_code)
+    if on_prompt is not None:
+        # The exact string that was tokenized, handed over just before generation
+        # (the matrices compare it byte for byte with the frozen prompt and charge it).
+        on_prompt(rendered_prompt)
     if hasattr(model, "device"):
         input_ids = input_ids.to(model.device)
         attention_mask = attention_mask.to(model.device)

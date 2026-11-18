@@ -1,6 +1,7 @@
-# Testing eval: Methods2Test × baseline / FT / RAG / skills
+# Testing eval: Methods2Test × baseline / FT / RAG / skills / ontológia
 
-Nový opt-in protokol `methods2test_systems_skills_v1`. Skript pripraví rovnaké
+Protokol `methods2test_systems_ontology_v2` (8 ramien; predchádzajúci
+`methods2test_systems_skills_v1` sa reprodukuje z jeho pôvodného commitu). Skript pripraví rovnaké
 Methods2Test prípady pre všetky systémy, vygeneruje testy, skompiluje ich,
 dvakrát spustí cez existujúci Jupiter hodnotiteľ a zmeria JaCoCo coverage.
 Nejde iba o textovú podobnosť voči referenčnému testu.
@@ -14,19 +15,19 @@ Z koreňa `llm-ontology-experiment` **vo WSL**:
 .venv_wsl/bin/python scripts/benchmarks/run_testing_matrix.py \
   --run-id testing-matrix-20261113 --dry-run
 
-# Predvolený experiment: 100 prípadov × 5 systémov = najviac 500 volaní.
+# Predvolený experiment: 100 prípadov × 8 ramien = najviac 800 volaní.
 .venv_wsl/bin/python scripts/benchmarks/run_testing_matrix.py \
   --run-id testing-matrix-20261113
 ```
 
-Na minimálny samostatný skúšobný beh použite **nové ID** a `--cases 1` (5 volaní),
-menší pilot cez `--cases 5` (25 volaní). Default je 100 prípadov, aby párové
+Na minimálny samostatný skúšobný beh použite **nové ID** a `--cases 1` (8 volaní),
+menší pilot cez `--cases 5` (40 volaní). Default je 100 prípadov, aby párové
 testy (McNemar, Wilcoxon) mali zmysluplnú silu. Počet prípadov
 nemožno meniť pri resume; zmenšený default nemení plány už založených behov.
 `--prepare-only` pripraví len dáta a vykoná referenčné compile/run/coverage
 kontroly, bez generovania. Následne rovnaký príkaz bez tohto prepínača pokračuje.
-`--freeze-only` navyše overí model/index identity a uloží všetkých päť skutočných
-promptov na prípad; môže volať Ollama metadata a embeddings, nikdy generovanie.
+`--freeze-only` navyše overí model/index identity a uloží všetkých osem skutočných
+promptov aj bloky ontológie na prípad; môže volať Ollama metadata a embeddings, nikdy generovanie.
 Výber 100 zostaviteľných, neprekrývajúcich sa prípadov môže trvať výrazne dlhšie
 než samotné načítanie datasetu; priebežný stav je v `preparation_progress.json`.
 
@@ -40,7 +41,7 @@ wsl --cd "$PWD" -- .venv_wsl/bin/python scripts/benchmarks/run_testing_matrix.py
 
 - Existujúca `.venv_wsl` s projektom a jeho eval/RAG/FT závislosťami.
 - WSL Ollama na `http://localhost:11434`, existujúce pinned Qwen a bge-m3 modely.
-- Existujúci lokálny HF základ a **b2_testing_v2** adaptér, existujúce Chroma v3
+- Existujúci lokálny HF základ a adaptéry **b2_testing_v3** a **b2_testing_onto**, existujúce Chroma v3
   indexy a ich manifesty podľa projektových konfigurácií.
 - Lokálne Methods2Test rich archive a corpus, processed train/val, Java 11,
   Jupiter/AssertJ/Hamcrest a JaCoCo podľa existujúcich pinned eval konfigurácií.
@@ -57,10 +58,27 @@ Eval používa Methods2Test harness, nie protokol `si-context-eval`.
 | Arm | Generovanie | Dodatočný kontext |
 |---|---|---|
 | `qwen_base` | lokálny Ollama Qwen | žiadny retrieval/skill |
-| `ft_testing` | existujúci HF Qwen + testing LoRA | bez retrievalu/skill |
-| `rag_single` | ten istý Ollama Qwen | existujúca kolekcia `mixed` |
-| `rag_multi` | ten istý Ollama Qwen | existujúce `testing_db` + `refactoring_db`, RRF |
+| `onto_project` | ten istý Ollama Qwen | blok projektovej ontológie |
 | `skills` | ten istý Ollama Qwen | existujúci testing `SKILL.md` |
+| `skills_onto` | ten istý Ollama Qwen | `SKILL.md` + ten istý blok |
+| `rag_single` | ten istý Ollama Qwen | existujúca kolekcia `mixed` |
+| `ft_testing` | HF Qwen + adaptér `b2_testing_v3` | bez retrievalu/skill |
+| `ft_v3_onto` | HF Qwen + adaptér `b2_testing_v3` | ten istý blok |
+| `ft_onto` | HF Qwen + adaptér `b2_testing_onto` | ten istý blok |
+
+Blok sa vyrába pri `--freeze-only` iba z dodanej produkčnej triedy
+(`ontology.testing_context`, gold test je zakázaný text) a uloží sa do
+`cases/<id>/ontology/{block.txt,identity.json}`. Do promptu ho vkladá jediná funkcia
+`ontology.with_ontology`, tá istá ako pri tréningových dátach `v3_onto`. Každé FT
+rameno má vlastný adaptér z `adapters` v plánovom JSON, jeho identitu v
+`hf_identity/<adapter>.json`; pred načítaním sa súbory znova hashujú a ledger
+porovná reťazec, ktorý dostal tokenizer, so zmrazeným promptom. `rag_multi` v tomto
+protokole nie je.
+
+Hlavné porovnania sú vopred určené páry (`primary_pairs`): `onto_project` vs
+`qwen_base`, `ft_v3_onto` vs `ft_testing`, `ft_onto` vs `ft_v3_onto`, `skills_onto`
+vs `skills` a `skills_onto` vs `onto_project`. Holm sa robí iba cez tieto páry;
+páry naprieč backendmi sú iba opisné.
 
 `skills` je **single-response prompt-context** experiment: rovnaký vstup,
 scaffold, solved one-shot príklad, decoding a hodnotiteľ ako baseline, navyše
@@ -145,7 +163,8 @@ nepodpisujú novými hashmi.
 
 Zostávajúci pripravený testing beh je
 `testing-matrix-preparation-check-20261113`: jeden EVAL prípad `5973732_198`,
-päť skutočných promptov a **0 generovaní**. Nové behy majú default päť prípadov.
+päť skutočných promptov a **0 generovaní**. Patrí k protokolu
+`methods2test_systems_skills_v1`; nový protokol potrebuje nové run ID.
 Referenčné a evaluator QA dôkazy sú súčasťou tohto run rootu; ručne napísané
 kontroly nepredstavujú modelové skóre. Model-free QA súhrn je v
 `readiness/evaluator-qa.json`. Staršie piloty, eval skripty a výsledky boli odstránené.

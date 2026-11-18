@@ -3,6 +3,9 @@
 New opt-in protocol. Reuses existing atomic writes, budget/GPU locks, HF model
 identity/loading, Ollama client, retrieval pipeline, query builder and token budget.
 No generation in dry-run, prepare-only or freeze-only. No retry/repair/reselection.
+Ontology arms add the per-case project-ontology block frozen at freeze time
+(``ontology.with_ontology``); each FT arm loads its own re-hashed adapter and charges the
+exact prompt string the tokenizer received.
 """
 from __future__ import annotations
 
@@ -16,6 +19,7 @@ import sqlite3
 import shutil
 from time import perf_counter
 
+from llm_ontology import ontology
 from llm_ontology.benchmarks import matrix_support as shared
 from llm_ontology.benchmarks import refactoring_execution as ex
 from llm_ontology.benchmarks.refactoring_prepare import CONFIG, REPO, prepare, sha, tool_identity
@@ -32,8 +36,10 @@ from llm_ontology.retrieval.pipeline import VectorRetriever
 from llm_ontology.retrieval.query import build_retrieval_query
 from llm_ontology.retrieval.token_budget import ContextBudgeter, HuggingFaceTokenCounter
 
-ARMS = ("qwen_base", "ft_refactoring", "rag_single", "rag_multi", "skills")
-PROTOCOL = "mixed_refactoring_matrix_v4"
+ARMS = ("qwen_base", "onto_project", "skills", "skills_onto", "rag_single",
+        "ft_refactoring", "ft_v3_onto", "ft_onto")
+FT_ARMS = ("ft_refactoring", "ft_v3_onto", "ft_onto")
+PROTOCOL = "mixed_refactoring_ontology_v5"
 read, write = shared.read, shared.durable_json
 
 
@@ -76,6 +82,7 @@ def load_plan(cases=None, source=None, operation=None):
             or plan["attempts_per_cell"] != 1 or plan["retries"] or plan["repairs"]
             or plan["repeats"] != 2 or plan["indexing_allowed"]):
         raise ValueError("Unsupported protocol")
+    shared.check_arm_plan(plan, ARMS, FT_ARMS)
     return plan
 
 
@@ -92,11 +99,13 @@ def parse_cases(value):
 
 
 def runtime(plan):
-    sources = [Path("data/processed/refactoring/" + name + ".jsonl") for name in ["train", "val"]]
+    """Refactoring adapters are trained on the v3 / v3_onto twins of one shared manifest."""
+    sources = {split: [Path(f"data/processed/{root}/refactoring/{split}.jsonl") for root in ("v3", "v3_onto")]
+               for split in ("train", "val")}
     return shared.runtime().model_copy(update={
-        "hf_model_name": "b2_refactoring_v2", "prompt_profile": None,
-        "max_new_tokens": plan["max_new_tokens"], "training_sources": sources[:1],
-        "validation_sources": sources[1:], "checkpoint_selection_sources": sources[1:]})
+        "hf_model_name": plan["adapters"]["ft_refactoring"], "prompt_profile": None,
+        "max_new_tokens": plan["max_new_tokens"], "training_sources": sources["train"],
+        "validation_sources": sources["val"], "checkpoint_selection_sources": sources["val"]})
 
 
 def instruction(case):
@@ -112,13 +121,22 @@ def instruction(case):
             + "\nAllowed file_path: " + case["file_path"])
 
 
-def render(case, skill="", evidence=""):
+def arm_instruction(case, skill="", evidence="", block=""):
+    """The instruction of every arm: contract, then skill or evidence, then the ontology block.
+    The FT arms send exactly this to ``generate_prediction``, so the frozen prompt and the
+    model call cannot diverge."""
     context = instruction(case)
     if skill:
         context += "\n<process-skill>\n" + skill + "\n</process-skill>\nThe single-response JSON contract takes precedence."
     if evidence:
         context += "\n<retrieved-evidence>\n" + evidence + "\n</retrieved-evidence>"
-    return format_inference_prompt(context, case["before"])
+    if block:
+        context = shared.with_ontology(context, block)
+    return context
+
+
+def render(case, skill="", evidence="", block=""):
+    return format_inference_prompt(arm_instruction(case, skill, evidence, block), case["before"])
 
 
 def prompt_screen(root, plan):
@@ -189,6 +207,14 @@ class Matrix:
     def prompts(self, case, arm):
         return self.root / "cases" / case["id"] / "frozen_prompts" / arm
 
+    def block(self, case, arm):
+        if arm not in shared.ONTOLOGY_ARMS:
+            return ""
+        return shared.frozen_block(self.root / "cases" / case["id"] / "ontology")
+
+    def arm_instruction(self, case, arm, skill=""):
+        return arm_instruction(case, skill if arm in shared.SKILL_ARMS else "", block=self.block(case, arm))
+
     def dispatches(self):
         paths = list(self.root.glob("cases/*/predictions/*/dispatch.json"))
         if len(paths) > self.maximum or any(p.parents[2].name not in self.ids
@@ -221,8 +247,8 @@ class Matrix:
                     or control["expected_tests"] != case["expected_tests"]
                     or sha(case["before"]) != case["before_sha256"]):
                 raise ValueError("Invalid/mismatching preparation evidence")
-        identity = shared.hf_identity(config)
-        write(self.root / "hf_identity.json", identity)
+        identities = shared.freeze_hf_identities(self.root, config, self.plan["adapters"])
+        identity = read(identities[self.plan["adapters"]["ft_refactoring"]])
         rag = load_rag_config(config.retrieval_config)
         if (rag.llm.base_url != "http://localhost:11434" or rag.embeddings.base_url != "http://localhost:11434"
                 or rag.llm.provider != "ollama" or rag.embeddings.provider != "ollama"):
@@ -247,18 +273,21 @@ class Matrix:
         retriever = VectorRetriever(create_vector_store(rag))
         skill = ex.read_utf8(self.root / "context/SKILL.md")
         golds = [read(self.root / "preparation" / c["id"] / "reference-private.json")["source"] for c in self.cases]
-        for case in self.cases:
+        for case, gold in zip(self.cases, golds):
+            # Public inputs only (before, operation, target lines, request); gold is forbidden text.
+            shared.freeze_ontology(self.root / "cases" / case["id"] / "ontology",
+                                   lambda: ontology.refactoring_context(case, forbidden=(gold,)),
+                                   self.plan["ontology_schema_version"])
             for arm in ARMS:
                 out = self.prompts(case, arm)
                 out.mkdir(parents=True, exist_ok=True)
-                prompt = render(case, skill if arm == "skills" else "")
-                if arm in {"rag_single", "rag_multi"}:
+                prompt = format_inference_prompt(self.arm_instruction(case, arm, skill), case["before"])
+                if arm == "rag_single":
                     query = build_retrieval_query(strategy=rag.retrieval.query_strategy, task="refactoring",
                         input_text=case["before"], requirements=instruction(case),
                         structured_identity={"class_name": case["class_name"], "focal_method": case["target"]["method"]})
                     found = retriever.retrieve(RetrievalRequest(query=query,
-                        mode=RetrievalMode.SINGLE_COLLECTION_RAG if arm == "rag_single" else RetrievalMode.MULTI_COLLECTION_RAG,
-                        collections=["refactoring_db"] if arm == "rag_single" else ["testing_db", "refactoring_db"],
+                        mode=RetrievalMode.SINGLE_COLLECTION_RAG, collections=["refactoring_db"],
                         max_context_tokens=12000,
                         allowed_splits=["train"], top_k=rag.retrieval.top_k,
                         per_collection_top_k=rag.retrieval.per_collection_top_k,
@@ -296,8 +325,9 @@ class Matrix:
             if ex.file_sha256(Path(p)) != digest:
                 raise ValueError("Basic overlap audit is stale: " + p)
         frozen_files = {str(p): ex.file_sha256(p) for p in self.root.rglob("*") if p.is_file()
-                        and ("frozen_prompts" in p.parts or "preparation" in p.parts or p.name in {"matrix_plan.json", "selection.json",
-                            "accepted.json", "qa.json", "reference-private.json", "hf_identity.json", "SKILL.md", "identity.json", "ollama_identity.json"})}
+                        and ("frozen_prompts" in p.parts or "preparation" in p.parts or "ontology" in p.parts
+                             or "hf_identity" in p.parts or p.name in {"matrix_plan.json", "selection.json",
+                            "accepted.json", "qa.json", "reference-private.json", "SKILL.md", "identity.json", "ollama_identity.json"})}
         frozen_files.update({str(p.resolve()): ex.file_sha256(p) for p in manifests})
         frozen_files.update(inputs)
         frozen_files.update({str(REPO / self.plan["overlap_report"]): ex.file_sha256(REPO / self.plan["overlap_report"])})
@@ -342,10 +372,10 @@ class Matrix:
             for path, digest in frozen[group].items():
                 if ex.file_sha256(Path(path)) != digest:
                     raise ValueError("Frozen dependency changed: " + path)
-        hf = read(self.root / "hf_identity.json")
-        for path, pin in hf["files"].items():
-            if ex.file_sha256(Path(path)) != pin["sha256"]:
-                raise ValueError("Model changed: " + path)
+        for name in sorted(set(self.plan["adapters"].values())):
+            for path, pin in read(self.root / "hf_identity" / (name + ".json"))["files"].items():
+                if ex.file_sha256(Path(path)) != pin["sha256"]:
+                    raise ValueError("Model changed: " + path)
         rag = load_rag_config(runtime(self.plan).retrieval_config)
         if frozen["index"] != index_identity(rag.vector_store.persist_path):
             raise ValueError("Index content changed")
@@ -358,8 +388,10 @@ class Matrix:
             return
         config, loaded = runtime(self.plan), None
         try:
-            if arm == "ft_refactoring":
-                identity = read(self.root / "hf_identity.json")
+            if arm in FT_ARMS:
+                identity = shared.arm_hf_identity(self.root, self.plan["adapters"], arm)
+                write(self.root / (arm + "-loaded_identity.json"), {"adapter": self.plan["adapters"][arm],
+                    "verified_at": shared.now(), "files": identity["files"]})
                 loaded = shared.load_eval_model(identity["model"], {**identity["inference"],
                     "local_files_only": True, "trust_remote_code": False})
             for case in self.cases:
@@ -370,19 +402,19 @@ class Matrix:
                 ledger, start, raw = Ledger(self, case, arm), perf_counter(), ""
                 prompt = ex.read_utf8(self.prompts(case, arm) / "prompt.txt")
                 try:
-                    if arm == "ft_refactoring":
+                    if arm in FT_ARMS:
                         import torch
                         from llm_ontology.evaluation.hf_inference import generate_prediction
                         model, tokenizer = loaded
                         torch.manual_seed(self.plan["seed"])
                         if torch.cuda.is_available():
                             torch.cuda.manual_seed_all(self.plan["seed"])
-                        # Exact same instruction envelope used at freeze, no cleanup/repair.
-                        inst = instruction(case)
-                        ledger.charge({"prompt": format_inference_prompt(inst, case["before"])})
+                        # Same instruction function as at freeze; the ledger compares the string the
+                        # tokenizer actually received with the frozen prompt before charging.
+                        inst = self.arm_instruction(case, arm)
                         _, metadata = generate_prediction(model, tokenizer, "refactoring", inst, case["before"],
                             {"max_new_tokens": self.plan["max_new_tokens"], "do_sample": False, "top_p": .9,
-                             "repetition_penalty": 1.0})
+                             "repetition_penalty": 1.0}, on_prompt=lambda sent: ledger.charge({"prompt": sent}))
                         raw = metadata["raw_response"]
                         write(out / "generation_metadata.json", metadata)
                         truncated = metadata["output_truncated"]
@@ -486,18 +518,20 @@ class Matrix:
             arms[arm] = {"successes": successes, "denominator": len(self.cases), "actual_calls": calls}
         pairs = {}
         cells = {(r["id"], r["arm"]): r for r in rows}
-        for n, a in enumerate(ARMS):
-            for b in ARMS[n + 1:]:
-                pair = {"a_only": 0, "b_only": 0, "both": 0, "neither": 0, "unresolved": 0}
-                for ident in self.ids:
-                    left, right = cells[ident, a], cells[ident, b]
-                    if any(r["status"] in {"pending", "generated", "interrupted_unresolved"} for r in [left, right]):
-                        pair["unresolved"] += 1
-                        continue
-                    key = "both" if left["structural_success"] and right["structural_success"] else "a_only" if left["structural_success"] else "b_only" if right["structural_success"] else "neither"
-                    pair[key] += 1
-                pair["significance"] = mcnemar_exact(pair["a_only"], pair["b_only"])
-                pairs[a + " vs " + b] = pair
+        # Predeclared primary pairs (A = arm with the added context, B = its control).
+        for a, b in self.plan["primary_pairs"]:
+            pair = {"a_only": 0, "b_only": 0, "both": 0, "neither": 0, "unresolved": 0}
+            for ident in self.ids:
+                left, right = cells[ident, a], cells[ident, b]
+                if any(r["status"] in {"pending", "generated", "interrupted_unresolved"} for r in [left, right]):
+                    pair["unresolved"] += 1
+                    continue
+                key = "both" if left["structural_success"] and right["structural_success"] else "a_only" if left["structural_success"] else "b_only" if right["structural_success"] else "neither"
+                pair[key] += 1
+            resolved = pair["both"] + pair["a_only"] + pair["b_only"] + pair["neither"]
+            pair["difference_pp"] = (100 * (pair["a_only"] - pair["b_only"]) / resolved) if resolved else None
+            pair["significance"] = mcnemar_exact(pair["a_only"], pair["b_only"])
+            pairs[a + " vs " + b] = pair
         adjusted = holm({key: pair["significance"]["p_value"] for key, pair in pairs.items()})
         for key, pair in pairs.items():
             pair["significance"].update(adjusted[key])
@@ -531,9 +565,11 @@ class Matrix:
         lines += ["", "| Arm | Source | Operation | Structural success |", "|---|---|---|---:|"]
         lines += [f"| {a} | {g['source']} | {g['operation']} | {g['successes']}/{g['denominator']} |"
                   for a, s in arms.items() for g in s["by_source_and_type"]]
-        lines += ["", "## Paired structural success (exact McNemar, Holm across pairs)", "",
-                  "| Pair | Both | A only | B only | Neither | Unresolved | p | p Holm |", "|---|---:|---:|---:|---:|---:|---:|---:|"]
+        lines += ["", "## Primary pairs: structural success (exact McNemar, Holm across the predeclared pairs)", "",
+                  "| Pair (A vs B) | Both | A only | B only | Neither | Unresolved | Δ A−B (pp) | p | p Holm |",
+                  "|---|---:|---:|---:|---:|---:|---:|---:|---:|"]
         lines += [f"| {k} | {v['both']} | {v['a_only']} | {v['b_only']} | {v['neither']} | {v['unresolved']} | "
+                  + ("n/a" if v["difference_pp"] is None else f"{v['difference_pp']:+.1f}") + " | "
                   f"{_fmt_p(v['significance']['p_value'])} | {_fmt_p(v['significance']['p_holm'])} |" for k, v in pairs.items()]
         lines += ["", "Pending/infra failures are not passes; all planned cells remain in denominators.",
                   "Passing checks is not proof of full behavioral equivalence.", self.plan["backend_caveat"], result["sampling_caveat"]]

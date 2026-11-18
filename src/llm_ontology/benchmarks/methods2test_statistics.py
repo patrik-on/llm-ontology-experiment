@@ -20,7 +20,8 @@ import xml.etree.ElementTree as ET
 
 from llm_ontology.benchmarks.paired_tests import holm, mcnemar_exact, wilcoxon_signed_rank
 
-ARMS = ("qwen_base", "ft_testing", "rag_single", "rag_multi")
+ARMS = ("qwen_base", "onto_project", "skills", "skills_onto", "rag_single",
+        "ft_testing", "ft_v3_onto", "ft_onto")
 SCOPES = ("method", "class")
 COUNTERS = ("line", "branch")
 Z95 = 1.959963984540054
@@ -220,11 +221,15 @@ def _paired_summary(values: list[tuple[str, float, float]], kind: str = "continu
     }
 
 
-def paired_comparisons(rows: list[dict], references: dict, ids: list[str], arms=ARMS) -> list[dict]:
-    """Pair by original case identity, never by arm rate or observed pass subset."""
+def paired_comparisons(rows: list[dict], references: dict, ids: list[str], arms=ARMS,
+                       pairs=None) -> list[dict]:
+    """Pair by original case identity, never by arm rate or observed pass subset.
+
+    ``pairs`` are the predeclared (A, B) comparisons; Holm runs across exactly those.
+    Without them every arm combination is compared."""
     cells = {(r["id"], r["arm"]): r for r in rows}
     result = []
-    for a, b in combinations(arms, 2):
+    for a, b in (pairs if pairs is not None else combinations(arms, 2)):
         pairs = [
             (i, cells[i, a], cells[i, b])
             for i in ids
@@ -413,7 +418,8 @@ def _row(root: Path, ident: str, arm: str) -> dict:
     return row
 
 
-def aggregate(root: Path | str, *, arms=ARMS, output: Path | str | None = None) -> dict[str, Any]:
+def aggregate(root: Path | str, *, arms=ARMS, pairs=None,
+              output: Path | str | None = None) -> dict[str, Any]:
     """Aggregate existing stored evidence, without generation, execution or old writes.
 
     All-attempt denominators use actually dispatched cells, including failed calls;
@@ -438,9 +444,11 @@ def aggregate(root: Path | str, *, arms=ARMS, output: Path | str | None = None) 
     ):
         raise ValueError("Selection ids must be unique safe case identifiers")
     arms = tuple(arms)
-    allowed = (*ARMS, "skills")
-    if not arms or len(set(arms)) != len(arms) or any(a not in allowed for a in arms):
+    if not arms or len(set(arms)) != len(arms) or any(a not in ARMS for a in arms):
         raise ValueError("Require distinct known comparison arms")
+    pairs = None if pairs is None else [tuple(p) for p in pairs]
+    if pairs is not None and any(len(p) != 2 or p[0] == p[1] or set(p) - set(arms) for p in pairs):
+        raise ValueError("Comparison pairs must name two different aggregated arms")
     references = {
         i: _read(root / "cases" / i / "reference-coverage/coverage.json", optional=True).get(
             "coverage"
@@ -508,7 +516,8 @@ def aggregate(root: Path | str, *, arms=ARMS, output: Path | str | None = None) 
         "max_actual_calls": len(ids) * len(arms),
         "attempts_per_cell": 1,
         "paired_matrix": rows,
-        "paired_comparisons": paired_comparisons(rows, references, ids, arms),
+        "paired_comparisons": paired_comparisons(rows, references, ids, arms, pairs),
+        "comparison_pairs": "predeclared" if pairs is not None else "all_arm_combinations",
         "bug_detection": "not_applicable_no_buggy_revisions",
         "scientific_final_score": False,
         "denominator_policy": "Actual dispatched cells, including generation failures; unattempted cells explicit, not failures.",

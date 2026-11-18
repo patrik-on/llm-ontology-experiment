@@ -40,6 +40,7 @@ from llm_ontology.benchmarks.evaluation_generation import (
     generation_failure_payload,
     hf_identity,
     load_eval_model,
+    verify_hf_identity,
 )
 
 from llm_ontology.inference.experiment_runner import RagExperimentRunner
@@ -56,9 +57,16 @@ from llm_ontology.retrieval.config import load_rag_config
 
 from llm_ontology.retrieval.pipeline import VectorRetriever
 
-ARMS = ("qwen_base", "ft_testing", "rag_single", "rag_multi")
+# Testing-matrix arms, in generation order (Ollama arms first, then the HF arms).
+ARMS = ("qwen_base", "onto_project", "skills", "skills_onto", "rag_single",
+        "ft_testing", "ft_v3_onto", "ft_onto")
 
-PROTOCOL = "methods2test_systems_skills_v1"
+# Arms whose prompt carries the frozen project-ontology block (via ontology.with_ontology),
+# and arms whose prompt carries the pinned SKILL.md. Shared by both matrices.
+ONTOLOGY_ARMS = frozenset({"onto_project", "skills_onto", "ft_v3_onto", "ft_onto"})
+SKILL_ARMS = frozenset({"skills", "skills_onto"})
+
+PROTOCOL = "methods2test_systems_ontology_v2"
 
 OPTIONS = {"temperature": 0.0, "top_p": 0.9, "num_predict": 4096, "num_ctx": 32768, "seed": 42}
 
@@ -343,6 +351,61 @@ def runtime():
     )
 
 
+def check_arm_plan(plan, arms, ft_arms):
+    """Shared plan checks: the FT arm -> adapter map and the predeclared primary pairs."""
+    if set(plan.get("adapters", {})) != set(ft_arms) or not all(plan["adapters"].values()):
+        raise ValueError("Every FT arm needs exactly one named adapter")
+    pairs = plan.get("primary_pairs", [])
+    if not pairs or any(len(p) != 2 or p[0] == p[1] or set(p) - set(arms) for p in pairs):
+        raise ValueError("Primary pairs must name two different planned arms")
+    if len({tuple(p) for p in pairs}) != len(pairs):
+        raise ValueError("Duplicate primary pair")
+
+
+def freeze_hf_identities(root, config, adapters):
+    """One hashed identity per adapter, written to hf_identity/<adapter>.json."""
+    paths = {}
+    for name in sorted(set(adapters.values())):
+        identity = hf_identity(config.model_copy(update={"hf_model_name": name}))
+        paths[name] = Path(root) / "hf_identity" / (name + ".json")
+        durable_json(paths[name], identity)
+    return paths
+
+
+def arm_hf_identity(root, adapters, arm):
+    """The frozen identity of this arm's adapter, re-hashed right before loading."""
+    return verify_hf_identity(read(Path(root) / "hf_identity" / (adapters[arm] + ".json")))
+
+
+def freeze_ontology(directory, build, schema_version):
+    """Write the case's ontology block and its identity once, at freeze; arms read it back."""
+    from llm_ontology import ontology
+
+    block, identity = build()
+    if identity["schema_version"] != schema_version or ontology.SCHEMA_VERSION != schema_version:
+        raise ValueError("Ontology schema differs from the planned schema version")
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / "block.txt").write_text(block, encoding="utf-8")
+    durable_json(directory / "identity.json", identity)
+    return block
+
+
+def frozen_block(directory):
+    """The frozen block, checked against its stored hash."""
+    directory = Path(directory)
+    block = (directory / "block.txt").read_text(encoding="utf-8")
+    if sha(block) != read(directory / "identity.json")["block_sha256"]:
+        raise ValueError("Frozen ontology block changed: " + str(directory))
+    return block
+
+
+def with_ontology(instruction, block):
+    from llm_ontology import ontology
+
+    return ontology.with_ontology(instruction, block)
+
+
 def ft_case(case):
     instruction = (
         case.instruction
@@ -358,6 +421,15 @@ def ft_case(case):
 
 __all__ = [
     "ARMS",
+    "ONTOLOGY_ARMS",
+    "SKILL_ARMS",
+    "arm_hf_identity",
+    "check_arm_plan",
+    "freeze_hf_identities",
+    "freeze_ontology",
+    "frozen_block",
+    "verify_hf_identity",
+    "with_ontology",
     "InfrastructureFailure",
     "Ledger",
     "OllamaProvider",
