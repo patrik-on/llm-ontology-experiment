@@ -1,5 +1,7 @@
 # Priebežný report k diplomovej práci: `baseline_v1` a návrh V2
 
+> **Historický report** k starším smoke behom (24 ručných prípadov, proxy metriky). Smoke evaluátor aj jeho výstupy `artifacts/experiments/smoke/...` boli z aktívneho projektu odstránené, preto sú cesty nižšie len informatívne. Aktuálny protokol: [návrh evaluácií](evaluation_design_2026-11-13.md).
+
 ## Výsledok `baseline_v1`
 
 Experiment obsahoval 24 smoke prípadov × 3 režimy, spolu 72 behov. Všetkých 72 behov

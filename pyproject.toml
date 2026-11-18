@@ -5,6 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "llm-ontology-experiment"
 version = "0.1.0"
+license = { text = "MIT" }
 description = "Controlled Direct, RAG, and MultiRAG experiments for Java software engineering tasks."
 readme = "README.md"
 requires-python = ">=3.11"

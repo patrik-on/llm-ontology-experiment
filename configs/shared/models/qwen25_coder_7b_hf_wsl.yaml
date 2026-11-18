@@ -1,8 +1,8 @@
 model:
   status: "legacy_not_final"
   provider: "huggingface"
-  name: "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct"
-  tokenizer_name: "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct"
+  name: "${LLM_ONTOLOGY_MODELS_ROOT}/huggingface/Qwen2.5-Coder-7B-Instruct"
+  tokenizer_name: "${LLM_ONTOLOGY_MODELS_ROOT}/huggingface/Qwen2.5-Coder-7B-Instruct"
   hub_id: "Qwen/Qwen2.5-Coder-7B-Instruct"
   architecture: "causal_lm"
   language_focus: "code"

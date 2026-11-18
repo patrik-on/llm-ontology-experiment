@@ -1,5 +1,7 @@
 # Report k diplomovej práci: výsledky `baseline_v2`
 
+> **Historický report** k starším smoke behom (24 ručných prípadov, proxy metriky). Smoke evaluátor aj jeho výstupy `artifacts/experiments/smoke/...` boli z aktívneho projektu odstránené, preto sú cesty nižšie len informatívne. Aktuálny protokol: [návrh evaluácií](evaluation_design_2026-11-13.md).
+
 ## Zhrnutie
 
 Experiment `baseline_v2` bol 21. augusta 2026 úspešne dokončený v canonical WSL
@@ -36,9 +38,9 @@ výstupov prešlo Java parserom. Hlavný záver preto je:
 | Wall-clock čas | približne 18,74 minúty |
 
 Modelové digesty, identity troch Chroma kolekcií a presná efektívna konfigurácia sú uložené
-v [environment.json](artifacts/experiments/smoke/baseline_v2/environment.json) a
-[effective_config.yaml](artifacts/experiments/smoke/baseline_v2/effective_config.yaml).
-Kompletnou primárnou evidenciou je [runs.jsonl](artifacts/experiments/smoke/baseline_v2/runs.jsonl).
+v `artifacts/experiments/smoke/baseline_v2/environment.json` a
+`artifacts/experiments/smoke/baseline_v2/effective_config.yaml`.
+Kompletnou primárnou evidenciou je `artifacts/experiments/smoke/baseline_v2/runs.jsonl`.
 
 ## Hlavné proxy výsledky V2
 
@@ -66,8 +68,8 @@ dostali 8,2877. Alternatíva RAG vyzerá behaviorálne rozumne, ale bez spusteni
 Naopak, pri `refactoring_medium_002` sa výstupy líšia prakticky iba prázdnymi riadkami, no
 proxy code-health skóre sa zmenilo o celý bod. To ukazuje citlivosť heuristiky na formátovanie.
 
-Podrobnosti sú v [summary.json](artifacts/experiments/smoke/baseline_v2/summary.json) a
-[case_comparison.csv](artifacts/experiments/smoke/baseline_v2/case_comparison.csv).
+Podrobnosti sú v `artifacts/experiments/smoke/baseline_v2/summary.json` a
+`artifacts/experiments/smoke/baseline_v2/case_comparison.csv`.
 
 ## Porovnanie V1 a V2
 
@@ -110,7 +112,7 @@ kolekcie sa dopytujú paralelne a opačná tasková kolekcia po aplikovaní filt
 kandidátov.
 
 Kompletné tokenové a retrieval údaje sú v
-[retrieval_analysis.json](artifacts/experiments/smoke/baseline_v2/retrieval_analysis.json).
+`artifacts/experiments/smoke/baseline_v2/retrieval_analysis.json`.
 
 ## Single RAG verzus MultiRAG
 

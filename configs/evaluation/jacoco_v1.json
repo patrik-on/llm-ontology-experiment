@@ -25,7 +25,7 @@
       "upstream_sha1": "9063bfcd2729fd0b1252793a5c09b9a63c8f724c"
     }
   },
-  "download_directory": "/home/patrik/benchmark-work/downloads",
+  "download_directory": "${LLM_ONTOLOGY_WORK_ROOT}/downloads",
   "measurement_contract": {
     "production": "focal .class only, compiled with -g",
     "execution": "shared evaluate_revision, java_options optional and default unchanged",
