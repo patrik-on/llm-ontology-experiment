@@ -18,6 +18,12 @@ def test_all_llm_ontology_modules_import() -> None:
 
 
 def test_training_import_in_fresh_process():
+    import os
     import subprocess
     import sys
-    subprocess.run([sys.executable, "-c", "from llm_ontology.finetuning.training.finetuning import build_tokenized_training_example; from llm_ontology.approaches import ApproachPromptBuilder, get_approach; assert get_approach('direct').name == 'direct'"], check=True, timeout=30)
+    from pathlib import Path
+
+    # The fresh interpreter must find the package even without `pip install -e .`.
+    src = str(Path(__file__).resolve().parents[1] / "src")
+    env = {**os.environ, "PYTHONPATH": os.pathsep.join(filter(None, [src, os.environ.get("PYTHONPATH")]))}
+    subprocess.run([sys.executable, "-c", "from llm_ontology.finetuning.training.finetuning import build_tokenized_training_example; from llm_ontology.approaches import ApproachPromptBuilder, get_approach; assert get_approach('direct').name == 'direct'"], check=True, timeout=30, env=env)

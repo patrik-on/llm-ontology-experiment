@@ -112,6 +112,7 @@ def test_ledger_never_retries_and_checks_prompt(tmp_path):
     assert ledger.charged
 
 
+@pytest.mark.local_data
 def test_dry_run_no_runtime_or_writes(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(matrix.REPO)
     monkeypatch.setattr(matrix, "REPO", tmp_path)
@@ -123,12 +124,13 @@ def test_dry_run_no_runtime_or_writes(tmp_path, monkeypatch, capsys):
     assert not list(tmp_path.iterdir())
 
 
-@pytest.mark.parametrize("cases", [0, -1, 100000, "bad", "1.5"])
+@pytest.mark.parametrize("cases", [0, -1, pytest.param(100000, marks=pytest.mark.local_data), "bad", "1.5"])
 def test_bounded_case_count(cases):
     with pytest.raises(ValueError):
         matrix.load_plan(cases)
 
 
+@pytest.mark.local_data
 def test_expanded_case_count_and_all():
     plan = matrix.load_plan(6)
     assert plan["cases"] == 6 and plan["pool_size"] > 5
@@ -152,6 +154,7 @@ def fake_matrix(tmp_path):
     return m
 
 
+@pytest.mark.local_data
 def test_provider_dispatch_contract_and_resume(tmp_path, monkeypatch):
     from llm_ontology.inference.ollama_client import OllamaGenerationResult
     m = fake_matrix(tmp_path)
@@ -174,6 +177,7 @@ def test_provider_dispatch_contract_and_resume(tmp_path, monkeypatch):
     assert len(count) == 1
 
 
+@pytest.mark.local_data
 def test_report_pending_and_failed_stay_in_denominator(tmp_path):
     m = fake_matrix(tmp_path)
     out = m.out(m.cases[0], "qwen_base")
@@ -186,6 +190,7 @@ def test_report_pending_and_failed_stay_in_denominator(tmp_path):
     assert report["paired"]["qwen_base vs skills"]["unresolved"] == 1
 
 
+@pytest.mark.local_data
 def test_ollama_boundary_validates_and_unloads_before_next_backend(tmp_path, monkeypatch):
     from io import BytesIO
     from urllib.request import Request
@@ -209,6 +214,7 @@ def test_ollama_boundary_validates_and_unloads_before_next_backend(tmp_path, mon
     assert matrix.read(out / "dispatch.json")["request"] == received[0]
 
 
+@pytest.mark.local_data
 @pytest.mark.parametrize("prefix", ["12dbeafe", "c28eff3"])
 def test_real_miner_extract_and_inline_when_installed(tmp_path, prefix):
     plan = matrix.load_plan()
