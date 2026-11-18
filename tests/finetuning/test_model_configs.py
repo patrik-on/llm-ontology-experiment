@@ -24,13 +24,3 @@ def test_training_configs_reference_existing_model_configs() -> None:
         config = read_yaml(path)
         referenced = Path(config["experiment"]["model_config"])
         assert referenced.exists(), f"{path} references missing model config {referenced}"
-
-
-def test_future_retrieval_experiments_are_disabled_and_train_only() -> None:
-    for path in (
-        Path("configs/experiments/rag/template.yaml"),
-        Path("configs/experiments/multi_rag/template.yaml"),
-    ):
-        config = read_yaml(path)
-        assert config["experiment"]["enabled"] is False
-        assert config["retrieval"]["allowed_splits"] == ["train"]

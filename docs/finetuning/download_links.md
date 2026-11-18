@@ -91,7 +91,7 @@ Bez modelu, datasetov a adapterov je stale mozne overit kod:
 python -m pip install -e ".[dev]"
 python -m compileall -q src scripts tests
 python -m pytest tests
-python scripts/evaluation/smoke_eval_metrics.py
+python scripts/benchmarks/run_testing_matrix.py --run-id model-check --dry-run
 ```
 
 ## Model evaluation after downloads
@@ -99,7 +99,6 @@ python scripts/evaluation/smoke_eval_metrics.py
 Po stiahnuti base modelu, priprave test datasetov a rozbaleni adapterov:
 
 ```bash
-python scripts/run_full_evaluation.py \
   --models-config configs/evaluation/eval_models_v2_only.yaml \
   --limit 5 \
   --run-id v2_final_smoke \
@@ -107,3 +106,5 @@ python scripts/run_full_evaluation.py \
 ```
 
 Finalny limit 50/100 spustaj az po tom, co prejde smoke beh.
+
+Evaluation entry points are documented in [current evaluation](../evaluation/README.md). Training/retrieval utilities do not define additional evaluation protocols.

@@ -5,7 +5,6 @@ annotation removal or semantic repairs. javac is the dependency arbiter.
 """
 
 from __future__ import annotations
-import argparse
 from collections import Counter
 import hashlib
 import json
@@ -15,22 +14,22 @@ import sqlite3
 import tarfile
 from datetime import datetime, timezone
 
-from llm_ontology.benchmarks.defects4j_execution import (
+from llm_ontology.benchmarks.java_execution import (
     file_sha256,
     evaluate_revision,
     write_json,
     run_process,
     clean_env,
 )
-from llm_ontology.benchmarks.methods2test import wrap_record
+from llm_ontology.benchmarks.methods2test_harness import wrap_record
 from llm_ontology.inference.experiment_runner import ExperimentCase
 from llm_ontology.inference.prompting import testing_bodies_one_shot_v2 as profile
 from llm_ontology.inference.prompting.testing_bodies_v1 import scaffold, sha
-from llm_ontology.benchmarks.methods2test_pilot import runtime
+from llm_ontology.benchmarks.matrix_support import runtime
 from llm_ontology.benchmarks.methods2test_metrics import measure
 from llm_ontology.ingestion.identity import normalize_java_for_hash, java_code_hash
 
-CONFIG = Path("configs/benchmarks/methods2test_eval_hundred_v1.json")
+CONFIG = Path("configs/benchmarks/testing_matrix_v1.json")
 ARCHIVE = Path("data/raw/methods2test/dataset/eval.tar.bz2")
 # Explicit JDK packages only. Imports chosen by referenced lexical simple names,
 # not a wildcard dependency injection. Ambiguous collision types are rejected.
@@ -141,7 +140,7 @@ def infer_spec(d):
 
 
 def historical_selection_ids(current_root=None):
-    result = set()
+    result = set(json.loads(CONFIG.read_text()).get("prior_explored_case_ids", []))
     for p in Path("artifacts/evaluation/runs").glob("*/selection.json"):
         if current_root is not None and p.parent.resolve() == current_root.resolve():
             continue
@@ -183,10 +182,6 @@ def snapshots(current_root=None):
     with Path("data/processed/testing/test.jsonl").open() as f:
         for line in f:
             ids.add(Path(json.loads(line).get("source_file", "")).stem.replace("_corpus", ""))
-    prior = Path("artifacts/m2t_eval_screen/candidates_private.json")
-    if prior.exists():
-        # All previously inspected shortlisting candidates, not only five winners.
-        ids.update(x["id"] for x in json.loads(prior.read_text()))
     ids.update(historical_selection_ids(current_root))
     db = Path("data/chroma/ollama_bge_m3_v3/chroma.sqlite3")
     con = sqlite3.connect("file:" + str(db) + "?mode=ro", uri=True)
@@ -392,11 +387,11 @@ def prepare_record_general(record, spec, output, c, dependencies):
     return prepared
 
 
-def prepare(root):
+def prepare(root, *, config=None):
     root.mkdir(parents=True, exist_ok=True)
     if (root / "freeze.json").exists() or list(root.glob("cases/*/predictions/*/dispatch.json")):
         raise ValueError("No preparation after freeze or generation")
-    config = json.loads(CONFIG.read_text())
+    config = json.loads(CONFIG.read_text()) if config is None else dict(config)
     cap = config["selection_screen"]
     c = runtime()
     write_json(root / "selection_protocol.json", config)
@@ -577,19 +572,3 @@ def prepare(root):
             f"Only {len(selected)} honestly prepared; no partial generation permitted"
         )
     print("PREPARED", len(selected), "PROJECTS", len(project_counts), "MODEL_CALLS 0", flush=True)
-
-
-def main():
-    p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--run-id", required=True)
-    a = p.parse_args()
-    from llm_ontology.benchmarks.defects4j import require_wsl
-    from llm_ontology.evaluation.run_layout import validate_evaluation_run_id
-
-    require_wsl()
-    validate_evaluation_run_id(a.run_id)
-    prepare((Path("artifacts/evaluation/runs") / a.run_id).resolve())
-
-
-if __name__ == "__main__":
-    main()

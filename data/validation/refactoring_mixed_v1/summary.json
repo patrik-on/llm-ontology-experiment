@@ -1,0 +1,32 @@
+{
+  "accepted": 100,
+  "model_calls": 0,
+  "sources": {
+    "marv": 35,
+    "ml4refactoring": 60,
+    "swe": 5
+  },
+  "source_and_operation": {
+    "marv": {
+      "Rename Variable": 9,
+      "Remove Parameter": 8,
+      "Rename Method": 9,
+      "Extract Method": 9
+    },
+    "ml4refactoring": {
+      "Replace Variable With Attribute": 10,
+      "Parameterize Variable": 10,
+      "Inline Variable": 10,
+      "Extract Variable": 10,
+      "Rename Parameter": 10,
+      "Rename Class": 10
+    },
+    "swe": {
+      "Extract Method": 4,
+      "Inline Method": 1
+    }
+  },
+  "endpoint": "requested operation and concrete target only; additional changes unscored for structural cases",
+  "swe_deep_qa": true,
+  "catalogue": "catalogue.csv"
+}

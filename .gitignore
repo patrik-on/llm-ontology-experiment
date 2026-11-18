@@ -38,6 +38,9 @@ dist/
 *.tmp
 *.temp
 
+# Local working documents and temporary notes
+/tmp/
+
 # Raw and processed data
 data/raw/**
 data/processed/**

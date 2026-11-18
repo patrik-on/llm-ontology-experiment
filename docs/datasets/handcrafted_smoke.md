@@ -1,5 +1,7 @@
 # Handcrafted smoke dataset
 
+> Archívny datasetový podklad. Jeho pôvodný smoke evaluátor bol odstránený; aktívne evaluácie sú výhradne Methods2Test matica a SWE refactoring matica.
+
 `handcrafted_smoke_v1` je malý, ručne kontrolovateľný referenčný dataset pre
 Java test generation a refactoring. Slúži na smoke/regresné overenie,
 debugovanie Direct/RAG/MultiRAG, kontrolu promptov a evaluátorov a malé pilotné

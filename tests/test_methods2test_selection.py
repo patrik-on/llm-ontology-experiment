@@ -114,4 +114,7 @@ def test_resume_preserves_own_ids_and_excludes_historical(tmp_path, monkeypatch)
     other = root.parent / "old"
     other.mkdir()
     (other / "selection.json").write_text(json.dumps({"ids": ["old_case"]}))
-    assert historical_selection_ids(root) == {"old_case"}
+    config = tmp_path / "configs/benchmarks/testing_matrix_v1.json"
+    config.parent.mkdir(parents=True)
+    config.write_text(json.dumps({"prior_explored_case_ids": ["archived_case"]}))
+    assert historical_selection_ids(root) == {"old_case", "archived_case"}

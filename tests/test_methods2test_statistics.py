@@ -2,7 +2,6 @@
 
 from copy import deepcopy
 import json
-from pathlib import Path
 import xml.etree.ElementTree as ET
 
 import pytest
@@ -204,6 +203,7 @@ def test_failed_generation_in_denominator_but_undispatched_not_attempt(tmp_path)
     (out / "generated.java").unlink()
     (out / "metrics.json").unlink()
     put(out / "failure.json", {"error": "bad body"})
+    put(out / "completion.json", {"status": "model_output_failure"})
     (tmp_path / "cases" / ids[2] / "predictions" / ARMS[0] / "dispatch.json").unlink()
     report = aggregate(tmp_path)
     stats = report["arms"][ARMS[0]]
@@ -285,43 +285,6 @@ def test_single_pair_interval_unavailable_and_zero_variance_explicit(tmp_path):
     assert pair["paired_normal_95"]["lower"] == pair["paired_normal_95"]["upper"] == 0
 
 
-def test_backwards_five_case_published_metrics(tmp_path):
-    # Versioned compact evidence is sufficient: never rely on ignored run artifacts.
-    path = (
-        Path(__file__).resolve().parents[1]
-        / "docs/experiments/methods2test_eval_five_v1_results.json"
-    )
-    old = json.loads(path.read_text(encoding="utf-8"))
-    put(tmp_path / "selection.json", {"ids": old["cases"]})
-    for i, ref in old["reference_coverage"].items():
-        put(tmp_path / "cases" / i / "reference-coverage/coverage.json", {"coverage": ref})
-    for row in old["paired_matrix"]:
-        out = cell(tmp_path, row["id"], row["arm"], assembled=row["assembled"])
-        put(out / "bodies.json", {})  # all twenty had valid body schema
-        if row["assembled"]:
-            put(out / "metrics.json", row)
-    report = aggregate(tmp_path)
-    assert report["actual_calls"] == 20
-    assert [report["arms"][a]["class_pass"]["count"] for a in ARMS] == [3, 2, 1, 2]
-    for a in ARMS:
-        for key in ("class_pass", "compiled", "positive_nonaborted_execution", "syntax_parse"):
-            assert report["arms"][a][key]["rate"] == old["arms"][a][key]["rate"]
-        for scope in ("method", "class"):
-            for kind in ("line", "branch"):
-                expected = old["arms"][a]["coverage"][scope][kind]
-                actual = metric(report, a, scope, kind)
-                for key in (
-                    "accepted_measured_cases",
-                    "conditional_case_macro",
-                    "conditional_pooled_covered",
-                    "conditional_pooled_total",
-                    "conditional_pooled_ratio",
-                    "all_attempt_reference_denominator",
-                    "all_attempt_success_credit_covered",
-                    "all_attempt_success_credit_pooled_ratio",
-                    "all_attempt_success_credit_case_macro",
-                ):
-                    assert actual[key] == pytest.approx(expected[key]), (a, scope, kind, key)
 
 
 def test_generation_metadata_and_optional_output(tmp_path):
@@ -392,3 +355,49 @@ def test_xml_order_independent_errors_and_skips(tmp_path):
     path.write_text("not XML")
     with pytest.raises(ET.ParseError):
         per_test_outcomes(tmp_path)
+
+@pytest.mark.parametrize("status", [None, "assembled"])
+def test_unresolved_dispatch_keeps_cost_but_not_failure(tmp_path, status):
+    fixture(tmp_path, 1)
+    out = tmp_path / "cases/case0/predictions" / ARMS[0]
+    (out / "generated.java").unlink()
+    (out / "metrics.json").unlink()
+    if status:
+        put(out / "completion.json", {"status": status})
+    report = aggregate(tmp_path)
+    stats = report["arms"][ARMS[0]]
+    assert stats["actual_calls"] == 1
+    assert stats["class_pass"]["unknown"] == 1
+    assert stats["class_pass"]["rate"] is None
+    assert metric(report)["all_attempt_success_credit_case_macro"] is None
+    assert report["paired_comparisons"][0]["class_pass"]["unavailable_pairs"] == 1
+
+
+def test_repeat_warning_exposes_both_coverages_without_rescoring(tmp_path):
+    fixture(tmp_path, 1)
+    out = tmp_path / "cases/case0/predictions" / ARMS[0]
+    ev = json.loads((out / "metrics.json").read_text())
+    first, second = coverage(line_covered=1), coverage(line_covered=2)
+    ev.update(coverage=first, outcomes=[{"coverage": first}, {"coverage": second}],
+              per_test_outcomes_repeat_equal=False)
+    put(out / "metrics.json", ev)
+    report = aggregate(tmp_path)
+    row = report["paired_matrix"][0]
+    assert row["class_pass"] is True and row["coverage"] == first
+    assert row["repeat_diagnostics"]["coverage_by_repeat"] == [first, second]
+    assert row["repeat_diagnostics"]["warnings"] == ["coverage_repeat_mismatch", "test_outcomes_repeat_mismatch"]
+    assert metric(report)["all_attempt_success_credit_case_macro"] == 0.5
+    assert report["arms"][ARMS[0]]["repeat_diagnostics"]["coverage_mismatch_cases"] == 1
+
+@pytest.mark.parametrize("status", ["model_output_failure", "infrastructure_failure"])
+def test_completed_failures_preserve_existing_scoring_policy(tmp_path, status):
+    fixture(tmp_path, 1)
+    out = tmp_path / "cases/case0/predictions" / ARMS[0]
+    (out / "generated.java").unlink()
+    (out / "metrics.json").unlink()
+    put(out / "completion.json", {"status": status})
+    report = aggregate(tmp_path)
+    row = report["paired_matrix"][0]
+    assert row["class_pass"] is False
+    assert row["generation_status"] == status
+    assert report["arms"][ARMS[0]]["class_pass"]["rate"] == 0

@@ -1,4 +1,0 @@
-task: "refactoring"
-dataset: "data/processed/refactoring/test.jsonl"
-predictions_dir: "artifacts/evaluation/runs/legacy_v1_full/predictions/refactoring"
-metrics_dir: "artifacts/evaluation/runs/legacy_v1_full/metrics/refactoring"

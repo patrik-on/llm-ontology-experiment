@@ -37,6 +37,14 @@ SUPPORTED_REFACTORING_TYPES = (
     "Remove Parameter",
     "Add Parameter",
     "Rename Variable",
+    "Extract Variable",
+    "Inline Variable",
+    "Rename Parameter",
+    "Parameterize Variable",
+    "Replace Variable With Attribute",
+    "Extract Subclass",
+    "Extract And Move Method",
+    "Move And Rename Class",
 )
 
 
@@ -79,7 +87,8 @@ class ML4RefactoringInspection:
 
 
 def extract_refactoring_type(file_name: str) -> str:
-    for refactoring_type in SUPPORTED_REFACTORING_TYPES:
+    # Combined operations must precede their simple substring (Move Class etc.).
+    for refactoring_type in sorted(SUPPORTED_REFACTORING_TYPES, key=len, reverse=True):
         if refactoring_type in file_name:
             return refactoring_type
     return "unknown"

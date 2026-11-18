@@ -43,3 +43,5 @@ Tento krok volá iba embedding model `bge-m3`; negeneruje odpovede cez
 `qwen2.5-coder:7b`. Až po úspešnom rebuilde a kontrole manifestov sa má vytvoriť
 a zmraziť samostatný `baseline_v3.yaml`. V2 konfigurácia sa na V3 nesmie
 prepisovať.
+
+Evaluation entry points are documented in [current evaluation](../evaluation/README.md). Training/retrieval utilities do not define additional evaluation protocols.

@@ -9,7 +9,7 @@ import xml.etree.ElementTree as ET
 
 import pytest
 
-from llm_ontology.benchmarks import defects4j_execution as shared
+from llm_ontology.benchmarks import java_execution as shared
 from llm_ontology.evaluation import coverage_runner as coverage
 
 

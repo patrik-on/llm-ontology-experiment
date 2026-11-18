@@ -1,7 +1,7 @@
 from llm_ontology.inference.prompts import build_prompt, build_training_text
 from llm_ontology.finetuning.prompt_formatter import format_inference_prompt, format_training_prompt
 from llm_ontology.finetuning.training.finetuning import apply_training_overrides, build_tokenized_training_example, dataset_sample_limits
-from llm_ontology.evaluation.inference_eval import is_lora_model
+from llm_ontology.evaluation.hf_inference import is_lora_model
 
 
 class FakeTokenizer:
@@ -105,3 +105,18 @@ def test_training_ablation_overrides_sample_count_and_seed() -> None:
 
     assert updated["run"]["max_train_samples"] == 500
     assert updated["run"]["seed"] == 43
+
+
+def test_token_diagnostics_do_not_change_features():
+    tokenizer = FakeTokenizer()
+    for output, limit in [("short", 10000), ("long" * 100, 30), ("answer", 55)]:
+        record = {"instruction": "Preserve instruction", "input": "public class A {}", "output": output}
+        stats = {}
+        expected = build_tokenized_training_example(record, tokenizer, limit)
+        actual = build_tokenized_training_example(record, tokenizer, limit, diagnostics=stats)
+        assert actual == expected
+        assert stats["retained_examples"] == 1
+        assert stats["effective_prompt_tokens"] + stats["effective_output_tokens"] == len(actual["input_ids"])
+        assert stats["output_truncated_examples"] == int(len(output + tokenizer.eos_token) > limit - 1)
+        if len(output + tokenizer.eos_token) > limit:
+            assert stats["one_token_prompt_examples"] == 1

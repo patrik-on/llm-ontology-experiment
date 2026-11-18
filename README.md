@@ -1,356 +1,84 @@
 # LLM Ontology Experiment
 
-Experimentálny repozitár porovnáva lokálne jazykové modely pri dvoch úlohách
-nad Java kódom: generovanie JUnit testov a refaktoring. Aktuálny baseline
-porovnáva tri režimy pri rovnakom modeli, prompt contracte a evaluácii:
+Lokálne porovnanie piatich systémov pri dvoch Java úlohách:
 
-- **Direct LLM** (`no_rag`) bez retrievalu,
-- **RAG** (`single_collection_rag`) nad kolekciou `mixed`,
-- **MultiRAG** (`multi_collection_rag`) nad oddelenými kolekciami s RRF.
+- **Methods2Test:** generovanie JUnit testov pre extrahované metódy.
+- **Refactoring:** spoločný SWE + MaRV + ML4Ref pool; SWE navyše overuje pôvodný projekt.
 
-Ontológia, GraphRAG, router, reranker a literárna kolekcia nie sú súčasťou
-aktuálneho baseline.
+Obe matice porovnávajú **baseline, fine-tuned model, Single-RAG, MultiRAG a
+baseline + existujúci skill**. Testing má default 5 prípadov × 5 variantov.
+Refactoring má pripravených **100 úloh: 5 SWE + 35 MaRV + 60 ML4Ref**; podporuje
+menší výber N aj všetkých 100, vždy bez opravných pokusov. MaRV/ML4Ref používajú
+rozumný okolitý kontext a skórujú konkrétny zadaný refactoring; ďalšie zmeny sa
+neskórujú. SWE má navyše pôvodné buildy/testy. Rozdiely HF/PEFT a Ollama
+backendov sa zaznamenávajú; nejde o izolovanú abláciu FT adaptéra.
 
-## Repository Structure
+## Jediné dva eval runnery
 
-Strom ukazuje výskumne dôležité hranice, nie každý implementačný súbor:
+Príkazy sa spúšťajú z koreňa repozitára vo WSL cez `.venv_wsl/bin/python`.
 
-```text
-llm-ontology-experiment/
-│
-├── configs/                         # Verziované nastavenia projektu
-│   ├── shared/                      # Spoločné modely, runtime lock a base config
-│   ├── datasets/                    # Dataset manifesty a spracovanie
-│   ├── finetuning/                  # LoRA/QLoRA tréningové konfigurácie
-│   ├── retrieval/                   # Ollama embeddings, Chroma, RAG a MultiRAG
-│   ├── inference/                   # Samostatné inference nastavenia
-│   ├── evaluation/                  # Modelové matice a evaluation runs
-│   ├── experiments/                 # Direct/RAG/MultiRAG experiment cells
-│   ├── benchmarks/                  # TestBench a SWE-Refactor nastavenia
-│   └── ui/                          # Gradio composition a defaults
-│
-├── src/llm_ontology/                # Hlavný Python source code
-│   ├── core/                        # Config, paths, task names a reproducibility
-│   ├── providers/                   # Ollama/embedding provider hranice
-│   ├── datasets/                    # Loading, príprava a splitovanie datasetov
-│   ├── finetuning/                  # LoRA/QLoRA pipeline a training engine
-│   ├── ingestion/                   # Leakage-safe corpus a chunking pipeline
-│   ├── vectorstore/                 # Izolovaná Chroma persistence vrstva
-│   ├── retrieval/                   # Retrieval, Single RAG, MultiRAG a RRF
-│   ├── approaches/                  # Direct/RAG/MultiRAG prompt stratégie
-│   ├── inference/                   # Prompting, generation a structured output
-│   ├── evaluation/                  # Testing/refactoring metriky a reporting
-│   ├── experiments/                 # Resumable smoke experiment orchestration
-│   ├── benchmarks/                  # TestBench, SWE-Refactor a smoke kontrakty
-│   ├── models/                      # Zdieľané HF model/tokenizer/adapter loading
-│   ├── cli/                         # Manuálne RAG CLI
-│   ├── env/                         # Runtime readiness CLI
-│   └── ui/                          # Gradio prezentačná a debug vrstva
-│
-├── scripts/                         # Tenké spustiteľné workflow vstupy
-│   ├── datasets/                    # Príprava a audit datasetov
-│   ├── finetuning/                  # Training, readiness a masking kontroly
-│   ├── retrieval/                   # Index building a runtime kontroly
-│   ├── inference/                   # Samostatné generation utility
-│   ├── evaluation/                  # Metrics, reports a evaluation runs
-│   └── experiments/                 # Benchmark a experiment orchestration
-│
-├── tests/                           # Automatické unit a integration testy
-│   ├── datasets/                    # Dataset, split a smoke invariants
-│   ├── finetuning/                  # Model/training config kontrakty
-│   ├── retrieval/                   # Embedding, Chroma, RAG a WSL runtime
-│   ├── inference/                   # Generation a shared runner
-│   ├── evaluation/                  # Evaluation metriky
-│   ├── experiments/                 # Benchmark orchestration
-│   └── ui/                          # UI service a mapping
-│
-├── data/                            # Lokálne dáta a verziované smoke fixtures
-│   ├── raw/                         # Zdrojové datasety (veľké sú ignorované)
-│   ├── processed/                   # Reprodukovateľné odvodené splity
-│   ├── chroma/                      # Lokálna ChromaDB persistence
-│   └── smoke/                       # handcrafted_smoke_v1, nikdy sa neindexuje
-│
-├── artifacts/                       # Generované a handoff artefakty
-│   ├── finetuning/                  # Adaptéry, checksumy a checkpoint metadata
-│   ├── retrieval/                   # Index artefakty a index reporty
-│   ├── evaluation/runs/<run_id>/    # Jednotné prediction/metrics/report runs
-│   └── experiments/                 # Ignorované runs, audity, agregácie a reporty
-│
-├── docs/                            # Technická a metodologická dokumentácia
-│   ├── architecture/                # Systémová a repository mapa
-│   ├── datasets/                    # Dataset kontrakty
-│   ├── finetuning/                  # Dizajn a runbooky tréningu
-│   ├── retrieval/                   # RAG a embedding dokumentácia
-│   ├── evaluation/                  # Evaluation runbooky
-│   ├── experiments/                 # Experiment design a benchmark runbooky
-│   ├── thesis/                      # Reprodukovateľný akademický handoff
-│   └── ui/                          # UI dokumentácia
-│
-├── README.md                        # High-level vstup do projektu
-├── devinfo.md                       # Technický handoff a záväzné pravidlá
-└── pyproject.toml                   # Python package a dependencies
-```
+| Úloha | Runner | Protokol a postup |
+|---|---|---|
+| Testing | `scripts/benchmarks/run_testing_matrix.py` | [Methods2Test matica](docs/evaluation/testing_matrix_v1.md) |
+| Refactoring | `scripts/benchmarks/run_refactoring_matrix.py` | [Zmiešaná refactoring matica](docs/evaluation/refactoring_matrix_v1.md) |
 
-Detailné vlastníctvo balíkov a Mermaid diagram sú v
-[Project map](docs/architecture/project_map.md).
-
-### Main project areas
-
-#### `datasets/`
-
-Pripravuje, načítava a bezpečne splituje dáta pre training, retrieval aj
-benchmark evaluation. Datasetové roly a manifesty bránia indexovaniu testovacích
-alebo smoke prípadov.
-
-#### `finetuning/`
-
-Aktívna LoRA/QLoRA výskumná vetva: training datasety, prompt masking, model
-setup, checkpoint/resume a adapter handoff. Nie je náhradou za retrieval.
-
-#### `retrieval/`
-
-Aktívna vetva nad Ollama `bge-m3`, ChromaDB, Single RAG, MultiRAG a Reciprocal
-Rank Fusion. `ingestion/` izoluje bezpečnú stavbu korpusu a `vectorstore/`
-izoluje persistence kontrakt.
-
-#### `inference/`
-
-Spoločná runtime vrstva pre canonical prompting, Direct/RAG/MultiRAG execution,
-Ollama generation, structured output a auditovateľné experiment records.
-
-#### `evaluation/`
-
-Deterministická evaluácia testing a refactoring výstupov, prediction IO,
-executable kontroly, metriky, agregácie a reporty.
-
-Každý lokálny evaluation beh má validované `run_id` a zapisuje sa iba do
-`artifacts/evaluation/runs/<run_id>/` spolu s `run_manifest.json`. Runner tým
-zabraňuje vytváraniu `evaluation_*` priečinkov v koreni repozitára.
-
-#### `experiments/`
-
-Vyberá dataset, model, approach a evaluation protocol. Orchestration skladá
-existujúce inference/retrieval/evaluation komponenty a neimplementuje ich znova.
-
-#### `ui/`
-
-Tenká Gradio prezentačná a debug vrstva nad spoločnými službami; nemá vlastný
-retrieval ani modelový pipeline.
-
-Fine-tuning, Direct LLM, RAG, MultiRAG a Evaluation sú samostatné aktívne
-výskumné vetvy diplomovej práce, nie legacy alternatívy.
-
-## Datasets and Benchmarks
-
-| Dataset | Rola |
-|---|---|
-| Methods2Test | testing dáta pre tréning, retrieval a kontrolované splity |
-| SWE-Refactor | refactoring benchmark a projektové prípady |
-| TestBench | executable testing benchmark |
-| `handcrafted_smoke_v1` | malý deterministický smoke/regression dataset pre validáciu pipeline |
-
-`handcrafted_smoke_v1` má presne **24 prípadov**: 12 testing a 12 refactoring.
-Nie je indexovaný ani použitý na training; slúži iba na smoke, regresnú a
-pipeline validáciu.
-
-## Independent SI Context Eval
-
-Pilotné úlohy pre procesné `SKILL.md` a modulové `AGENTS.md` sú v samostatnom
-repozitári [`si-context-eval`](../si-context-eval/README.md). Obsahuje oddelené
-vetvy `refactoring/` a `testing/`, vlastné zadania, referenčné riešenia aj
-hodnotenie. Tento projekt poskytuje iba
-[spúšťací most](scripts/experiments/benchmarks/context_eval_bridge.py):
-
-```powershell
-python scripts/experiments/benchmarks/context_eval_bridge.py list
-```
-
-## Experiment Flow
-
-```text
-Dataset / Benchmark
-        │
-        ▼
-┌─────────────────────────────┐
-│          Approach           │
-│   Direct / RAG / MultiRAG   │
-└──────────────┬──────────────┘
-               │
-               ▼
-        Shared Inference
-               │
-               ▼
-          Evaluation
-               │
-               ▼
-       Metrics + Reports
-
-Training Dataset
-        │
-        ▼
-   Fine-tuning
-        │
-        ▼
-  Adapter / Model
-        │
-        ▼
-    Evaluation
-```
-
-## Current Baseline
-
-| Komponent | Baseline |
-|---|---|
-| Runtime | WSL/Linux |
-| Generation | Ollama + `qwen2.5-coder:7b` |
-| Embeddings | Ollama + `bge-m3` (1024 dimensions) |
-| Vector store | lokálna ChromaDB |
-| Single RAG | `mixed` |
-| MultiRAG | `testing_db` + `refactoring_db` |
-| Fusion | Reciprocal Rank Fusion (`k=60`) |
-| Top-k | 5 |
-| Baseline fingerprint | `74cc0a39be0c4d7f193fc749d8a40d448e4c364bef0b2c9eca19190c8db79e8f` |
-
-Windows je iba hostiteľský OS. Windows Ollama ani výsledky z iného runtime sa
-nemajú miešať s finálnymi experimentmi. Immutable kontrakt, digesty, prompt
-hashe a corpus identity sú v `docs/experiments/baseline_v1.md`.
-
-## Project Status
-
-| Area | Status |
-|---|---|
-| Dataset preparation | Ready |
-| Fine-tuning pipeline | Implemented |
-| Retrieval / Chroma | Implemented |
-| Single RAG | Implemented |
-| MultiRAG | Implemented |
-| Handcrafted smoke dataset | Ready |
-| Prompt fairness | Implemented; audit PASS |
-| `SmokeExperimentRunner` | Implemented |
-| Six-run mini pilot | Completed; 6/6 latest runs successful |
-| `baseline_v1` freeze | Complete; preflight and fingerprint enforcement active |
-| Full benchmark evaluation | Pending |
-| Ontology / GraphRAG | Future |
-
-Canonical smoke orchestration:
+Bez modelových volaní a bez zápisov:
 
 ```bash
-python -m llm_ontology.experiments.smoke \
-  --config configs/experiments/baseline_v1.yaml \
-  --dry-run
+.venv_wsl/bin/python scripts/benchmarks/run_testing_matrix.py --run-id testing-plan --dry-run
+.venv_wsl/bin/python scripts/benchmarks/run_refactoring_matrix.py --run-id refactoring-plan --dry-run
 ```
 
-Runner podporuje filtre `--task`, `--difficulty`, `--mode` a `--case`, bezpečné
-resume, `--retry-failed` a explicitný `--force`. Default matrix obsahuje 24
-smoke prípadov × 3 režimy = 72 plánovaných behov; plný matrix zatiaľ nebol
-spustený.
-
-## Next Steps
-
-1. Manuálne skontrolovať frozen config a šesť-runový pilot/retrieval trace.
-2. Až po schválení spustiť celý 72-run `baseline_v1` smoke matrix.
-3. Pokračovať plnou TestBench/SWE-Refactor evaluáciou pod tým istým freeze
-   kontraktom.
-4. Každú zmenu promptu/modelu/retrievalu zaviesť ako `baseline_v2`.
-5. Ontology/GraphRAG zaradiť až ako samostatnú budúcu experimentálnu vetvu.
-
-## Quick start
-
-V čistom WSL clone:
+Príprava a zmrazenie vstupov bez generovania odpovedí:
 
 ```bash
-python3.11 -m venv .venv_wsl
-source .venv_wsl/bin/activate
-python -m pip install --upgrade pip
-python -m pip install -e ".[dev,rag,ui]"
-
-ollama pull bge-m3
-ollama pull qwen2.5-coder:7b
-ollama serve
+.venv_wsl/bin/python scripts/benchmarks/run_testing_matrix.py --run-id NEW_TESTING_RUN --freeze-only
+.venv_wsl/bin/python scripts/benchmarks/run_refactoring_matrix.py --run-id NEW_POOL_PREPARATION --prepare-pool
+# Pool je už pripravený; nový beh môže použiť --cases N alebo --cases all --prepare-only.
 ```
 
-V ďalšom termináli:
+Bez príznaku režimu runner spustí aj generovanie a hodnotenie. `--report-only`
+načíta existujúci beh. Refactoring podporuje aj `--evaluate-only`.
+Pred spustením treba lokálne modely/adaptéry, existujúci RAG index a Java nástroje;
+matice netrénujú, neprebudovávajú index a neopravujú modelové odpovede.
 
-```bash
-source .venv_wsl/bin/activate
-python -m llm_ontology.env check
-python -m llm_ontology.ui
-```
+## Výstupy
 
-UI je predvolene dostupné na `http://127.0.0.1:7860`. Konfigurácia je v
-`configs/ui/local.yaml`.
+Jediný eval namespace je `artifacts/evaluation/runs/<run-id>/`.
+Existujúce prípravné dôkazy zostali zachované:
 
-## Architecture
+- `testing-matrix-preparation-check-20261113`: jeden overený prípad, päť variantov.
+- `mixed-context-pool-v4-20261113`: úplná QA 100 úloh.
+- `refactoring-context-v4-ready-20261114`: pripravený výber všetkých 100 cez aktuálny runner.
 
-```text
-dataset manifests -> leakage audit -> pair-aware ingestion -> Ollama bge-m3
-      -> Chroma collections -> retrieval/RRF -> shared prompt builder
-      -> Ollama qwen2.5-coder:7b -> structured output -> evaluation record
-```
+Tieto prípravy majú **0 generovaní**. Príprava/hodnotiteľské QA nie sú skóre modelov.
+Pool a jeho overenie sú opísané v [v4 prehľade](docs/evaluation/refactoring_context_v4_2026-11-13.md).
+Súbory v `preparation`, `candidates`,
+`preflight` a `reports` patria príslušnej matici; interné helpery nie sú ďalšie
+spustiteľné eval protokoly. Staré piloty, samostatné full/smoke evaly, staré
+konfigurácie, reporty a výstupy boli odstránené z aktívneho projektu.
 
-`src/llm_ontology/` obsahuje zdieľanú implementáciu; `scripts/` sú tenké CLI
-vstupy. Direct, RAG a MultiRAG používajú spoločný `RagExperimentRunner`, prompt
-builder, generation provider a experiment log. UI iba volá tieto služby a
-vykresľuje ich auditovateľný trace.
+## Zvyšok projektu
 
-## Data and indexes
+Tréning, surové/spracované datasety, modely/adaptéry, RAG indexy a interaktívne UI
+zostávajú oddelené od evaluácie. Datasetové audity a nástroje ako RefactoringMiner
+či JaCoCo sú podklady/závislosti aktuálnych matíc, nie dodatočné eval runnery.
 
-Dataset manifesty v `configs/datasets/manifests/` rozlišujú benchmark a
-retrieval rolu. Benchmark/test prípady sa nikdy neindexujú. Produkčný builder
-najprv vykoná identity a fingerprint audit a až potom vytvorí Chroma kolekcie:
-
-```bash
-python scripts/retrieval/build_production_indexes.py
-```
-
-Aktuálny lokálny baseline má `mixed=5739`, `testing_db=3978` a
-`refactoring_db=1761` dokumentov. Literatúra zatiaľ nie je súčasťou baseline.
-Chroma dáta v `data/chroma/`, spracované datasety, modely a generované výsledky
-sú zámerne mimo Git histórie; reprodukovateľnosť zabezpečujú configy, dataset
-manifesty, checksumy a malé textové reporty.
-
-## CLI examples
-
-```bash
-python -m llm_ontology.cli.rag \
-  --config configs/retrieval/ollama_bge_m3.yaml \
-  query --collection mixed \
-  --query "Generate JUnit tests for integer division"
-
-python -m llm_ontology.cli.rag \
-  --config configs/retrieval/ollama_bge_m3.yaml \
-  query --mode multi_collection_rag \
-  --collections tests refactor \
-  --query "Refactor this Java method"
-```
-
-## Documentation
-
-- [Developer/agent context](devinfo.md)
-- [Project map](docs/architecture/project_map.md)
-- [Architecture](docs/architecture/system_architecture.md)
-- [RAG and MultiRAG baseline](docs/retrieval/rag_phase2.md)
-- [Ollama embeddings](docs/retrieval/ollama_embeddings.md)
+- [Mapa projektu](docs/architecture/project_map.md)
+- [Tréning](docs/finetuning/v2_runbook.md)
+- [Aktuálny retrieval](docs/retrieval/rag_v3.md)
 - [UI](docs/ui/overview.md)
-- [Experiment design](docs/experiments/design.md)
-- [Frozen baseline_v1 contract](docs/experiments/baseline_v1.md)
-- [Handcrafted smoke dataset](docs/datasets/handcrafted_smoke.md)
-- [Legacy cleanup report](docs/architecture/legacy_cleanup_report.md)
-- [Commit and artifact policy](docs/architecture/git_commit_policy.md)
+- [Eval dokumentácia](docs/evaluation/README.md)
+- [Podklady na písanie práce](thesis_materials/README.md) — metodické reporty,
+  archivované handcrafted výsledky a dôkazy; nie ďalší aktívny eval runner.
+- [Prečo sú aktuálne evaluácie takto navrhnuté](thesis_materials/reports/evaluation_design_2026-11-13.md)
 
-Fine-tuning, retrieval, inference, evaluation, benchmark execution a UI sú
-samostatné aktívne výskumné oblasti. Konkrétny baseline používa iba ich
-explicitne nakonfigurovanú kombináciu.
-
-## Testing
+## Kontroly implementácie
 
 ```bash
-ruff check .
-python -m compileall src
-pytest
-git diff --check
+.venv_wsl/bin/python -m pytest -q
+.venv_wsl/bin/ruff check src scripts tests
 ```
 
-Testy používajú mock providerov a dočasné indexy; nevytvárajú ani nemenia
-produkčné Chroma kolekcie. Ďalší metodický krok je manuálna kontrola mini pilotu,
-schválenie 72-run smoke matrixu a až potom batch evaluácia nad oboma benchmarkmi.
+Niektoré integračné kontroly potrebujú už nainštalované lokálne Java/modelové
+závislosti. Nevytvárajú experimentálne skóre modelov.

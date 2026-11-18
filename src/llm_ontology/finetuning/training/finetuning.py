@@ -255,12 +255,15 @@ def require_training_packages() -> None:
         )
 
 
-def build_tokenized_training_example(record: dict[str, Any], tokenizer: Any, max_seq_length: int) -> dict[str, Any] | None:
+def build_tokenized_training_example(record: dict[str, Any], tokenizer: Any, max_seq_length: int, *, diagnostics: dict[str, Any] | None = None) -> dict[str, Any] | None:
     eos_token = getattr(tokenizer, "eos_token", None) or ""
     prompt = format_prompt(record)
     prompt_ids = tokenizer(prompt, add_special_tokens=False)["input_ids"]
     output_ids = tokenizer(f"{record['output']}{eos_token}", add_special_tokens=False)["input_ids"]
+    original_prompt_tokens, original_output_tokens = len(prompt_ids), len(output_ids)
     if max_seq_length < 2 or not output_ids:
+        if diagnostics is not None:
+            diagnostics["dropped_examples"] = diagnostics.get("dropped_examples", 0) + 1
         return None
 
     if len(prompt_ids) + len(output_ids) > max_seq_length:
@@ -269,6 +272,22 @@ def build_tokenized_training_example(record: dict[str, Any], tokenizer: Any, max
         prompt_ids = prompt_ids[-prompt_budget:]
         output_ids = output_ids[:output_budget]
 
+    if diagnostics is not None:
+        counts = {
+            "retained_examples": 1,
+            "truncated_examples": int(len(prompt_ids) < original_prompt_tokens or len(output_ids) < original_output_tokens),
+            "prompt_truncated_examples": int(len(prompt_ids) < original_prompt_tokens),
+            "output_truncated_examples": int(len(output_ids) < original_output_tokens),
+            "one_token_prompt_examples": int(len(prompt_ids) == 1),
+            "original_prompt_tokens": original_prompt_tokens,
+            "original_output_tokens": original_output_tokens,
+            "effective_prompt_tokens": len(prompt_ids),
+            "effective_output_tokens": len(output_ids),
+        }
+        for key, value in counts.items():
+            diagnostics[key] = diagnostics.get(key, 0) + value
+        diagnostics["max_original_sequence_tokens"] = max(diagnostics.get("max_original_sequence_tokens", 0), original_prompt_tokens + original_output_tokens)
+        diagnostics["max_effective_sequence_tokens"] = max(diagnostics.get("max_effective_sequence_tokens", 0), len(prompt_ids) + len(output_ids))
     input_ids = list(prompt_ids) + list(output_ids)
     labels = [-100] * len(prompt_ids) + list(output_ids)
     if not any(label != -100 for label in labels):
@@ -280,13 +299,13 @@ def build_tokenized_training_example(record: dict[str, Any], tokenizer: Any, max
     }
 
 
-def make_hf_dataset(records: list[dict[str, Any]], tokenizer: Any, max_seq_length: int) -> Any:
+def make_hf_dataset(records: list[dict[str, Any]], tokenizer: Any, max_seq_length: int, *, diagnostics: dict[str, Any] | None = None) -> Any:
     from datasets import Dataset
 
     features = [
         feature
         for record in records
-        if (feature := build_tokenized_training_example(record, tokenizer, max_seq_length)) is not None
+        if (feature := build_tokenized_training_example(record, tokenizer, max_seq_length, diagnostics=diagnostics)) is not None
     ]
     if not features:
         raise ValueError("No training examples retained any output tokens after truncation.")
@@ -488,8 +507,11 @@ def run_training(
 
         tokenizer = load_tokenizer(model_config)
         max_seq_length = int(model_config.get("runtime", {}).get("max_seq_length", 2048))
-        tokenized_train = make_hf_dataset(train_records, tokenizer, max_seq_length)
-        tokenized_val = make_hf_dataset(val_records, tokenizer, max_seq_length)
+        token_stats = {"max_seq_length": max_seq_length, "diagnostic_only": True, "train": {}, "val": {}}
+        tokenized_train = make_hf_dataset(train_records, tokenizer, max_seq_length, diagnostics=token_stats["train"])
+        tokenized_val = make_hf_dataset(val_records, tokenizer, max_seq_length, diagnostics=token_stats["val"])
+        write_json(Path(training_config["output"]["results_dir"]) / "tokenization_diagnostics.json", token_stats)
+        logger.info("Tokenization diagnostics (no policy change): %s", token_stats)
 
         model = load_base_model(model_config, lora_config.get("quantization"))
         model = apply_lora(model, lora_config)

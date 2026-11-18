@@ -1,7 +1,0 @@
-# Explicit opt-in; no frozen config changes. One independent format fixture only.
-protocol: testing_format_validation_v2
-prompt_profile: testing-full-class-v2
-runtime_config: configs/benchmarks/defects4j_jupiter_v1.yaml
-fixture: data/validation/testing_full_class_v2/BatchSizer.java
-manifest: data/validation/testing_full_class_v2/manifest.json
-max_new_tokens: 4096

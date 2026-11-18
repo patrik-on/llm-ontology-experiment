@@ -8,7 +8,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from scripts.evaluation.check_v2_adapters import main
+from scripts.finetuning.check_adapters import main
 
 
 if __name__ == "__main__":

@@ -1,8 +1,4 @@
-# Benchmark configurations
+# Matrix configurations
 
-Tieto súbory evidujú root, očakávaný počet prípadov, task a execution protokol.
-`testbench.yaml` navyše zmrazuje direct Ollama sampling parametre, Maven timeout,
-package repair policy a názvy environment premenných pre JDK 8/17.
-
-Konfigurácia je experimentálny manifest; spustiteľné príkazy a canary postup sú
-v `docs/experiments/testbench_runbook.md`.
+Only `testing_matrix_v1.json`, `refactoring_matrix_v1.json` and the shared
+`java_evaluation_runtime_v1.yaml` are active. The two matrix scripts own execution.

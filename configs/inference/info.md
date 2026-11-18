@@ -1,11 +1,4 @@
-# configs/inference
+# Inference configuration
 
-Konfigurácie samostatnej lokálnej inferencie mimo hlavného Hugging Face
-evaluation toku.
-
-`ollama_qwen25_coder_baseline.yaml` používa modelový config
-`configs/shared/models/qwen25_coder_7b_ollama.yaml`, limitované testovacie datasety a
-zapisuje JSONL predikcie.
-
-Ollama slúži na rýchly baseline a prompt testing. Fine-tuning používa Hugging
-Face/PEFT a hlavné porovnanie modelov používa `scripts/evaluation/`.
+Shared inference is configured by the active matrix runtime and retrieval
+configuration. No separate legacy batch-baseline protocol is supported.

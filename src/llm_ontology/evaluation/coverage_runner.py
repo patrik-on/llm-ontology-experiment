@@ -12,7 +12,7 @@ import re
 from typing import Any
 import xml.etree.ElementTree as ET
 
-from llm_ontology.benchmarks.defects4j_execution import (
+from llm_ontology.benchmarks.java_execution import (
     clean_env, evaluate_revision, file_sha256, java_identity, run_process, write_json,
 )
 
