@@ -107,12 +107,17 @@ def check_training_config(config_path: Path, failures: list[str]) -> None:
     for key in ("train_file", "val_file", "test_file"):
         check_dataset(Path(config["dataset"][key]), failures)
 
+    # Read-only: expand "~" like the trainer does and never create directories here
+    # (training creates them; an unexpanded "~" used to create ./~ inside the repo).
     for key in ("output_dir", "logging_dir", "results_dir"):
-        check_path(Path(config["output"][key]), f"experiment {key}", failures, directory=True)
+        path = Path(config["output"][key]).expanduser()
+        ok(f"experiment {key}: {path}" + ("" if path.is_dir() else " (created by training)"))
 
-    final_adapter_dir = Path(config["output"]["final_adapter_dir"])
-    final_adapter_dir.parent.mkdir(parents=True, exist_ok=True)
-    ok(f"Final adapter parent exists: {final_adapter_dir.parent}")
+    final_adapter_dir = Path(config["output"]["final_adapter_dir"]).expanduser()
+    if final_adapter_dir.is_dir() and any(final_adapter_dir.iterdir()):
+        fail(f"Final adapter already exists and would be overwritten: {final_adapter_dir}", failures)
+    else:
+        ok(f"Final adapter target is free: {final_adapter_dir}")
 
     run = config.get("run", {})
     if run.get("dry_run") is False:
