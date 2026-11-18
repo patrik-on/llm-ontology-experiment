@@ -12,7 +12,7 @@ ZIP balíky a `adapter_model.safetensors` zostávajú mimo Gitu.
 Vytvorenie balíkov:
 
 ```bash
-python scripts/package_v2_adapters.py \
+python scripts/finetuning/package_v2_adapters.py \
   --models-config configs/evaluation/eval_models_v2_only.yaml \
   --output-dir artifacts/finetuning/adapters
 ```
@@ -20,7 +20,7 @@ python scripts/package_v2_adapters.py \
 Kontrola rozbalených adapterov:
 
 ```bash
-python scripts/check_v2_adapters.py \
+python scripts/finetuning/check_adapters.py \
   --models-config configs/evaluation/eval_models_v2_only.yaml
 ```
 

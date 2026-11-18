@@ -32,7 +32,7 @@ def test_defaults_reproduce_original_wsl_paths(monkeypatch):
     plan = expand_placeholders(json.loads((REPO / "configs/benchmarks/refactoring_matrix_v1.json").read_text()))
     assert plan["raw_ml4refactoring"] == "/mnt/c/datasets/ml4refactoring/all/dataset"
     assert plan["cache"] == "/home/patrik/benchmark-work/refactoring-matrix/git"
-    model = read_yaml(REPO / "configs/shared/models/qwen25_coder_7b_hf.yaml")
+    model = read_yaml(REPO / "configs/shared/models/qwen25_coder_7b_hf_wsl.yaml")
     assert model["model"]["name"] == "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct"
 
 
