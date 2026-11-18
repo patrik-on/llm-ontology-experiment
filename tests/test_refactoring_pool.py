@@ -23,6 +23,7 @@ def test_mutations_touch_changed_methods_only_and_preserve_unicode():
     assert behavior_mutants(before, before, 8) == []
 
 
+@pytest.mark.local_data
 def test_pool_excludes_flagged_unsupported_and_test_paths():
     plan = matrix.load_plan("all")
     records, _, identity = pool(matrix.REPO, plan)
@@ -73,6 +74,7 @@ def test_behavior_control_requires_compilation_same_tests_and_stable_failure(tmp
     assert (tmp_path / "qa/behavior-0/mutant.java").exists()
 
 
+@pytest.mark.local_data
 def test_prepare_exact_n_blocks_shortfall_and_all_uses_only_qa_passes(tmp_path, monkeypatch):
     plan = matrix.load_plan(6)
     records, overrides, identity = pool(matrix.REPO, plan)
@@ -94,6 +96,7 @@ def test_prepare_exact_n_blocks_shortfall_and_all_uses_only_qa_passes(tmp_path, 
     assert len(json.loads((tmp_path / "selection.json").read_text())["cases"]) == 2
 
 
+@pytest.mark.local_data
 def test_partial_preparation_is_not_silently_reused(tmp_path, monkeypatch):
     plan = matrix.load_plan(1)
     records, overrides, identity = pool(matrix.REPO, plan)
@@ -104,6 +107,7 @@ def test_partial_preparation_is_not_silently_reused(tmp_path, monkeypatch):
         prep.prepare(tmp_path, plan, lambda *a: {})
 
 
+@pytest.mark.local_data
 def test_all_dry_run_has_upper_bound_no_runtime(tmp_path, monkeypatch, capsys):
     # The CLI changes cwd; register it for teardown before swapping its repo root.
     monkeypatch.chdir(matrix.REPO)
@@ -115,6 +119,7 @@ def test_all_dry_run_has_upper_bound_no_runtime(tmp_path, monkeypatch, capsys):
     assert not list(tmp_path.iterdir())
 
 
+@pytest.mark.local_data
 def test_numeric_six_dry_run(tmp_path, monkeypatch, capsys):
     monkeypatch.chdir(matrix.REPO)
     monkeypatch.setattr(matrix, "REPO", tmp_path)
@@ -124,6 +129,7 @@ def test_numeric_six_dry_run(tmp_path, monkeypatch, capsys):
     assert not list(tmp_path.iterdir())
 
 
+@pytest.mark.local_data
 def test_all_requires_exhausted_preparation(tmp_path, monkeypatch):
     plan = matrix.load_plan("all")
     ident = plan["pool_identity"]["ids"][0]
@@ -134,6 +140,7 @@ def test_all_requires_exhausted_preparation(tmp_path, monkeypatch):
         matrix.Matrix(tmp_path)
 
 
+@pytest.mark.local_data
 def test_pool_rejects_changed_dataset_hash(monkeypatch):
     plan = matrix.load_plan()
     monkeypatch.setattr(prep.ex, "file_sha256", lambda *a: "changed")

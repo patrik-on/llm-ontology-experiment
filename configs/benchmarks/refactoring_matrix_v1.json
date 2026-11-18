@@ -4,7 +4,7 @@
   "cohort_manifest": "data/validation/refactoring_mixed_v1/manifest.json",
   "discovery_directory": "artifacts/evaluation/runs/refactoring-context-data-v4-20261113",
   "source_cache": "artifacts/evaluation/refactoring-mixed-discovery-v1",
-  "raw_ml4refactoring": "/mnt/c/datasets/ml4refactoring/all/dataset",
+  "raw_ml4refactoring": "${LLM_ONTOLOGY_DATASETS_ROOT}/ml4refactoring/all/dataset",
   "arms": ["qwen_base", "ft_refactoring", "rag_single", "rag_multi", "skills"],
   "attempts_per_cell": 1,
   "retries": 0,
@@ -19,8 +19,8 @@
   "mutation_limit": 8,
   "project_timeout_seconds": 240,
   "jdk_homes": {
-    "8": "/home/patrik/benchmark-work/deps/refactoring-jdk8",
-    "11": "/home/patrik/benchmark-work/deps/jdk-11.0.33+10",
+    "8": "${LLM_ONTOLOGY_WORK_ROOT}/deps/refactoring-jdk8",
+    "11": "${LLM_ONTOLOGY_WORK_ROOT}/deps/jdk-11.0.33+10",
     "17": "/usr/lib/jvm/java-17-openjdk-amd64"
   },
   "repositories": {
@@ -36,11 +36,11 @@
   "dataset": "benchmarks/swe-refactor/SWE-Refactor/pure_refactoring_data.json",
   "overlap_report": "docs/datasets/swe_refactor_basic_overlap_2026-11-13.md",
   "overlap_evidence": "artifacts/swe_overlap_audit_20261113/report.json",
-  "skill": "../si-context-eval/skills/refactoring/SKILL.md",
+  "skill": "configs/skills/refactoring/SKILL.md",
   "tool_java_home": "/usr/lib/jvm/java-17-openjdk-amd64",
   "tool_classes": "artifacts/refactoring-tools/target/classes",
   "tool_libs": "artifacts/refactoring-tools/lib",
-  "cache": "/home/patrik/benchmark-work/refactoring-matrix/git",
+  "cache": "${LLM_ONTOLOGY_WORK_ROOT}/refactoring-matrix/git",
   "backend_caveat": "Systems comparison: Ollama Q4_K_M structured JSON versus HF PEFT NF4 raw instruction; not a causal adapter ablation.",
   "sampling_caveat": "Fixed source/type quotas and deterministic convenience selection. MaRV/ML4Ref contextual units score only the requested operation and target; other changes are unscored and no project builds/tests are implied. SWE is separately build/test filtered. Basic lexical/commit overlap screen only, not certified unseen, clone-free or independent commits.",
   "candidates": [

@@ -1,33 +1,12 @@
 # configs/retrieval
 
-`base.yaml` je spustiteľná konfigurácia prvej RAG fázy pre ChromaDB, logické
-názvy kolekcií, ochranu pred data leakage a retrieval limity. Provider
-`deterministic_mock` slúži iba na overenie pipeline; nie je to sémantický model
-vhodný pre reportované experimenty.
+- `ollama_bge_m3_v3.yaml` je **jediná aktuálna** RAG konfigurácia (WSL Ollama,
+  `bge-m3`, `qwen2.5-coder:7b`, index `data/chroma/ollama_bge_m3_v3`). Používajú ju
+  obe matice, `python -m llm_ontology.env check` aj
+  `scripts/retrieval/build_production_indexes.py`. Postup: `docs/retrieval/rag_v3.md`.
+- `base.yaml` je testovacia konfigurácia s `deterministic_mock` providerom pre
+  unit testy pipeline; nie je to sémantický model pre experimenty.
 
-`ollama_bge_m3.yaml` je aktuálny WSL-only baseline s Ollamou na pevnom
-`http://localhost:11434`, `bge-m3` (1024 rozmerov) a
-`qwen2.5-coder:7b`.
-Príprava modelu, produkčný leakage-safe builder a smoke validácia sú popísané v
-`docs/retrieval/ollama_embeddings.md`. Pôvodná Jina konfigurácia zostáva zachovaná ako
-`legacy_not_final` a nie je predvoleným finálnym baseline.
-
-`ollama_bge_m3_v3.yaml` je kandidát ďalšieho experimentu. Opravuje nesúlad medzi
-query a indexom: embeduje iba vstupnú stranu páru, tvorí task-aware query a z 12
-kandidátov deterministicky vyberá finálne `top_k=3`. Používa samostatný Chroma
-adresár, takže nemení zmrazené V1/V2 indexy. Postup je v
-`docs/retrieval/rag_v3.md`.
-
-Spoločné retrieval nastavenia:
-
-- embedding model a batch size,
-- vector store a umiestnenie indexu,
-- lexical alebo sparse retrieval,
-- candidate count a final `top_k`,
-- fusion a reranking,
-- maximálny context token budget.
-
-RAG aj multi-RAG majú zdieľať nastavenia, ktoré nie sú predmetom ablácie.
-Evaluation index smie obsahovať iba train split. Produkčné Chroma indexy sú
-veľké lokálne artefakty pod ignorovaným `data/chroma/`; malé auditné manifesty
-a reporty môžu byť publikované samostatne podľa artifact policy.
+Staršie V1/V2 a Jina konfigurácie boli odstránené (sú v Git histórii, opis v
+`docs/retrieval/archive/`). Evaluation index smie obsahovať iba train split;
+Chroma indexy sú lokálne pod ignorovaným `data/chroma/`.

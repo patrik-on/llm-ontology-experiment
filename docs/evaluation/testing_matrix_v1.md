@@ -14,13 +14,14 @@ Z koreňa `llm-ontology-experiment` **vo WSL**:
 .venv_wsl/bin/python scripts/benchmarks/run_testing_matrix.py \
   --run-id testing-matrix-20261113 --dry-run
 
-# Predvolený malý experiment: 5 prípadov × 5 systémov = najviac 25 volaní.
+# Predvolený experiment: 100 prípadov × 5 systémov = najviac 500 volaní.
 .venv_wsl/bin/python scripts/benchmarks/run_testing_matrix.py \
   --run-id testing-matrix-20261113
 ```
 
-Na minimálny samostatný skúšobný beh použite **nové ID** a `--cases 1` (5 volaní).
-Väčší beh sa volí explicitne cez `--cases 100` (500 volaní). Počet prípadov
+Na minimálny samostatný skúšobný beh použite **nové ID** a `--cases 1` (5 volaní),
+menší pilot cez `--cases 5` (25 volaní). Default je 100 prípadov, aby párové
+testy (McNemar, Wilcoxon) mali zmysluplnú silu. Počet prípadov
 nemožno meniť pri resume; zmenšený default nemení plány už založených behov.
 `--prepare-only` pripraví len dáta a vykoná referenčné compile/run/coverage
 kontroly, bez generovania. Následne rovnaký príkaz bez tohto prepínača pokračuje.

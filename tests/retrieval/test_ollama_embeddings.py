@@ -11,7 +11,7 @@ from llm_ontology.providers.ollama import OllamaEmbeddingProvider
 from llm_ontology.providers.mock import DeterministicEmbeddingProvider
 from llm_ontology.retrieval.config import EmbeddingSettings, RagConfig
 from llm_ontology.retrieval.factory import create_embedding_provider
-from llm_ontology.ui.service import EnvironmentStatusService
+from llm_ontology.env.status import EnvironmentStatusService
 from llm_ontology.vectorstore.chroma import ChromaVectorStore
 from llm_ontology.vectorstore.manifest import (
     CollectionManifestStore,

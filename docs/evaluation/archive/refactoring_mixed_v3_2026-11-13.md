@@ -1,6 +1,6 @@
 # Mixed refactoring v3: implementation and data-readiness receipt
 
-**Historical v3 admission policy, superseded by [v4 contextual scoring](refactoring_context_v4_2026-11-13.md).
+**Historical v3 admission policy, superseded by [v4 contextual scoring](../refactoring_context_v4_2026-11-13.md).
 The current v4 cohort has 100 accepted tasks. The 35-task result below records the
 older isolated-change gate and is not the current dataset-readiness status.**
 
@@ -123,4 +123,4 @@ the same commit/project are possible; no claim of 100 independent commits is mad
 Some intermediate QA preparations were stopped while fixing the evaluator. They
 are preserved as diagnostics, not usable selections. Source/tool identity changes
 require a NEW run ID; do not reuse an interrupted or stale preparation directory.
-The runbook is [refactoring_matrix_v1.md](refactoring_matrix_v1.md).
+The runbook is [refactoring_matrix_v1.md](../refactoring_matrix_v1.md).
