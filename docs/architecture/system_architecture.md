@@ -33,7 +33,6 @@ src/llm_ontology/
 ├── providers/     Ollama, mock a Sentence Transformers embeddings
 ├── retrieval/     single/multi-collection retrieval, RRF, reranking a token budget
 ├── vectorstore/   Chroma adaptér, lifecycle a sidecar manifesty
-├── ui/            tenká Gradio prezentačná vrstva
 ├── env/           kontrola runtime prostredia (`python -m llm_ontology.env check`)
 └── cli/           RAG CLI
 ```

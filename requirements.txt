@@ -2,4 +2,4 @@
 # This file only installs the project with its common extras:
 #   pip install -r requirements.txt
 # For real fine-tuning also install:  pip install -e ".[training]"
--e .[dev,rag,ui]
+-e .[dev,rag]

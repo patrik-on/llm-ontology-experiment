@@ -26,6 +26,7 @@ A version suffix in a name is an identity, not an alternative. Use these:
 | HF model config | `configs/shared/models/qwen25_coder_7b_hf_wsl.yaml` | Ollama: `qwen25_coder_7b_ollama.yaml` |
 | Skills arm | `configs/skills/{testing,refactoring}/SKILL.md` | pinned, hash-guarded; never edit |
 | Fine-tuning scripts | `scripts/finetuning/` | runbook `docs/finetuning/v2_runbook.md` |
+| Runtime check | `python -m llm_ontology.env check` | `src/llm_ontology/env/status.py`; there is no UI |
 
 ## Do not read unless asked (historical, large or local-only)
 

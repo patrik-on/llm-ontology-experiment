@@ -5,7 +5,7 @@ from pathlib import Path
 
 from llm_ontology.core.paths import resolve_path
 from llm_ontology.retrieval.config import load_rag_config
-from llm_ontology.ui.service import EnvironmentStatusService
+from llm_ontology.env.status import EnvironmentStatusService
 
 
 def build_parser() -> argparse.ArgumentParser:

@@ -13,7 +13,7 @@ def test_rag_actual_provider_timeout_preserves_embedding_timeout(tmp_path, monke
     rag = load_rag_config(config.retrieval_config)
     assert config.generation_timeout_seconds == 1800
     assert rag.embeddings.timeout_seconds == 120
-    assert rag.llm.timeout_seconds == 120  # shared/UI config untouched
+    assert rag.llm.timeout_seconds == 120  # shared config untouched
     (tmp_path / "chroma.sqlite3").touch()
     rag = rag.model_copy(update={"vector_store": rag.vector_store.model_copy(update={"persist_path": str(tmp_path)})})
     monkeypatch.setattr(generation, "load_rag_config", lambda _: rag)

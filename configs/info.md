@@ -10,7 +10,6 @@
 | `shared/` | base config a modely | `base.yaml`, `models/` |
 | `skills/` | pinnuté `SKILL.md` pre rameno `skills` | `testing/`, `refactoring/` |
 | `datasets/` | spracovanie datasetov a manifesty | |
-| `ui/` | Gradio UI | `local.yaml` |
 
 Číslo verzie v názve (`_v1`, `_v3`) je identita protokolu alebo indexu, nie
 alternatíva: v repozitári je vždy iba jedna aktívna verzia. Staršie verzie sú v Git histórii.
