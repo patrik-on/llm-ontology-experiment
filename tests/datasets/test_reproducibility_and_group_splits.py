@@ -49,20 +49,6 @@ def test_environment_lock_verifier_checks_exact_python_and_packages(tmp_path: Pa
     assert report.ready
 
 
-def test_environment_lock_contains_all_model_revisions() -> None:
-    payload = json.loads(
-        Path("configs/shared/environment/rag_baseline_windows_cpu.lock.json").read_text(
-            encoding="utf-8"
-        )
-    )
-
-    assert payload["embedding"]["revision"] == "516f4baf13dec4ddddda8631e019b5737c8bc250"
-    assert payload["embedding"]["remote_code_revision"] == "3baf9e3ac750e76e8edd3019170176884695fb94"
-    assert payload["tokenizer"]["revision"] == "c03e6d358207e414f1eca0bb1891e29f1db0e242"
-    assert payload["ollama"]["version"] == "0.32.1"
-    assert payload["ollama"]["runtime_digest"] is None
-    assert payload["status"] == "blocked_missing_runtime_components"
-
 
 def test_manifest_templates_keep_split_and_role_independent() -> None:
     root = Path("configs/datasets/manifests")

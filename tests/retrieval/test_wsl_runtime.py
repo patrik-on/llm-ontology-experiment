@@ -36,7 +36,7 @@ class FakeResponse:
 
 
 def test_current_baseline_config_is_wsl_ollama_only() -> None:
-    config = load_rag_config("configs/retrieval/ollama_bge_m3.yaml")
+    config = load_rag_config("configs/retrieval/ollama_bge_m3_v3.yaml")
 
     assert config.runtime.environment == "wsl"
     assert config.runtime.status == "current"
