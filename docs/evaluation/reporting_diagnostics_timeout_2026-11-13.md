@@ -67,3 +67,25 @@ features and unchanged primary scores for completed, stored results.
 
 These reproduce the audit totals. The diagnostic deliberately reports the current
 policy rather than fixing it or silently retraining the existing adapters.
+
+## Test isolation follow-up — 2026-11-18
+
+Two refactoring-pool dry-run tests replaced the CLI repository root with a
+temporary directory without registering the CLI's working-directory change for
+pytest teardown. Later timeout tests then failed to load repository-relative
+configuration, although they passed on their own. Register the original repository
+directory with `monkeypatch.chdir` before calling the CLI, as the other matrix
+CLI tests already do. Reproduce the ordering with:
+
+```bash
+.venv_wsl/bin/python -m pytest -q \
+  tests/test_refactoring_pool.py::test_numeric_six_dry_run \
+  tests/test_matrix_timeout.py
+```
+
+This is a test-isolation repair only. Evaluator source, cohort source pins,
+frozen runs, prompts and model outputs are unchanged.
+
+Verification: the reproduction sequence passed **3/3**, and the full suite passed
+**332 tests, 2 skipped**. Ruff on the changed test file and `git diff --check`
+also passed. No model-answer calls or training were performed.
