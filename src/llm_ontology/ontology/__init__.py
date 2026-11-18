@@ -13,8 +13,19 @@ from llm_ontology.ontology.graph import SCHEMA_VERSION, build_graph, graph_ntrip
 from llm_ontology.ontology.guards import assert_grounded, ungrounded_names
 from llm_ontology.ontology.views import refactoring_view, testing_view
 
-__all__ = ["SCHEMA_VERSION", "assert_grounded", "build_graph", "graph_ntriples", "refactoring_context",
+__all__ = ["ONTOLOGY_HEADER", "SCHEMA_VERSION", "with_ontology", "assert_grounded", "build_graph", "graph_ntriples", "refactoring_context",
            "refactoring_view", "schema_sha256", "testing_context", "testing_view", "ungrounded_names"]
+
+
+ONTOLOGY_HEADER = ("Project ontology: facts extracted automatically from the supplied code only. "
+                   "They describe that code; the task and output contract above take precedence.")
+
+
+def with_ontology(instruction: str, block: str) -> str:
+    """The one place a block enters a prompt: after the instruction, before ``### Input``.
+    Used by the FT dataset builder and by every ontology arm, so training and evaluation
+    prompts stay byte-identical."""
+    return instruction + "\n" + ONTOLOGY_HEADER + "\n" + block
 
 
 def _sha(text: str) -> str:
