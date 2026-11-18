@@ -9,7 +9,7 @@ implementáciu zo `src/llm_ontology/`.
 | `finetuning/` | WSL/CUDA kontroly a QLoRA tréning |
 | `inference/` | Ollama baseline a model setup |
 | `evaluation/` | HF inference, metriky, reporty a analýzy |
-| `retrieval/` | produkčný index builder, environment check a UI smoke |
+| `retrieval/` | produkčný index builder |
 | `experiments/` | benchmark orchestration a model × approach × task experimenty |
 
 Benchmark smoke run:

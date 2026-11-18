@@ -14,7 +14,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(
         description="Audit and rebuild equivalent mixed and disjoint production indexes."
     )
-    parser.add_argument("--config", default="configs/retrieval/ollama_bge_m3.yaml")
+    parser.add_argument("--config", default="configs/retrieval/ollama_bge_m3_v3.yaml")
     parser.add_argument(
         "--testing-retrieval-manifest",
         default="configs/datasets/manifests/testing_retrieval.yaml",

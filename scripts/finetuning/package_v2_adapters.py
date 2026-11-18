@@ -12,12 +12,12 @@ from typing import Any
 
 import sys
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 
 from llm_ontology.core.config import read_yaml  # noqa: E402
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_MODELS_CONFIG = ROOT / "configs" / "evaluation" / "eval_models_v2_only.yaml"
 DEFAULT_OUTPUT_DIR = ROOT / "artifacts" / "finetuning" / "adapters"
 REQUIRED_FILES = ("adapter_config.json", "adapter_model.safetensors", "tokenizer_config.json")

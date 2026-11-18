@@ -33,7 +33,6 @@ src/llm_ontology/
 ├── providers/     Ollama, mock a Sentence Transformers embeddings
 ├── retrieval/     single/multi-collection retrieval, RRF, reranking a token budget
 ├── vectorstore/   Chroma adaptér, lifecycle a sidecar manifesty
-├── ui/            tenká Gradio prezentačná vrstva
 ├── env/           kontrola runtime prostredia (`python -m llm_ontology.env check`)
 └── cli/           RAG CLI
 ```
@@ -79,9 +78,8 @@ data -> ingestion -> vectorstore -> retrieval -> approaches -> inference
 - `inference/` kombinuje retrieval výsledok s LLM providerom,
 - `evaluation/` ukladá reprodukovateľné experimentálne záznamy.
 
-Podrobný stav, CLI a explicitné obmedzenia sú v
-[RAG phase 1](../retrieval/rag_phase1.md). Aktuálny produkčný baseline, RRF a
-kolekcie sú v [RAG phase 2](../retrieval/rag_phase2.md).
+Aktuálny retrieval (task-aware query, reranking, index) je v
+[RAG v3](../retrieval/rag_v3.md). Staršie fázy sú v `docs/retrieval/archive/`.
 
 ## Compatibility
 

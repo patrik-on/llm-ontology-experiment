@@ -9,9 +9,9 @@ from llm_ontology.finetuning.dataset_loader import load_jsonl, validate_example
 
 
 DEFAULT_TRAINING_CONFIGS = (
-    Path("configs/finetuning/training_b2_testing.yaml"),
-    Path("configs/finetuning/training_b2_refactoring.yaml"),
-    Path("configs/finetuning/training_b1_shared.yaml"),
+    Path("configs/finetuning/training_b2_testing_wsl.yaml"),
+    Path("configs/finetuning/training_b2_refactoring_wsl.yaml"),
+    Path("configs/finetuning/training_b1_shared_wsl.yaml"),
 )
 TRAINING_SCRIPT = Path("scripts/finetuning/train_finetuning.py")
 
@@ -128,7 +128,7 @@ def check_training_config(config_path: Path, failures: list[str]) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Check that a LoRA/QLoRA fine-tuning config is ready.")
-    parser.add_argument("--config", default=None, help="Optional single training config to validate, e.g. *_wsl.yaml.")
+    parser.add_argument("--config", default=None, help="Optional single training config to validate, e.g. configs/finetuning/training_b2_testing_wsl.yaml.")
     args = parser.parse_args()
 
     failures: list[str] = []
