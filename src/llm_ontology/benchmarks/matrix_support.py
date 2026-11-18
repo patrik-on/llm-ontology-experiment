@@ -24,6 +24,8 @@ from llm_ontology.benchmarks import evaluation_direct as direct
 
 from llm_ontology.benchmarks.evaluation_runtime import require_wsl
 
+from llm_ontology.core.paths import expand_placeholders
+
 from llm_ontology.benchmarks.java_execution import (
     clean_env,
     evaluate_revision,
@@ -332,7 +334,7 @@ from llm_ontology.benchmarks.evaluation_runtime import load_config
 
 
 def read(p):
-    return json.loads(p.read_text())
+    return expand_placeholders(json.loads(p.read_text()))
 
 
 def runtime():

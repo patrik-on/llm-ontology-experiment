@@ -10,10 +10,14 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-import yaml
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+
+from llm_ontology.core.config import read_yaml  # noqa: E402
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_MODELS_CONFIG = ROOT / "configs" / "evaluation" / "eval_models_v2_only.yaml"
 DEFAULT_OUTPUT_DIR = ROOT / "artifacts" / "finetuning" / "adapters"
 REQUIRED_FILES = ("adapter_config.json", "adapter_model.safetensors", "tokenizer_config.json")
@@ -28,8 +32,7 @@ def sha256_file(path: Path) -> str:
 
 
 def load_lora_models(config_path: Path) -> list[dict[str, Any]]:
-    with config_path.open("r", encoding="utf-8") as handle:
-        payload = yaml.safe_load(handle) or {}
+    payload = read_yaml(config_path)
     return [model for model in payload.get("models", []) if model.get("type") == "lora"]
 
 

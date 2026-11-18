@@ -1,6 +1,6 @@
-java_home: /home/patrik/benchmark-work/deps/jdk-11.0.33+10
-work_root: /home/patrik/benchmark-work/evaluation
-junit_jar: /home/patrik/benchmark-work/downloads/junit-platform-console-standalone-1.11.4.jar
+java_home: ${LLM_ONTOLOGY_WORK_ROOT}/deps/jdk-11.0.33+10
+work_root: ${LLM_ONTOLOGY_WORK_ROOT}/evaluation
+junit_jar: ${LLM_ONTOLOGY_WORK_ROOT}/downloads/junit-platform-console-standalone-1.11.4.jar
 junit_sha256: b016ef6b1c3454d6d7c2c88ce081dabf289699686af6622d6e4e2e1b54b4a2fc
 training_sources:
 - data/processed/testing/train.jsonl

@@ -27,6 +27,7 @@ from llm_ontology.inference.prompting import testing_bodies_one_shot_v2 as profi
 from llm_ontology.inference.prompting.testing_bodies_v1 import scaffold, sha
 from llm_ontology.benchmarks.matrix_support import runtime
 from llm_ontology.benchmarks.methods2test_metrics import measure
+from llm_ontology.core.paths import expand_placeholders
 from llm_ontology.ingestion.identity import normalize_java_for_hash, java_code_hash
 
 CONFIG = Path("configs/benchmarks/testing_matrix_v1.json")
@@ -140,7 +141,7 @@ def infer_spec(d):
 
 
 def historical_selection_ids(current_root=None):
-    result = set(json.loads(CONFIG.read_text()).get("prior_explored_case_ids", []))
+    result = set(expand_placeholders(json.loads(CONFIG.read_text())).get("prior_explored_case_ids", []))
     for p in Path("artifacts/evaluation/runs").glob("*/selection.json"):
         if current_root is not None and p.parent.resolve() == current_root.resolve():
             continue
@@ -391,12 +392,12 @@ def prepare(root, *, config=None):
     root.mkdir(parents=True, exist_ok=True)
     if (root / "freeze.json").exists() or list(root.glob("cases/*/predictions/*/dispatch.json")):
         raise ValueError("No preparation after freeze or generation")
-    config = json.loads(CONFIG.read_text()) if config is None else dict(config)
+    config = expand_placeholders(json.loads(CONFIG.read_text())) if config is None else dict(config)
     cap = config["selection_screen"]
     c = runtime()
     write_json(root / "selection_protocol.json", config)
     normalized, projects, excluded, pins, docs, repos = snapshots(root)
-    deps = json.loads(Path("configs/evaluation/methods2test_assertions_v1.json").read_text())
+    deps = expand_placeholders(json.loads(Path("configs/evaluation/methods2test_assertions_v1.json").read_text()))
     for v in deps.values():
         if file_sha256(Path(v["path"])) != v["sha256"]:
             raise ValueError("assertion_identity_changed")
