@@ -6,14 +6,28 @@ import re
 from llm_ontology.ontology import views
 
 IDENTIFIER = re.compile(r"[A-Za-z_$][A-Za-z0-9_$]*")
-# Words the views themselves write; everything else must come from the source.
-TEMPLATE_VOCABULARY = frozenset(IDENTIFIER.findall(
-    "project ontology Focal method in Declared throws Throws when unconditionally line Decision points "
-    "none if switch cases ternary loop for while do Boundary candidates try Null checks null Reads fields "
-    "Calls Other public methods supplied source Target lines are inside of declarations type Fields "
-    "Methods Names already declared read variables earlier assign used after write contain return yes no "
-    "break continue Local Parameter Field initialised with at spans called Type constructors name "
-    "referenced more Lines to Method"))
+
+
+def _template_vocabulary() -> frozenset[str]:
+    """Words the generator itself writes: identifiers in non-docstring string literals of the
+    view and extractor modules (SPARQL queries excluded)."""
+    import ast
+    from pathlib import Path
+
+    from llm_ontology.ontology import extract
+
+    words = set()
+    for module in (views, extract):
+        tree = ast.parse(Path(module.__file__).read_text(encoding="utf-8"))
+        docstrings = {id(n.value) for n in ast.walk(tree) if isinstance(n, ast.Expr)}
+        for node in ast.walk(tree):
+            if (isinstance(node, ast.Constant) and isinstance(node.value, str) and id(node) not in docstrings
+                    and not node.value.lstrip().startswith(("SELECT ", "PREFIX "))):
+                words.update(IDENTIFIER.findall(node.value))
+    return frozenset(words)
+
+
+TEMPLATE_VOCABULARY = _template_vocabulary()
 
 
 def ungrounded_names(block: str, source: str) -> list[str]:

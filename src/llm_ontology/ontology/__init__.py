@@ -40,8 +40,13 @@ def testing_context(case: Any, *, forbidden: tuple[str, ...] = ()) -> tuple[str,
 
 
 def refactoring_context(case: dict[str, Any], *, forbidden: tuple[str, ...] = ()) -> tuple[str, dict[str, str]]:
-    """Ontology block and identity for a refactoring cohort case (input = ``before`` unit)."""
+    """Ontology block and identity for a refactoring cohort case.
+
+    Uses only public inputs every arm receives: ``before``, ``operation``, ``target`` lines and the
+    ``request`` text. Reference outputs and evaluator data are never read.
+    """
     source, target = case["before"], case["target"]
-    block = refactoring_view(source, case["operation"], int(target["start"]), int(target["end"]))
+    block = refactoring_view(source, case["operation"], int(target["start"]), int(target["end"]),
+                             case.get("request") or "")
     assert_grounded(block, source, forbidden=forbidden)
     return block, _identity(block, source, build_graph(source, block=(int(target["start"]), int(target["end"]))))
