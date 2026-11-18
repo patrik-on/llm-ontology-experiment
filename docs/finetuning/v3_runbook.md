@@ -29,6 +29,14 @@ a parsovaním gold výstupu cez `parse_testing_bodies` / `parse_answer`.
 | `data/processed/v3/testing` | Methods2Test **TRAIN** archív (`data/raw/methods2test/dataset/train.tar.bz2`), projektovo disjunktný s EVAL archívom matice | rovnaký screen ako eval (`infer_spec`, `general_wrap_record`), iba Jupiter-kompatibilné telá, dva rôzne gold testy tej istej focal metódy = `testCase1`/`testCase2`, max. 20 dvojíc na projekt |
 | `data/processed/v3/refactoring` | MaRV train split + raw ML4Ref archívy | 11 operácií z kohorty (+ Inline Method), RefactoringMiner + rovnaké zarovnanie kontextu ako kohorta (`contextualize`), vylúčené commity/projekty/hashe kohorty a všetkých `test.jsonl` |
 | `data/processed/v3/combined` | oba v3 datasety | vyvážené počtom riadkov (B1) |
+| `data/processed/v3_onto/{testing,refactoring}` | ten istý build | tie isté záznamy, poradie, split a gold; inštrukcia navyše s blokom projektovej ontológie (`ontology.with_ontology`), rameno `ft_onto` |
+
+**Spoločný manifest.** Builder pre každý záznam vyrobí obe verzie (v3 a v3_onto).
+Záznam, pre ktorý blok ontológie zlyhá, alebo ktorého dlhšia verzia prekročí limit,
+vypadne z **oboch**. Split sa robí raz. `manifest.json` (rovnaký v oboch priečinkoch)
+obsahuje pre každé `case_id` split, hash gold výstupu a hashe oboch promptov. Kontrolný
+v3 adaptér sa preto trénuje až z tohto buildu, nie zo staršieho. Potrebuje `rdflib`
+(`pip install -e '.[ontology]'`).
 
 Val split je projektovo disjunktný s train (`grouped_split_by_ratios`, 90/10).
 Záznamy nad `--max-seq-length` (default = `max_seq_length` z model configu, 8192) sa
@@ -52,7 +60,7 @@ Rozdiely voči eval, ktoré zostávajú (vedome):
 
 ```bash
 source .venv_wsl/bin/activate
-python -m pytest -q tests/datasets/test_eval_aligned_v3.py tests/finetuning
+python -m pytest -q tests/datasets/test_eval_aligned_v3.py tests/finetuning tests/ontology
 
 # 1. Testing (archív TRAIN stiahni z Methods2Test vedľa eval.tar.bz2, ak chýba)
 python scripts/datasets/prepare_v3_eval_aligned.py testing --max-records 20000   # smoke
@@ -68,7 +76,8 @@ python scripts/datasets/prepare_v3_eval_aligned.py combined
 ```
 
 Skontroluj `data/processed/v3/*/build_report.json`: počty, typy refactoringu,
-`dropped_over_token_limit`, dôvody zamietnutia.
+`dropped_over_token_limit`, `dropped_ontology_failure`, dôvody zamietnutia. Over, že
+`manifest.json` je v `v3/<task>` a `v3_onto/<task>` bajtovo rovnaký.
 
 ## Tréning
 
@@ -82,6 +91,9 @@ python scripts/finetuning/train_finetuning.py --config configs/finetuning/traini
 python scripts/finetuning/train_finetuning.py --config configs/finetuning/training_b2_testing_wsl.yaml
 python scripts/finetuning/train_finetuning.py --config configs/finetuning/training_b2_refactoring_wsl.yaml
 python scripts/finetuning/train_finetuning.py --config configs/finetuning/training_b1_shared_wsl.yaml
+# ft_onto (rovnaké hyperparametre, dáta v3_onto)
+python scripts/finetuning/train_finetuning.py --config configs/finetuning/training_b2_testing_onto_wsl.yaml
+python scripts/finetuning/train_finetuning.py --config configs/finetuning/training_b2_refactoring_onto_wsl.yaml
 ```
 
 Pred v3 tréningom bol tréningový skript nefunkčný: `run_training` volal

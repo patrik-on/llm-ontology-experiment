@@ -1,7 +1,8 @@
 """Build eval-aligned (v3) fine-tuning datasets. See docs/finetuning/v3_runbook.md.
 
 Run from the repository root in WSL with the evaluation environment (tree-sitter,
-transformers for --max-seq-length, JDK + RefactoringMiner tools for `refactoring`).
+transformers for --max-seq-length, rdflib for the ontology twins, JDK + RefactoringMiner
+tools for `refactoring`). testing/refactoring write v3 and v3_onto from one shared manifest.
 No model calls, no index or evaluation-run writes.
 """
 from __future__ import annotations
@@ -34,6 +35,8 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("task", choices=["testing", "refactoring", "combined"])
     parser.add_argument("--out-root", default="data/processed/v3")
+    parser.add_argument("--onto-out-root", default="data/processed/v3_onto",
+                        help="Twin datasets with the project-ontology block (same manifest as --out-root).")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--tokenizer", default=None, help="Default: tokenizer_name of the HF model config.")
     parser.add_argument("--max-seq-length", type=int,
@@ -58,14 +61,16 @@ def main() -> None:
         report = v3.build_testing_v3(ROOT / args.methods2test_archive, out_root / "testing",
                                      train_size=args.testing_train, val_size=args.testing_val,
                                      project_cap=args.project_cap, seed=args.seed,
-                                     max_records=args.max_records, fits=fits_from(args))
+                                     max_records=args.max_records, fits=fits_from(args),
+                                     onto_out_dir=ROOT / args.onto_out_root / "testing")
     elif args.task == "refactoring":
         plan = expand_placeholders(json.loads((ROOT / args.plan).read_text()))
         report = v3.build_refactoring_v3(ROOT, Path(plan["raw_ml4refactoring"]), ROOT / args.work_dir,
                                          out_root / "refactoring", plan=plan,
                                          train_size=args.refactoring_train, val_size=args.refactoring_val,
                                          per_type=args.per_type, max_archives=args.max_archives,
-                                         seed=args.seed, fits=fits_from(args))
+                                         seed=args.seed, fits=fits_from(args),
+                                         onto_out_dir=ROOT / args.onto_out_root / "refactoring")
     else:
         report = v3.build_combined_v3(out_root / "testing", out_root / "refactoring",
                                       out_root / "combined", seed=args.seed)

@@ -4,6 +4,8 @@ import json
 
 import pytest
 
+from llm_ontology import ontology
+
 from llm_ontology.benchmarks import refactoring_execution as ex
 from llm_ontology.benchmarks.matrix_support import ft_case
 from llm_ontology.benchmarks.refactoring_matrix import render
@@ -82,16 +84,34 @@ def test_refactoring_record_matches_ft_refactoring_prompt_and_parses():
     assert record["refactoring_type"] == "Rename Variable" and record["format"] == v3.FORMAT
 
 
-def test_finish_drops_over_length_instead_of_truncating_and_splits_by_project(tmp_path):
-    records = [{"instruction": "i", "input": "x" * (10 if n % 2 else 500), "output": "{}",
-                "project": f"p{n % 7}", "domain": "testing"} for n in range(40)]
-    report = v3._finish(records, tmp_path, {"train": 100, "val": 100}, 3,
-                        lambda r: len(r["input"]) < 100, {})
-    assert report["dropped_over_token_limit"] == 20
-    train = [json.loads(x) for x in (tmp_path / "train.jsonl").read_text().splitlines()]
-    val = [json.loads(x) for x in (tmp_path / "val.jsonl").read_text().splitlines()]
-    assert len(train) + len(val) == 20
+def _rows(path):
+    return [json.loads(x) for x in path.read_text().splitlines()]
+
+
+def test_finish_writes_v3_and_onto_twins_from_one_shared_manifest(tmp_path):
+    pytest.importorskip("rdflib")
+    block = "<project-ontology>\nfact\n</project-ontology>"
+    records = [{"instruction": "i", "input": "x" * (10 if n % 2 else 500), "output": f"{{{n}}}",
+                "project": f"p{n % 7}", "domain": "testing", "case_id": str(n),
+                "ontology_block": block, "ontology_block_sha256": "b", "ontology_schema_sha256": "s"}
+               for n in range(40)]
+    records[1] = {**records[1], "ontology_block": None, "ontology_error": "ValueError: no focal"}
+    # The onto twin of case 3 alone is too long: the case must leave BOTH datasets.
+    long_twin = {"3"}
+    report = v3._finish(records, tmp_path / "v3", {"train": 100, "val": 100}, 3,
+                        lambda r: len(r["input"]) < 100 and not (r["case_id"] in long_twin and "ontology" in r["instruction"]),
+                        {}, onto_out_dir=tmp_path / "onto")
+    assert report["dropped_over_token_limit"] == 21 and report["dropped_ontology_failure"] == 1
+    for split in ("train", "val"):
+        base, onto = _rows(tmp_path / "v3" / f"{split}.jsonl"), _rows(tmp_path / "onto" / f"{split}.jsonl")
+        assert [r["case_id"] for r in base] == [r["case_id"] for r in onto]
+        assert [r["output"] for r in base] == [r["output"] for r in onto]
+        assert all(o["instruction"] == ontology.with_ontology(b["instruction"], block) for b, o in zip(base, onto))
+        assert not any("ontology_block" in r for r in base + onto)
+    train, val = _rows(tmp_path / "v3" / "train.jsonl"), _rows(tmp_path / "v3" / "val.jsonl")
+    assert len(train) + len(val) == 18 and not {"1", "3"} & {r["case_id"] for r in train + val}
     assert not {r["project"] for r in train} & {r["project"] for r in val}
+    assert (tmp_path / "v3" / "manifest.json").read_text() == (tmp_path / "onto" / "manifest.json").read_text()
 
 
 def test_combined_is_row_balanced(tmp_path):
@@ -117,11 +137,16 @@ def test_build_testing_v3_end_to_end_from_archive(tmp_path):
                 info.size = len(payload)
                 tar.addfile(info, io.BytesIO(payload))
                 n += 1
-    report = v3.build_testing_v3(archive, tmp_path / "out", train_size=10, val_size=10, seed=0)
+    report = v3.build_testing_v3(archive, tmp_path / "out", train_size=10, val_size=10, seed=0,
+                                 onto_out_dir=tmp_path / "onto")
     assert report["candidates"] == 8 and report["pairs"] == 4
     assert report["rejections"] == {"assertion_library_not_in_jupiter_scaffold": 4}
     rows = [json.loads(x) for s in ("train", "val") for x in (tmp_path / "out" / f"{s}.jsonl").read_text().splitlines()]
     assert len(rows) == 4 and all(parse_testing_bodies(r["output"]) for r in rows)
+    assert report["dropped_ontology_failure"] == 0
+    twins = [json.loads(x) for s in ("train", "val") for x in (tmp_path / "onto" / f"{s}.jsonl").read_text().splitlines()]
+    assert [t["case_id"] for t in twins] == [r["case_id"] for r in rows]
+    assert all("Focal method: public static int twice(int x)" in t["instruction"] for t in twins)
 
 
 def test_refactoring_records_from_detector_contexts(tmp_path):
