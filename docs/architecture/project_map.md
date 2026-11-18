@@ -17,7 +17,7 @@
 | `benchmarks/refactoring_candidates.py`, `refactoring_mixed_prepare.py`, `refactoring_cohort.py` | Audited reservoir, 100-task quota release and deterministic filtered subsets |
 | `benchmarks/java_execution.py`, `evaluation/coverage_runner.py` | Bounded Java/Jupiter execution and JaCoCo |
 | `benchmarks/evaluation_generation.py`, `evaluation/hf_inference.py` | Existing local model generation primitives |
-| `evaluation/experiment_log.py` | Shared inference/UI/retrieval trace records |
+| `evaluation/experiment_log.py` | Shared inference/retrieval trace records |
 
 Only the two matrix modules expose eval CLIs. Helpers are not independent
 benchmark workflows. Outputs are owned by the corresponding matrix under
@@ -33,7 +33,7 @@ benchmark workflows. Outputs are owned by the corresponding matrix under
 - `finetuning`, `models`: training and local model/adapter loading/provenance.
 - `retrieval`, `vectorstore`, `providers`: embeddings, existing index access and RAG.
 - `inference`, `approaches`: shared prompts, structured boundaries and generation.
-- `ui`: interactive demonstrations and diagnostics, not experiment evaluation.
+- `env`: read-only runtime status check (`python -m llm_ontology.env check`).
 
 Training checkpoints, datasets and RAG indexes are preserved independently of
 evaluation lifecycle. Dataset-only handcrafted fixtures can remain as explanatory

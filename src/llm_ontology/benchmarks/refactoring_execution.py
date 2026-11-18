@@ -19,6 +19,8 @@ from uuid import uuid4
 
 from pydantic import BaseModel, Field
 
+from llm_ontology.core.paths import work_root_path
+
 from llm_ontology.benchmarks.java_execution import file_sha256, run_process
 from llm_ontology.benchmarks.matrix_support import durable_json as write
 from llm_ontology.ingestion.identity import normalize_java_for_hash
@@ -184,7 +186,7 @@ def execute(case: dict, source: str, output: Path, expected=None, *, offline=Fal
     output.mkdir(parents=True, exist_ok=False)
     # NTFS/OneDrive is very slow for historical Java source/build trees under WSL.
     # Keep evidence in the run directory, but isolated working copies on Linux FS.
-    project = Path(case.get("work_root", "/home/patrik/benchmark-work/refactoring-matrix/executions")) / uuid4().hex
+    project = Path(case.get("work_root") or work_root_path("refactoring-matrix", "executions")) / uuid4().hex
     write(output / "workspace.json", {"path": str(project)})
     checkout(Path(case["mirror"]), case["parent"], project)
     target = project / safe_path(case["file_path"])

@@ -61,6 +61,7 @@ def test_structural_instructions_express_target_without_gold_body():
     assert "Rename x to count" in inst and "A.java" in inst and "2..3" in inst
 
 
+@pytest.mark.local_data
 def test_real_miner_target_binding_scope_and_noop(tmp_path):
     from llm_ontology.benchmarks.refactoring_prepare import tool_identity
     tool = tool_identity(matrix.load_plan(1))
@@ -88,6 +89,7 @@ def test_real_miner_target_binding_scope_and_noop(tmp_path):
     assert not structural.evaluate(fake, after, tmp_path / "wrong-location", tool)["structural_success"]
 
 
+@pytest.mark.local_data
 def test_report_does_not_mix_structural_success_with_build_tests(tmp_path):
     obj = object.__new__(matrix.Matrix)
     obj.root, obj.plan = tmp_path, matrix.load_plan(1)
@@ -109,6 +111,7 @@ def test_report_does_not_mix_structural_success_with_build_tests(tmp_path):
     assert not report["complete"]
 
 
+@pytest.mark.local_data
 def test_real_parameterization_includes_necessary_parameter_delimiter(tmp_path):
     from llm_ontology.benchmarks.refactoring_prepare import tool_identity
     tool = tool_identity(matrix.load_plan(1))
@@ -121,6 +124,7 @@ def test_real_parameterization_includes_necessary_parameter_delimiter(tmp_path):
     assert structural.within_scope(before, after, event)
 
 
+@pytest.mark.local_data
 def test_context_aligns_members_and_preserves_reasonable_neighbors(tmp_path):
     from llm_ontology.benchmarks.refactoring_context import contextual_pair
     from llm_ontology.benchmarks.refactoring_prepare import tool_identity
@@ -162,6 +166,7 @@ def test_multiple_events_choose_explicit_dataset_target_not_first_event():
         structural.select_event([first], "Extract Variable")
 
 
+@pytest.mark.local_data
 def test_extract_variable_checks_requested_expression_not_just_new_name(tmp_path):
     from llm_ontology.benchmarks.refactoring_prepare import tool_identity
     tool = tool_identity(matrix.load_plan(1))

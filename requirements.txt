@@ -1,19 +1,5 @@
-pyyaml>=6.0
-pydantic>=2.7,<3
-chromadb>=1.0,<2
-pypdf>=5,<7
-sentence-transformers>=5.0,<6
-transformers>=4.45,<5
-tree-sitter>=0.25,<0.27
-tree-sitter-java==0.23.5
-pytest>=8.0
-reportlab>=4,<5
-
-# Optional fine-tuning dependencies. Install when running real training.
-transformers>=4.40
-datasets>=2.18
-peft>=0.10
-accelerate>=0.28
-bitsandbytes>=0.43; platform_system != "Windows"
-torch>=2.2
-tqdm>=4.66
+# Single source of truth for dependencies is pyproject.toml.
+# This file only installs the project with its common extras:
+#   pip install -r requirements.txt
+# For real fine-tuning also install:  pip install -e ".[training]"
+-e .[dev,rag]

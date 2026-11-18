@@ -6,7 +6,7 @@ Lokálne porovnanie piatich systémov pri dvoch Java úlohách:
 - **Refactoring:** spoločný SWE + MaRV + ML4Ref pool; SWE navyše overuje pôvodný projekt.
 
 Obe matice porovnávajú **baseline, fine-tuned model, Single-RAG, MultiRAG a
-baseline + existujúci skill**. Testing má default 5 prípadov × 5 variantov.
+baseline + existujúci skill**. Testing má default **100 prípadov** × 5 variantov (500 volaní); menší beh cez `--cases N`.
 Refactoring má pripravených **100 úloh: 5 SWE + 35 MaRV + 60 ML4Ref**; podporuje
 menší výber N aj všetkých 100, vždy bez opravných pokusov. MaRV/ML4Ref používajú
 rozumný okolitý kontext a skórujú konkrétny zadaný refactoring; ďalšie zmeny sa
@@ -60,25 +60,44 @@ konfigurácie, reporty a výstupy boli odstránené z aktívneho projektu.
 
 ## Zvyšok projektu
 
-Tréning, surové/spracované datasety, modely/adaptéry, RAG indexy a interaktívne UI
+Tréning, surové/spracované datasety, modely/adaptéry, a RAG indexy
 zostávajú oddelené od evaluácie. Datasetové audity a nástroje ako RefactoringMiner
 či JaCoCo sú podklady/závislosti aktuálnych matíc, nie dodatočné eval runnery.
 
 - [Mapa projektu](docs/architecture/project_map.md)
 - [Tréning](docs/finetuning/v2_runbook.md)
 - [Aktuálny retrieval](docs/retrieval/rag_v3.md)
-- [UI](docs/ui/overview.md)
 - [Eval dokumentácia](docs/evaluation/README.md)
 - [Podklady na písanie práce](thesis_materials/README.md) — metodické reporty,
   archivované handcrafted výsledky a dôkazy; nie ďalší aktívny eval runner.
 - [Prečo sú aktuálne evaluácie takto navrhnuté](thesis_materials/reports/evaluation_design_2026-11-13.md)
 
+## Inštalácia a lokálne cesty
+
+```bash
+python -m venv .venv_wsl && source .venv_wsl/bin/activate
+pip install -r requirements.txt          # = pip install -e ".[dev,rag]"
+pip install -e ".[training]"             # iba pre reálny fine-tuning
+```
+
+Konfigurácie neobsahujú absolútne cesty konkrétneho počítača. Používajú
+premenné `${LLM_ONTOLOGY_WORK_ROOT}` (default `~/benchmark-work`: JDK, JUnit/JaCoCo
+jary, git mirrory), `${LLM_ONTOLOGY_MODELS_ROOT}` (default `/mnt/c/models`) a
+`${LLM_ONTOLOGY_DATASETS_ROOT}` (default `/mnt/c/datasets`). Na inom stroji ich
+stačí exportovať, pozri [.env.example](.env.example).
+
+Rameno `skills` používa pinnuté kópie `SKILL.md` v [configs/skills/](configs/skills/info.md)
+(z `si-context-eval@57ce660`), takže susedný checkout už nie je potrebný.
+
 ## Kontroly implementácie
 
 ```bash
-.venv_wsl/bin/python -m pytest -q
+.venv_wsl/bin/python -m pytest -q -rs
 .venv_wsl/bin/ruff check src scripts tests
 ```
 
-Niektoré integračné kontroly potrebujú už nainštalované lokálne Java/modelové
-závislosti. Nevytvárajú experimentálne skóre modelov.
+Testy označené `local_data` potrebujú Gitom ignorované lokálne vstupy
+(SWE-Refactor dataset a overlap audit v `artifacts/swe_overlap_audit_20261113/`),
+testy `rag` potrebujú `chromadb`. Ak chýbajú, preskočia sa s dôvodom, takže čistý
+klon a CI (`.github/workflows/ci.yml`) bežia zelene. Integračné kontroly
+nevytvárajú experimentálne skóre modelov.

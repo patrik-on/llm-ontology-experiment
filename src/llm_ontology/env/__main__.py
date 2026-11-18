@@ -5,7 +5,7 @@ from pathlib import Path
 
 from llm_ontology.core.paths import resolve_path
 from llm_ontology.retrieval.config import load_rag_config
-from llm_ontology.ui.service import EnvironmentStatusService
+from llm_ontology.env.status import EnvironmentStatusService
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -17,7 +17,7 @@ def build_parser() -> argparse.ArgumentParser:
     check.add_argument(
         "--config",
         type=Path,
-        default=Path("configs/retrieval/ollama_bge_m3.yaml"),
+        default=Path("configs/retrieval/ollama_bge_m3_v3.yaml"),
     )
     check.add_argument("--json", action="store_true", help="Print the complete JSON status.")
     return parser

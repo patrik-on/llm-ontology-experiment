@@ -1,7 +1,7 @@
 # tests
 
 Testy sú podľa vlastníctva v `datasets/`, `finetuning/`, `retrieval/`,
-`inference/`, `evaluation/`, `experiments/` a `ui/`. Cross-area architektonické,
+`inference/`, `evaluation/` a `experiments/`. Cross-area architektonické,
 config, import a compatibility kontrakty zostávajú v root `tests/`, aby sa im
 nepriradilo zavádzajúce jediné vlastníctvo.
 

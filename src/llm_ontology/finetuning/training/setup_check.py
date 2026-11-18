@@ -8,9 +8,9 @@ from llm_ontology.finetuning.prompt_formatter import format_inference_prompt, fo
 
 
 TRAINING_CONFIGS = (
-    Path("configs/finetuning/training_b1_shared.yaml"),
-    Path("configs/finetuning/training_b2_refactoring.yaml"),
-    Path("configs/finetuning/training_b2_testing.yaml"),
+    Path("configs/finetuning/training_b1_shared_wsl.yaml"),
+    Path("configs/finetuning/training_b2_refactoring_wsl.yaml"),
+    Path("configs/finetuning/training_b2_testing_wsl.yaml"),
 )
 
 

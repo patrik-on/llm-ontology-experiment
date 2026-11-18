@@ -12,8 +12,7 @@ from llm_ontology.providers.sentence_transformers import (
 )
 from llm_ontology.retrieval.config import EmbeddingSettings, RagConfig, load_rag_config
 from llm_ontology.retrieval.factory import create_embedding_provider
-from llm_ontology.ui.app import COLLECTION_HEADERS, _render_environment
-from llm_ontology.ui.service import EnvironmentStatusService
+from llm_ontology.env.status import EnvironmentStatusService
 from llm_ontology.vectorstore.manifest import (
     CollectionManifestStore,
     IncompatibleCollectionError,
@@ -36,7 +35,7 @@ class FakeResponse:
 
 
 def test_current_baseline_config_is_wsl_ollama_only() -> None:
-    config = load_rag_config("configs/retrieval/ollama_bge_m3.yaml")
+    config = load_rag_config("configs/retrieval/ollama_bge_m3_v3.yaml")
 
     assert config.runtime.environment == "wsl"
     assert config.runtime.status == "current"
@@ -131,12 +130,10 @@ def test_environment_status_reports_ready_wsl_runtime(tmp_path: Path) -> None:
     assert status.generation_provider == "ollama"
     assert status.generation_model_digest == "sha256:qwen-runtime"
     assert status.chroma_status == "not_initialized"
-    assert "ollama_runtime" in COLLECTION_HEADERS
-    panel, collections = _render_environment(status)
-    assert panel["runtime_os"] == "WSL/Linux (fixture)"
-    assert panel["ollama_base_url"] == "http://localhost:11434"
-    assert panel["generation_model"] == "qwen2.5-coder:7b"
-    assert collections == []
+    assert status.runtime_os == "WSL/Linux (fixture)"
+    assert status.ollama_base_url == "http://localhost:11434"
+    assert status.generation_model == "qwen2.5-coder:7b"
+    assert status.collections == []
 
 
 def test_manifest_runtime_or_digest_mismatch_is_stale(tmp_path: Path) -> None:

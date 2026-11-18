@@ -60,7 +60,7 @@ tokenizer_config.json
 Kontrola:
 
 ```bash
-python scripts/check_v2_adapters.py --models-config configs/evaluation/eval_models_v2_only.yaml
+python scripts/finetuning/check_adapters.py --models-config configs/evaluation/eval_models_v2_only.yaml
 ```
 
 Ak budu adaptery ulozene na inych cestach, uprav `adapter_path` v `configs/evaluation/eval_models_v2_only.yaml`.
@@ -68,7 +68,7 @@ Ak budu adaptery ulozene na inych cestach, uprav `adapter_path` v `configs/evalu
 ZIP subory sa daju vytvorit z lokalnych adapterov prikazom:
 
 ```bash
-python scripts/package_v2_adapters.py \
+python scripts/finetuning/package_v2_adapters.py \
   --models-config configs/evaluation/eval_models_v2_only.yaml \
   --output-dir artifacts/finetuning/adapters
 ```

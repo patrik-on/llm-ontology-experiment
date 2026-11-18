@@ -13,7 +13,7 @@ EXPERIMENTS = (
 
 def training_command(model_dir: str, config: str) -> str:
     return (
-        "python scripts/train_finetuning.py \\\n"
+        "python scripts/finetuning/train_finetuning.py \\\n"
         f"  --config {config} \\\n"
         f"  --output-root {OUTPUT_ROOT}/{model_dir}"
     )
@@ -21,7 +21,7 @@ def training_command(model_dir: str, config: str) -> str:
 
 def resume_command(model_dir: str, config: str) -> str:
     return (
-        "python scripts/train_finetuning.py \\\n"
+        "python scripts/finetuning/train_finetuning.py \\\n"
         f"  --config {config} \\\n"
         f"  --output-root {OUTPUT_ROOT}/{model_dir} \\\n"
         f"  --resume_from_checkpoint {OUTPUT_ROOT}/{model_dir}/checkpoints/checkpoint-XXX"
@@ -44,7 +44,7 @@ def main() -> None:
     print("python -m pytest tests")
     print("python scripts/finetuning/debug_prompt_masking.py")
     for _, _, config in EXPERIMENTS:
-        print(f"python scripts/check_finetuning_ready.py --config {config}")
+        print(f"python scripts/finetuning/check_finetuning_ready.py --config {config}")
 
     print("\nTraining commands")
     print("-----------------")

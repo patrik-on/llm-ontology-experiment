@@ -30,9 +30,9 @@ Pred každým reálnym v2 tréningom spusti:
 python -m compileall -q src scripts tests
 python -m pytest tests
 python scripts/finetuning/debug_prompt_masking.py
-python scripts/check_finetuning_ready.py --config configs/finetuning/training_b2_testing_wsl.yaml
-python scripts/check_finetuning_ready.py --config configs/finetuning/training_b2_refactoring_wsl.yaml
-python scripts/check_finetuning_ready.py --config configs/finetuning/training_b1_shared_wsl.yaml
+python scripts/finetuning/check_finetuning_ready.py --config configs/finetuning/training_b2_testing_wsl.yaml
+python scripts/finetuning/check_finetuning_ready.py --config configs/finetuning/training_b2_refactoring_wsl.yaml
+python scripts/finetuning/check_finetuning_ready.py --config configs/finetuning/training_b1_shared_wsl.yaml
 ```
 
 `check_finetuning_ready.py` validuje cesty uložené v YAML configoch. V2 output cesty sa pri ručnom tréningu presmerujú cez `--output-root`, aby sa neprepísali v1/pilotné adaptéry.
@@ -68,7 +68,7 @@ Tieto príkazy sú pripravené na ručné spustenie. Nespúšťaj ich ako súča
 ### B2-T v2
 
 ```bash
-python scripts/train_finetuning.py \
+python scripts/finetuning/train_finetuning.py \
   --config configs/finetuning/training_b2_testing_wsl.yaml \
   --output-root ~/experiments/llm-ontology-v2/b2_testing
 ```
@@ -76,7 +76,7 @@ python scripts/train_finetuning.py \
 ### B2-R v2
 
 ```bash
-python scripts/train_finetuning.py \
+python scripts/finetuning/train_finetuning.py \
   --config configs/finetuning/training_b2_refactoring_wsl.yaml \
   --output-root ~/experiments/llm-ontology-v2/b2_refactoring
 ```
@@ -84,7 +84,7 @@ python scripts/train_finetuning.py \
 ### B1 shared v2
 
 ```bash
-python scripts/train_finetuning.py \
+python scripts/finetuning/train_finetuning.py \
   --config configs/finetuning/training_b1_shared_wsl.yaml \
   --output-root ~/experiments/llm-ontology-v2/b1_shared
 ```
@@ -96,7 +96,7 @@ Nahraď `checkpoint-XXX` konkrétnym checkpointom, napríklad `checkpoint-300`.
 ### B2-T v2 resume
 
 ```bash
-python scripts/train_finetuning.py \
+python scripts/finetuning/train_finetuning.py \
   --config configs/finetuning/training_b2_testing_wsl.yaml \
   --output-root ~/experiments/llm-ontology-v2/b2_testing \
   --resume_from_checkpoint ~/experiments/llm-ontology-v2/b2_testing/checkpoints/checkpoint-XXX
@@ -105,7 +105,7 @@ python scripts/train_finetuning.py \
 ### B2-R v2 resume
 
 ```bash
-python scripts/train_finetuning.py \
+python scripts/finetuning/train_finetuning.py \
   --config configs/finetuning/training_b2_refactoring_wsl.yaml \
   --output-root ~/experiments/llm-ontology-v2/b2_refactoring \
   --resume_from_checkpoint ~/experiments/llm-ontology-v2/b2_refactoring/checkpoints/checkpoint-XXX
@@ -114,7 +114,7 @@ python scripts/train_finetuning.py \
 ### B1 shared v2 resume
 
 ```bash
-python scripts/train_finetuning.py \
+python scripts/finetuning/train_finetuning.py \
   --config configs/finetuning/training_b1_shared_wsl.yaml \
   --output-root ~/experiments/llm-ontology-v2/b1_shared \
   --resume_from_checkpoint ~/experiments/llm-ontology-v2/b1_shared/checkpoints/checkpoint-XXX

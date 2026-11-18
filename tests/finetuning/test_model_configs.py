@@ -6,7 +6,6 @@ from llm_ontology.core.config import read_yaml
 
 
 MODEL_CONFIGS = (
-    Path("configs/shared/models/qwen25_coder_7b_hf.yaml"),
     Path("configs/shared/models/qwen25_coder_7b_hf_wsl.yaml"),
     Path("configs/shared/models/qwen25_coder_7b_ollama.yaml"),
 )

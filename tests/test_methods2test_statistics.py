@@ -86,6 +86,11 @@ def test_arbitrary_case_count_and_no_default_writes(tmp_path, n):
     assert report["actual_calls"] == report["max_actual_calls"] == n * 4
     assert len(report["paired_matrix"]) == n * 4
     assert len(report["paired_comparisons"]) == 6
+    for pair in report["paired_comparisons"]:
+        significance = pair["class_pass"]["significance"]
+        assert significance["test"] == "mcnemar_exact" and significance["family_size"] == 0
+        coverage = pair["coverage_success_credit"]["method"]["line"]["significance"]
+        assert coverage["test"] == "wilcoxon_signed_rank_exact" and "p_holm" in coverage
     assert not (tmp_path / "reports").exists()
     for arm in ARMS:
         assert report["arms"][arm]["class_pass"]["denominator"] == n

@@ -5,6 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "llm-ontology-experiment"
 version = "0.1.0"
+license = { text = "MIT" }
 description = "Controlled Direct, RAG, and MultiRAG experiments for Java software engineering tasks."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -27,9 +28,6 @@ rag = [
   "transformers>=4.45,<5",
   "tree-sitter>=0.25,<0.27",
   "tree-sitter-java==0.23.5",
-]
-ui = [
-  "gradio>=5.0,<6",
 ]
 training = [
   "transformers>=4.40",

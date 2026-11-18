@@ -6,7 +6,6 @@
 - `retrieval/`: RAG phases, MultiRAG/RRF baseline, and Ollama embedding lifecycle;
 - `evaluation/`: only the current Methods2Test and SWE refactoring runbooks;
 - `thesis/`: reproducible research handoff material;
-- `ui/`: interactive UI and environment-status documentation.
 
 Start with `architecture/project_map.md`. Root `README.md` is the public quick
 entry; `devinfo.md` contains non-negotiable methodological and ownership rules.
