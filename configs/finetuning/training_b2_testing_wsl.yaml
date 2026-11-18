@@ -1,19 +1,20 @@
 experiment:
-  name: "b2_testing"
-  description: "Fine-tuning on JUnit test generation tasks only"
+  name: "b2_testing_v3"
+  description: "JUnit Jupiter test bodies in the testing-matrix JSON contract (eval-aligned v3)"
   model_config: "configs/shared/models/qwen25_coder_7b_hf_wsl.yaml"
   lora_config: "configs/finetuning/lora_config.yaml"
 
 dataset:
-  train_file: "data/processed/testing/train.jsonl"
-  val_file: "data/processed/testing/val.jsonl"
-  test_file: "data/processed/testing/test.jsonl"
+  train_file: "data/processed/v3/testing/train.jsonl"
+  val_file: "data/processed/v3/testing/val.jsonl"
+  # The held-out test for v3 is the evaluation matrices themselves; readiness checks need a path.
+  test_file: "data/processed/v3/testing/val.jsonl"
 
 output:
-  output_dir: "~/experiments/llm-ontology/b2_testing/checkpoints"
-  logging_dir: "~/experiments/llm-ontology/b2_testing/logs"
-  results_dir: "~/experiments/llm-ontology/b2_testing/results"
-  final_adapter_dir: "~/experiments/llm-ontology/b2_testing/checkpoints/final_adapter"
+  output_dir: "~/experiments/llm-ontology-v3/b2_testing/checkpoints"
+  logging_dir: "~/experiments/llm-ontology-v3/b2_testing/logs"
+  results_dir: "~/experiments/llm-ontology-v3/b2_testing/results"
+  final_adapter_dir: "~/experiments/llm-ontology-v3/b2_testing/checkpoints/final_adapter"
 
 run:
   dry_run: false
