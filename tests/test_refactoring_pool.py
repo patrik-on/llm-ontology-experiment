@@ -105,6 +105,8 @@ def test_partial_preparation_is_not_silently_reused(tmp_path, monkeypatch):
 
 
 def test_all_dry_run_has_upper_bound_no_runtime(tmp_path, monkeypatch, capsys):
+    # The CLI changes cwd; register it for teardown before swapping its repo root.
+    monkeypatch.chdir(matrix.REPO)
     monkeypatch.setattr(matrix, "REPO", tmp_path)
     monkeypatch.setattr(matrix.shared, "require_wsl", lambda: pytest.fail("Runtime invoked"))
     assert matrix.main(["--run-id", "all-preview", "--cases", "all", "--dry-run"]) == 0
@@ -114,6 +116,7 @@ def test_all_dry_run_has_upper_bound_no_runtime(tmp_path, monkeypatch, capsys):
 
 
 def test_numeric_six_dry_run(tmp_path, monkeypatch, capsys):
+    monkeypatch.chdir(matrix.REPO)
     monkeypatch.setattr(matrix, "REPO", tmp_path)
     assert matrix.main(["--run-id", "six-preview", "--cases", "6", "--dry-run"]) == 0
     result = json.loads(capsys.readouterr().out)
