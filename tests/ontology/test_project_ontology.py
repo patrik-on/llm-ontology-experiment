@@ -58,14 +58,45 @@ def method(unit, name):
     return unit.method_facts(next(m for m in unit.method_nodes() if unit.method_facts(m).name == name))
 
 
-def test_extractor_throw_sites_carry_their_guard():
+def test_throw_sites_list_every_enclosing_branch_not_a_firing_condition():
     unit = JavaUnit(SRC)
     clamp = method(unit, "clamp")
-    assert [(t.exception, t.guard, t.line) for t in clamp.throws] == [("IllegalArgumentException", "label == null", 7)]
+    assert [(t.exception, t.enclosing, t.earlier_exits, t.line) for t in clamp.throws] == [
+        ("IllegalArgumentException", ("if label == null",), (), 7)]
     assert clamp.null_checks == ["label == null"]
     mode = method(unit, "mode")
-    assert [(t.exception, t.guard) for t in mode.throws] == [("IllegalStateException", "!(code < 0)")]
+    # "!(code < 0)" alone would be wrong: code == 1 returns earlier and never reaches the throw.
+    assert [(t.enclosing, t.earlier_exits) for t in mode.throws] == [
+        (("switch code default", "else of if code < 0"), (31, 34))]
     assert any(b.kind == "switch" and "cases: 1, default" in b.condition for b in mode.branches)
+
+
+def test_throw_after_early_return_is_not_unconditional():
+    src = "class A {\n  void f(int x) {\n    if (x > 0) return;\n    throw new IllegalStateException();\n  }\n}\n"
+    (site,) = method(JavaUnit(src), "f").throws
+    assert site.enclosing == () and site.earlier_exits == (3,)
+    block = ontology.testing_view(src, "f")
+    assert "enclosing branches: none; earlier return/throw at lines 3" in block
+    assert "unconditionally" not in block and " when " not in block
+
+
+def test_call_sites_are_by_name_and_flag_overloads():
+    src = """import java.util.List;
+class B {
+    void add(int x) { }
+    void add(String s) { }
+    void run(List<Integer> list) {
+        add(1);
+        this.add("a");
+        list.add(2);
+    }
+}
+"""
+    unit = JavaUnit(src)
+    assert unit.call_sites("add") == [6, 7] and unit.overloads("add") == 2
+    block = ontology.refactoring_view(src, "Rename Parameter", 3, 3)
+    assert "by name (unqualified or this/super) at lines 6, 7; name has 2 declarations" in block
+    assert ungrounded_names(block, src) == []
 
 
 def test_extractor_comparisons_normalise_literal_side_and_constants():
@@ -94,7 +125,7 @@ def test_testing_view_lists_only_supplied_facts():
     block = ontology.testing_view(SRC, "clamp", "Calc")
     assert block.startswith(OPEN) and block.endswith(CLOSE)
     assert "Focal method: public static int clamp(int value, String label) in Calc" in block
-    assert "Throws IllegalArgumentException when label == null (line 7)" in block
+    assert "throw IllegalArgumentException at line 7; enclosing branches: if label == null" in block
     assert "value > LIMIT (= 10) -> try value = 10 / 11" in block
     assert "value < 0 -> try value = -1 / 0" in block
     assert "Reads fields: LIMIT : int = 10" in block
@@ -107,8 +138,9 @@ def test_testing_view_lists_only_supplied_facts():
     ("Extract Method", 17, 18, ["read variables declared earlier: before : int, x : int",
                                 "assign variables used after line 18: sum : int", "write fields: total"]),
     ("Rename Variable", 16, 16, ["Local before : int declared at line 16, initialised with total; used at lines 17, 22"]),
-    ("Rename Parameter", 15, 15, ["Parameter x : int used at lines 17, 19", "Calls to add in supplied source at lines 26"]),
-    ("Rename Method", 15, 23, ["Method public int add(int x) spans lines 15..23; called in supplied source at lines 26"]),
+    ("Rename Parameter", 15, 15, ["Parameter x : int used at lines 17, 19",
+                                  "Calls to add by name (unqualified or this/super) at lines 26"]),
+    ("Rename Method", 15, 23, ["Method public int add(int x) spans lines 15..23; calls by name"]),
     ("Rename Class", 1, 40, ["Type Calc spans lines 1..40"]),
 ])
 def test_refactoring_views(operation, start, end, expected):
@@ -137,3 +169,54 @@ def test_boundary_values():
     assert boundary_values("<", "0") == ["-1", "0"]
     assert boundary_values("==", "0x10") == ["15", "16", "17"]
     assert boundary_values(">=", "size") == ["size"]
+
+
+def test_block_depends_only_on_public_inputs():
+    """Private reference data (gold tests, after code, expected tests) never changes the block bytes."""
+    public = {"before": SRC, "operation": "Extract Method", "target": {"start": 17, "end": 18}}
+    first, _ = ontology.refactoring_context({**public, "after": "class Calc { int helper() { return 1; } }",
+                                             "expected_tests": ["a"]})
+    second, _ = ontology.refactoring_context({**public, "after": "something else entirely",
+                                              "expected_tests": ["b", "c"]})
+    assert first == second
+    base = {"class_name": "org.x.Calc", "method_name": "clamp"}
+    a = SimpleNamespace(input_text=SRC, structured_identity=base, metadata={"reference": "assertEquals(10, x)"})
+    b = SimpleNamespace(input_text=SRC, structured_identity=base, metadata={"reference": "other"})
+    assert ontology.testing_context(a)[0] == ontology.testing_context(b)[0]
+
+
+def test_locals_are_scoped_so_same_names_do_not_merge():
+    src = """class C {
+    void f(boolean a) {
+        if (a) {
+            String msg = "x";
+            System.out.println(msg);
+        } else {
+            String msg = "y";
+            System.out.println(msg + msg);
+        }
+        try { g(); } catch (IllegalStateException e) { h(e); }
+    }
+    void g() { }
+    void h(Exception e) { }
+    C make() { return new C(); }
+}
+"""
+    unit = JavaUnit(src)
+    node = next(m for m in unit.method_nodes() if unit.method_facts(m).name == "f")
+    found = {(v.name, v.line): (v.type, v.uses) for v in unit.locals(node)}
+    assert found[("msg", 4)] == ("String", [5]) and found[("msg", 7)] == ("String", [8])
+    assert found[("e", 10)] == ("IllegalStateException", [10])
+    assert unit.call_sites("C", constructor=True) == [14]
+
+
+def test_request_orders_variables_and_cut_initialisers_keep_whole_names():
+    long_init = "first.second().third(" + ", ".join(f"argumentNumber{i}" for i in range(8)) + ")"
+    decls = "\n".join(f"        int v{i} = {i};" for i in range(9))
+    src = f"class D {{\n    int f(Helper first) {{\n{decls}\n        int target = {long_init};\n" \
+          f"        return target + v0;\n    }}\n}}\n"
+    block = ontology.refactoring_view(src, "Inline Variable", 3, 12, request="Inline Variable target : int")
+    variable_lines = [line for line in block.splitlines() if line.startswith("Local ")]
+    assert variable_lines[0].startswith("Local target : int declared at line 12, initialised with first.second()")
+    assert "..." in variable_lines[0] and "(+4 more variables declared in lines 3..12)" in block
+    assert ungrounded_names(block, src) == []

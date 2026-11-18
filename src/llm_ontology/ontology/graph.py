@@ -7,7 +7,7 @@ from urllib.parse import quote
 from llm_ontology.ontology.extract import JavaUnit
 
 LO = "https://w3id.org/llm-ontology/project#"
-SCHEMA_VERSION = "project-ontology-v1"
+SCHEMA_VERSION = "project-ontology-v1"  # not yet frozen in any run
 
 # TBox. Kept deliberately small: only concepts the extractor can establish with
 # certainty from the code the model sees.
@@ -21,7 +21,7 @@ lo:Member a owl:Class .
 lo:Method a owl:Class ; rdfs:subClassOf lo:Member .
 lo:Field a owl:Class ; rdfs:subClassOf lo:Member .
 lo:Variable a owl:Class ; rdfs:comment "A parameter or local variable of one method." .
-lo:ThrowSite a owl:Class ; rdfs:comment "A throw statement and the condition guarding it." .
+lo:ThrowSite a owl:Class ; rdfs:comment "A throw statement, its enclosing branches and earlier exits (not when it fires)." .
 lo:Branch a owl:Class ; rdfs:comment "An if/switch/ternary/loop decision point." .
 lo:Comparison a owl:Class ; rdfs:comment "A comparison of an expression with a literal." .
 lo:CodeBlock a owl:Class ; rdfs:comment "A line range of one method (refactoring target)." .
@@ -42,7 +42,9 @@ lo:returns a owl:DatatypeProperty .
 lo:modifier a owl:DatatypeProperty .
 lo:declaresThrows a owl:DatatypeProperty .
 lo:exceptionType a owl:DatatypeProperty .
-lo:guardedBy a owl:DatatypeProperty .
+lo:enclosedBy a owl:DatatypeProperty ; rdfs:comment "Enclosing branches, outermost first, joined by ' > '." .
+lo:earlierExitAt a owl:DatatypeProperty ; rdfs:range xsd:integer .
+lo:overloads a owl:DatatypeProperty ; rdfs:range xsd:integer .
 lo:condition a owl:DatatypeProperty .
 lo:subject a owl:DatatypeProperty .
 lo:operator a owl:DatatypeProperty .
@@ -55,7 +57,7 @@ lo:startLine a owl:DatatypeProperty ; rdfs:range xsd:integer .
 lo:endLine a owl:DatatypeProperty ; rdfs:range xsd:integer .
 lo:position a owl:DatatypeProperty ; rdfs:range xsd:integer .
 lo:usedAt a owl:DatatypeProperty ; rdfs:range xsd:integer .
-lo:calledAt a owl:DatatypeProperty ; rdfs:range xsd:integer .
+lo:calledAt a owl:DatatypeProperty ; rdfs:range xsd:integer ; rdfs:comment "Unqualified/this/super call (constructor: new) by name only." .
 lo:referencedAt a owl:DatatypeProperty ; rdfs:range xsd:integer .
 lo:containsReturn a owl:DatatypeProperty ; rdfs:range xsd:boolean .
 lo:containsJump a owl:DatatypeProperty ; rdfs:range xsd:boolean .
@@ -136,8 +138,10 @@ def build_graph(source: str, *, block: tuple[int, int] | None = None):
             graph.add((s, lo.inMethod, m))
             graph.add((s, lo.exceptionType, Literal(site.exception)))
             graph.add((s, lo.line, integer(site.line)))
-            if site.guard:
-                graph.add((s, lo.guardedBy, Literal(site.guard)))
+            if site.enclosing:
+                graph.add((s, lo.enclosedBy, Literal(" > ".join(site.enclosing))))
+            for line in site.earlier_exits:
+                graph.add((s, lo.earlierExitAt, integer(line)))
         for i, branch in enumerate(facts.branches):
             b = node("branch", facts.owner, facts.name, facts.start, i)
             graph.add((b, RDF.type, lo.Branch))
@@ -160,7 +164,8 @@ def build_graph(source: str, *, block: tuple[int, int] | None = None):
                 graph.add((m, lo.readsField, fields[name]))
         for call in facts.calls:
             graph.add((m, lo.calls, Literal(call)))
-        for line in unit.call_sites(facts.name):
+        graph.add((m, lo.overloads, integer(unit.overloads(facts.name))))
+        for line in unit.call_sites(facts.name, constructor=facts.kind == "constructor"):
             graph.add((m, lo.calledAt, integer(line)))
         for position, local in enumerate(unit.locals(method)):
             v = node("var", facts.owner, facts.name, facts.start, local.name, local.line)

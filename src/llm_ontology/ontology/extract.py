@@ -1,7 +1,7 @@
 """Syntactic Java facts for the project ontology (tree-sitter only, no semantics guessed).
 
 Every fact here is something the parser can establish with certainty from the code the
-model is shown: declarations, signatures, ``throw`` sites with their guarding condition,
+model is shown: declarations, signatures, ``throw`` sites with every enclosing condition,
 branch conditions, comparisons against literals, identifier uses and simple def/use data
 flow inside one method. Nothing is inferred from names, documentation or other files.
 Line numbers are 1-based and refer to the supplied source.
@@ -32,8 +32,12 @@ class Param:
 
 @dataclass(frozen=True)
 class ThrowSite:
+    """A ``throw`` and the syntactic context it sits in. This is not a claim about when it fires:
+    ``enclosing`` lists every enclosing branch (outermost first) and ``earlier_exits`` the lines of
+    ``return``/``throw`` statements that precede it in the same method and may end the call first."""
     exception: str
-    guard: str | None
+    enclosing: tuple[str, ...]
+    earlier_exits: tuple[int, ...]
     line: int
 
 
@@ -202,7 +206,8 @@ class JavaUnit:
                 exception = (self.text(created.child_by_field_name("type"))
                              if created is not None and created.type == "object_creation_expression"
                              else self.text(created) if created is not None else "?")
-                facts.throws.append(ThrowSite(exception, self.guard(node, method), self.line(node)))
+                facts.throws.append(ThrowSite(exception, self.enclosing(node, method),
+                                              self.earlier_exits(node, body), self.line(node)))
             elif node.type in BRANCH_NODES:
                 facts.branches.append(Branch(BRANCH_NODES[node.type], self.condition_text(node), self.line(node)))
             elif node.type == "binary_expression" and self.text_of_operator(node) in COMPARISONS:
@@ -255,19 +260,51 @@ class JavaUnit:
         text = self.text(condition)
         return text[1:-1].strip() if condition.type == "parenthesized_expression" else text
 
-    def guard(self, node, method) -> str | None:
-        """Condition under which ``node`` runs, from the nearest enclosing ``if``."""
-        child, current = node, node.parent
+    def enclosing(self, node, method) -> tuple[str, ...]:
+        """Every branch ``node`` is nested in, outermost first, as written in the source."""
+        found, child, current = [], node, node.parent
         while current is not None and current != method:
-            if current.type == "if_statement":
+            kind = current.type
+            if kind == "if_statement":
                 condition = self.condition_text(current)
                 alternative = current.child_by_field_name("alternative")
-                if alternative is not None and alternative.start_byte <= child.start_byte \
-                        and child.end_byte <= alternative.end_byte:
-                    return f"!({condition})"
-                return condition
+                inside_else = alternative is not None and alternative.start_byte <= child.start_byte \
+                    and child.end_byte <= alternative.end_byte
+                if child != current.child_by_field_name("condition"):
+                    found.append(f"else of if {condition}" if inside_else else f"if {condition}")
+            elif kind in {"switch_block_statement_group", "switch_rule"}:
+                labels = [self.text(c).removesuffix(":").removesuffix("->").strip()
+                          for c in current.named_children if c.type == "switch_label"]
+                switch = current.parent.parent if current.parent is not None else None
+                subject = switch.child_by_field_name("condition") if switch is not None else None
+                subject_text = self.text(subject) if subject is not None else "?"
+                if subject_text.startswith("(") and subject_text.endswith(")"):
+                    subject_text = subject_text[1:-1].strip()
+                found.append(f"switch {subject_text} {' / '.join(labels)}")
+            elif kind in {"while_statement", "for_statement", "enhanced_for_statement", "do_statement"}:
+                found.append(f"loop {self.condition_text(current)}")
+            elif kind == "catch_clause":
+                parameter = next((c for c in current.named_children if c.type == "catch_formal_parameter"), None)
+                found.append(f"catch {self.text(parameter) if parameter is not None else '?'}")
+            elif kind in {"lambda_expression", "class_body"}:
+                found.append("lambda body" if kind == "lambda_expression" else "nested class body")
             child, current = current, current.parent
-        return None
+        return tuple(reversed(found))
+
+    def earlier_exits(self, node, body) -> tuple[int, ...]:
+        """Lines of ``return``/``throw`` that end before ``node`` starts, outside lambdas/nested classes."""
+        lines = set()
+        for other in self.walk(body):
+            if other.type in {"return_statement", "throw_statement"} and other.end_byte <= node.start_byte:
+                parent, nested = other.parent, False
+                while parent is not None and parent != body:
+                    if parent.type in {"lambda_expression", "class_body"}:
+                        nested = True
+                        break
+                    parent = parent.parent
+                if not nested:
+                    lines.add(self.line(other))
+        return tuple(sorted(lines))
 
     # -- locals and data flow ------------------------------------------------------------
     def enclosing_method(self, line: int):
@@ -275,43 +312,61 @@ class JavaUnit:
         return min(candidates, key=lambda m: m.end_byte - m.start_byte) if candidates else None
 
     def locals(self, method) -> list[LocalFacts]:
+        """Parameters and locals of ``method``. Uses are counted only inside the declaring scope
+        (Java forbids shadowing a local, so same-named locals live in disjoint scopes)."""
         name = self.text(method.child_by_field_name("name"))
-        found = [LocalFacts(name, p.name, p.type, "parameter", self.line(method), None, [])
-                 for p in self.params(method)]
         body = method.child_by_field_name("body")
+        declared = []  # (facts, declaring identifier node, scope node)
+        params = method.child_by_field_name("parameters")
+        for p in params.named_children if params is not None else []:
+            ident = p.child_by_field_name("name")
+            if p.type in {"formal_parameter", "spread_parameter"} and ident is not None:
+                declared.append((LocalFacts(name, self.text(ident), self.text(p.child_by_field_name("type")),
+                                            "parameter", self.line(method), None, []), ident, body))
         for node in self.walk(body) if body is not None else []:
             if node.type in {"local_variable_declaration", "resource"}:
                 type_ = self.text(node.child_by_field_name("type"))
-                declarators = [d for d in node.named_children if d.type == "variable_declarator"] or [node]
-                for d in declarators:
-                    value = d.child_by_field_name("value")
-                    found.append(LocalFacts(name, self.text(d.child_by_field_name("name")), type_, "local",
-                                            self.line(d), self.text(value) if value else None, []))
-            elif node.type in {"enhanced_for_statement", "catch_formal_parameter"}:
-                ident = node.child_by_field_name("name")
+                scope = node.parent
+                if node.type == "resource":
+                    scope = node.parent.parent if node.parent is not None else node
+                for d in [d for d in node.named_children if d.type == "variable_declarator"] or [node]:
+                    ident, value = d.child_by_field_name("name"), d.child_by_field_name("value")
+                    if ident is not None:
+                        declared.append((LocalFacts(name, self.text(ident), type_, "local", self.line(d),
+                                                    self.text(value) if value else None, []), ident, scope))
+            elif node.type == "enhanced_for_statement":
+                ident, type_node = node.child_by_field_name("name"), node.child_by_field_name("type")
                 if ident is not None:
-                    type_node = node.child_by_field_name("type")
-                    found.append(LocalFacts(name, self.text(ident), self.text(type_node) if type_node else "?",
-                                            "local", self.line(node), None, []))
-        uses = self.identifier_lines(body) if body is not None else {}
-        for local in found:
-            local.uses = sorted(line for line in uses.get(local.name, []) if line != local.line
-                                or local.kind == "parameter")
-        return found
+                    declared.append((LocalFacts(name, self.text(ident), self.text(type_node) if type_node else "?",
+                                                "local", self.line(node), None, []), ident, node))
+            elif node.type == "catch_formal_parameter":
+                ident = node.child_by_field_name("name")
+                types = next((c for c in node.named_children if c.type == "catch_type"), None)
+                if ident is not None:
+                    declared.append((LocalFacts(name, self.text(ident), self.text(types) if types else "?",
+                                                "local", self.line(node), None, []), ident, node.parent))
+        references = self.identifier_nodes(body) if body is not None else []
+        for local, ident, scope in declared:
+            if scope is None:
+                continue
+            local.uses = sorted({self.line(r) for r in references
+                                 if self.text(r) == local.name and r.start_byte > ident.start_byte
+                                 and scope.start_byte <= r.start_byte < scope.end_byte})
+        return [local for local, _, _ in declared]
 
-    def identifier_lines(self, node) -> dict[str, list[int]]:
-        lines: dict[str, list[int]] = {}
+    def identifier_nodes(self, node) -> list:
+        """Identifiers that can refer to a variable (not ``obj.member`` or a called method name)."""
+        found = []
         for ident in self.walk(node):
             if ident.type != "identifier":
                 continue
             parent = ident.parent
-            # Skip member names that are not variable references: obj.name / name(...)
             if parent.type == "field_access" and parent.child_by_field_name("field") == ident:
                 continue
             if parent.type == "method_invocation" and parent.child_by_field_name("name") == ident:
                 continue
-            lines.setdefault(self.text(ident), []).append(self.line(ident))
-        return lines
+            found.append(ident)
+        return found
 
     def block_facts(self, start: int, end: int) -> BlockFacts | None:
         method = self.enclosing_method(start)
@@ -356,9 +411,26 @@ class JavaUnit:
                           sorted(set(inputs), key=lambda p: p.name), sorted(set(outputs), key=lambda p: p.name),
                           sorted(written), has_return, has_jump)
 
-    def call_sites(self, name: str) -> list[int]:
-        return sorted(self.line(n) for n in self.walk() if n.type == "method_invocation"
-                      and self.text(n.child_by_field_name("name")) == name)
+    def call_sites(self, name: str, constructor: bool = False) -> list[int]:
+        """Lines of unqualified, ``this.`` or ``super.`` calls named ``name`` (resolved by name only);
+        for a constructor, ``new Name(...)`` expressions."""
+        result = []
+        for n in self.walk():
+            if constructor:
+                if n.type == "object_creation_expression":
+                    type_node = n.child_by_field_name("type")
+                    if type_node is not None and self.text(type_node).split("<")[0].split(".")[-1] == name:
+                        result.append(self.line(n))
+                continue
+            if n.type != "method_invocation" or self.text(n.child_by_field_name("name")) != name:
+                continue
+            obj = n.child_by_field_name("object")
+            if obj is None or obj.type in {"this", "super"}:
+                result.append(self.line(n))
+        return sorted(result)
+
+    def overloads(self, name: str) -> int:
+        return sum(1 for m in self.method_nodes() if self.text(m.child_by_field_name("name")) == name)
 
     def type_references(self, name: str) -> list[int]:
         return sorted({self.line(n) for n in self.walk() if n.type == "type_identifier" and self.text(n) == name})
