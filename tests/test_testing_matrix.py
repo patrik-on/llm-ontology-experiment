@@ -46,7 +46,7 @@ def fake_direct(c, case, out, ledger, **kwargs):
 def test_plan_and_skill_are_existing_inputs(tmp_path, monkeypatch):
     monkeypatch.chdir(matrix.REPO)
     default = matrix.load_plan()
-    assert default["cases"] == 5 and default["max_actual_generation_calls"] == 25
+    assert default["cases"] == 100 and default["max_actual_generation_calls"] == 500
     plan = matrix.load_plan(7)
     assert plan["max_actual_generation_calls"] == 35
     assert plan["arms"] == list(matrix.ARMS)
