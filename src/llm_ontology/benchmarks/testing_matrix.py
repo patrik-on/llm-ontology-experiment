@@ -55,7 +55,7 @@ def resolve_skill(explicit=None):
         if path.is_dir():
             path /= "skills/testing/SKILL.md"
     else:
-        path = REPO.parent / "si-context-eval/skills/testing/SKILL.md"
+        path = REPO / "configs/skills/testing/SKILL.md"
     content = path.read_bytes().decode("utf-8")
     if not content.strip() or len(content.encode()) > 128_000:
         raise ValueError("Missing/empty or unexpectedly large testing SKILL.md")
@@ -393,7 +393,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run-id", required=True)
     parser.add_argument("--cases", type=int, help="1..100 (default 5 on new runs)")
-    parser.add_argument("--skill-file", type=Path, help="Existing SKILL.md or si-context-eval repo")
+    parser.add_argument("--skill-file", type=Path, help="Override SKILL.md or si-context-eval repo (default: pinned configs/skills/testing/SKILL.md)")
     parser.add_argument("--dry-run", action="store_true", help="Offline plan; no files/API/model calls")
     parser.add_argument("--prepare-only", action="store_true", help="Selection/reference controls, no generation")
     parser.add_argument("--freeze-only", action="store_true", help="Prepare and freeze actual prompts; metadata/embeddings only, no generation")
