@@ -65,6 +65,9 @@ def hf_identity(config: EvaluationRuntime, *, hashes: bool = True) -> dict[str, 
     files.extend([adapter / "adapter_config.json", adapter / "adapter_model.safetensors",
                   provenance / "config_snapshot.yaml", provenance / "training_summary.json"])
     training = json.loads((provenance / "training_summary.json").read_text())
+    if training.get("experiment") != model["name"]:
+        raise ValueError(f"Adapter at {adapter} was trained as {training.get('experiment')!r}, "
+                         f"not {model['name']!r}.")
     if Path(training["train_file"]) not in config.training_sources:
         raise ValueError("Leakage inputs do not include the selected adapter training-summary source.")
     if not training.get("val_file"):
@@ -81,6 +84,20 @@ def hf_identity(config: EvaluationRuntime, *, hashes: bool = True) -> dict[str, 
     return {"model": model, "inference": models["inference"], "files": identities,
             "prompt_contract": "instruction-v1-raw-java-jupiter-request",
             "output_contract": "raw-java-only-no-semantic-repair"}
+
+
+def verify_hf_identity(identity: dict[str, Any]) -> dict[str, Any]:
+    """Re-hash every frozen base-model and adapter file just before the model is loaded.
+
+    The returned identity is the one to load from, so an FT arm cannot generate with an
+    adapter or base model other than the one frozen for it."""
+    for path, pin in identity["files"].items():
+        if file_sha256(Path(path)) != pin["sha256"]:
+            raise ValueError("Frozen model/adapter file changed: " + path)
+    adapter = Path(identity["model"]["adapter_path"]).expanduser().resolve()
+    if str(adapter / "adapter_model.safetensors") not in identity["files"]:
+        raise ValueError("Adapter path differs from the frozen adapter files")
+    return identity
 
 def generate_ft(config: EvaluationRuntime, case: ExperimentCase, output: Path, *,
                 loaded_model: tuple[Any, Any] | None = None,
@@ -110,13 +127,11 @@ def generate_ft(config: EvaluationRuntime, case: ExperimentCase, output: Path, *
         torch.manual_seed(config.random_seed)
         if torch.cuda.is_available():
             torch.cuda.manual_seed_all(config.random_seed)
-        if before_generation is not None:
-            before_generation(prompt)
         with torch.inference_mode():
             prediction, generation = generate_prediction(
                 model, tokenizer, "testing", case.instruction, case.input_text,
                 {"max_new_tokens": config.max_new_tokens, "do_sample": False,
-                 "top_p": 0.9, "repetition_penalty": 1.0})
+                 "top_p": 0.9, "repetition_penalty": 1.0}, on_prompt=before_generation)
         (output / "raw.txt").write_text(generation.get("raw_response", prediction), encoding="utf-8")
         write_json(output / "generation_metadata.json", generation)
         # Only an exact surrounding Markdown fence may be removed; never rewrite Java/JUnit4.

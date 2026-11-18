@@ -101,15 +101,15 @@ Pred v3 tréningom bol tréningový skript nefunkčný: `run_training` volal
 `model.base_model`, ktorý HF model configy nemajú. `models/loader.py` teraz prijíma
 oba tvary configu a kvantizáciu z `lora_config.yaml`.
 
-## Prepnutie matíc na v3 (follow-up, až keď adaptéry existujú)
+## Matice na v3 (hotové)
 
-Zámerne nie je v tomto kroku, lebo by rozbilo aktuálne prípravné behy:
+Obe matice už používajú v3 adaptéry a ontologické ramená:
 
-1. `configs/evaluation/eval_models_v2_only.yaml`: adapter paths (a názov súboru) na
-   `~/experiments/llm-ontology-v3/*/checkpoints/final_adapter`;
-   `configs/benchmarks/java_evaluation_runtime_v1.yaml`: `hf_model_name: b2_testing_v3`,
-   `training_sources`/`validation_sources`/`checkpoint_selection_sources` na
-   `data/processed/v3/testing/{train,val}.jsonl`.
-2. `refactoring_matrix.runtime()`: `b2_refactoring_v3` a v3 refactoring súbory.
-3. Nový `--run-id` pre obe matice (freeze hashuje zdrojové súbory aj adaptér).
-4. Voliteľne rameno `ft_shared` (b1_shared_v3) a `qwen_base_hf` (bod D18 auditu).
+1. `configs/evaluation/eval_models.yaml` má `b2_testing_v3`, `b2_refactoring_v3`,
+   `b2_testing_onto` a `b2_refactoring_onto` na
+   `~/experiments/llm-ontology-v3/*/checkpoints/final_adapter`.
+2. Plánové JSON mapujú každé FT rameno na adaptér (`adapters`); tréningové a validačné
+   zdroje sú v3 aj v3_onto súbory. Freeze overí, že `training_summary.json` adaptéra
+   nesie rovnaký názov experimentu a tieto zdroje.
+3. Behy potrebujú nové `--run-id` (freeze hashuje zdrojové súbory aj adaptéry).
+4. Voliteľne ešte rameno `ft_shared` (b1_shared_v3) a `qwen_base_hf` (bod D18 auditu).

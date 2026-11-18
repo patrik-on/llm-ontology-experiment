@@ -83,9 +83,9 @@ def test_arbitrary_case_count_and_no_default_writes(tmp_path, n):
     fixture(tmp_path, n)
     report = aggregate(tmp_path)
     assert report["case_count"] == n
-    assert report["actual_calls"] == report["max_actual_calls"] == n * 4
-    assert len(report["paired_matrix"]) == n * 4
-    assert len(report["paired_comparisons"]) == 6
+    assert report["actual_calls"] == report["max_actual_calls"] == n * len(ARMS)
+    assert len(report["paired_matrix"]) == n * len(ARMS)
+    assert len(report["paired_comparisons"]) == len(ARMS) * (len(ARMS) - 1) // 2
     for pair in report["paired_comparisons"]:
         significance = pair["class_pass"]["significance"]
         assert significance["test"] == "mcnemar_exact" and significance["family_size"] == 0

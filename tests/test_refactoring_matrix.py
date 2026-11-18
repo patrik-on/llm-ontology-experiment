@@ -119,7 +119,7 @@ def test_dry_run_no_runtime_or_writes(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(matrix.shared, "require_wsl", lambda: pytest.fail("runtime called"))
     assert matrix.main(["--run-id", "offline-check", "--dry-run"]) == 0
     result = json.loads(capsys.readouterr().out)
-    assert result["maximum_calls"] == 500 and result["model_calls"] == 0
+    assert result["maximum_calls"] == 800 and result["model_calls"] == 0
     assert result["cases"] == 100
     assert not list(tmp_path.iterdir())
 
@@ -142,7 +142,7 @@ def test_expanded_case_count_and_all():
 
 def fake_matrix(tmp_path):
     m = object.__new__(matrix.Matrix)
-    m.root, m.plan, m.ids, m.maximum = tmp_path, matrix.load_plan(1), ["case"], 5
+    m.root, m.plan, m.ids, m.maximum = tmp_path, matrix.load_plan(1), ["case"], 8
     m.cases = [{"id": "case", "before": "class A {}", "operation": "Extract Method",
                 "class_name": "A", "file_path": "A.java",
                 "target": {"method": "f", "start": 2, "end": 4}}]
@@ -187,7 +187,8 @@ def test_report_pending_and_failed_stay_in_denominator(tmp_path):
     assert report["actual_calls"] == 1 and not report["complete"]
     assert report["arms"]["qwen_base"]["successes"] == 0
     assert report["arms"]["qwen_base"]["denominator"] == 1
-    assert report["paired"]["qwen_base vs skills"]["unresolved"] == 1
+    assert report["paired"]["onto_project vs qwen_base"]["unresolved"] == 1
+    assert list(report["paired"]) == [a + " vs " + b for a, b in m.plan["primary_pairs"]]
 
 
 @pytest.mark.local_data
@@ -232,3 +233,112 @@ def test_real_miner_extract_and_inline_when_installed(tmp_path, prefix):
             "target": ex.target_location(before, record["methodNameBefore"].split("#")[-1])}
     result = ex.detect(case, record["sourceCodeAfterForWhole"], tmp_path / "detected", tool)
     assert result["status"] == "matched", result
+
+
+SOURCE = """class Calc {
+    private int total;
+
+    public int add(int x) {
+        int before = total;
+        int sum = before + x;
+        total = sum;
+        return sum + before;
+    }
+}
+"""
+
+
+def onto_case():
+    return {"id": "marv-" + "a" * 24, "source": "marv", "before": SOURCE, "operation": "Extract Method",
+            "class_name": "Calc", "file_path": "Calc.java",
+            "target": {"method": "add", "start": 5, "end": 6}}
+
+
+def onto_matrix(tmp_path):
+    """A frozen one-case matrix built from the checked-in plan, without local data."""
+    pytest.importorskip("rdflib")
+    pytest.importorskip("tree_sitter_java")
+    from llm_ontology import ontology
+    m = object.__new__(matrix.Matrix)
+    plan = matrix.read(matrix.CONFIG)
+    matrix.shared.check_arm_plan(plan, matrix.ARMS, matrix.FT_ARMS)
+    m.root, m.plan, m.cases = tmp_path, plan, [onto_case()]
+    m.ids, m.maximum, m.verify = [m.cases[0]["id"]], len(matrix.ARMS), lambda: None
+    (tmp_path / "context").mkdir()
+    (tmp_path / "context/SKILL.md").write_text("Refactoring process guidance.")
+    case = m.cases[0]
+    matrix.shared.freeze_ontology(tmp_path / "cases" / case["id"] / "ontology",
+                                  lambda: ontology.refactoring_context(case), plan["ontology_schema_version"])
+    for arm in matrix.ARMS:
+        if arm != "rag_single":
+            m.prompts(case, arm).mkdir(parents=True)
+            (m.prompts(case, arm) / "prompt.txt").write_text(
+                matrix.format_inference_prompt(m.arm_instruction(case, arm, "Refactoring process guidance."), SOURCE))
+    return m
+
+
+def test_plan_drops_rag_multi_and_names_one_adapter_per_ft_arm():
+    plan = matrix.read(matrix.CONFIG)
+    assert plan["arms"] == list(matrix.ARMS) and "rag_multi" not in plan["arms"]
+    assert plan["adapters"] == {"ft_refactoring": "b2_refactoring_v3", "ft_v3_onto": "b2_refactoring_v3",
+                                "ft_onto": "b2_refactoring_onto"}
+    assert matrix.runtime(plan).hf_model_name == "b2_refactoring_v3"
+
+
+def test_ontology_arms_add_only_the_block_and_match_the_v3_onto_training_prompt(tmp_path):
+    from llm_ontology.datasets.eval_aligned_v3 import refactoring_record, split_twins
+    from llm_ontology.inference.prompting.instruction import format_prompt
+    m = onto_matrix(tmp_path)
+    case = m.cases[0]
+    block = m.block(case, "ft_onto")
+    assert "Lines 5..6" in block
+    skill = "Refactoring process guidance."
+    for onto_arm, control in {"onto_project": "qwen_base", "skills_onto": "skills",
+                              "ft_v3_onto": "ft_refactoring", "ft_onto": "ft_refactoring"}.items():
+        assert m.arm_instruction(case, onto_arm, skill) == matrix.shared.with_ontology(
+            m.arm_instruction(case, control, skill), block)
+    assert skill in m.arm_instruction(case, "skills_onto", skill)
+    assert skill not in m.arm_instruction(case, "ft_onto", skill)
+    plain, onto = split_twins(refactoring_record(case, SOURCE.replace("sum", "total2")))
+    assert format_prompt(plain) == (m.prompts(case, "ft_refactoring") / "prompt.txt").read_text()
+    assert format_prompt(onto) == (m.prompts(case, "ft_onto") / "prompt.txt").read_text()
+
+
+def test_ft_arm_charges_the_tokenized_prompt_with_its_verified_adapter(tmp_path, monkeypatch):
+    """Acceptance: adapter hash at load time and byte-identical prompt at the model call."""
+    import sys
+    import types
+    from llm_ontology.evaluation import hf_inference
+    m = onto_matrix(tmp_path)
+    case = m.cases[0]
+    adapter = tmp_path / "adapter"
+    adapter.mkdir()
+    (adapter / "adapter_model.safetensors").write_text("weights")
+    matrix.write(tmp_path / "hf_identity/b2_refactoring_onto.json", {
+        "model": {"name": "b2_refactoring_onto", "adapter_path": str(adapter)}, "inference": {},
+        "files": {str(adapter / "adapter_model.safetensors"): {
+            "sha256": ex.file_sha256(adapter / "adapter_model.safetensors")}}})
+    torch = types.SimpleNamespace(manual_seed=lambda s: None,
+                                  cuda=types.SimpleNamespace(is_available=lambda: False))
+    monkeypatch.setitem(sys.modules, "torch", torch)
+    monkeypatch.setattr(matrix, "runtime", lambda plan: SimpleNamespace())
+    monkeypatch.setattr(matrix.shared, "load_eval_model", lambda model, inference: ("model", "tokenizer"))
+    sent = []
+    def generate_prediction(model, tokenizer, task, instruction, input_code, generation, on_prompt=None):
+        sent.append(matrix.format_inference_prompt(instruction, input_code))
+        on_prompt(sent[-1])
+        raw = json.dumps({"file_path": "Calc.java", "refactored_code": SOURCE + "// x"})
+        return raw, {"raw_response": raw, "output_truncated": False}
+    monkeypatch.setattr(hf_inference, "generate_prediction", generate_prediction)
+    m.generate("ft_onto")
+    out = m.out(case, "ft_onto")
+    assert matrix.read(out / "completion.json")["status"] == "generated"
+    frozen = (m.prompts(case, "ft_onto") / "prompt.txt").read_text()
+    assert matrix.read(out / "dispatch.json")["request"]["prompt"] == sent[0] == frozen
+    # A changed adapter blocks the next FT arm before any load or dispatch.
+    (adapter / "adapter_model.safetensors").write_text("retrained")
+    matrix.write(tmp_path / "hf_identity/b2_refactoring_v3.json", matrix.read(tmp_path / "hf_identity/b2_refactoring_onto.json"))
+    monkeypatch.setattr(matrix.shared, "load_eval_model", lambda *a: pytest.fail("loaded a changed adapter"))
+    with pytest.raises(ValueError, match="changed"):
+        m.generate("ft_v3_onto")
+    assert not (m.out(case, "ft_v3_onto") / "dispatch.json").exists()

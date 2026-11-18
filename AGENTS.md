@@ -22,8 +22,8 @@ A version suffix in a name is an identity, not an alternative. Use these:
 |---|---|---|
 | Testing prompt profile | `inference/prompting/testing_bodies_one_shot_v2.py` | builds on `testing_bodies_v1.py` and `testing_full_class_v2.py` (shared helpers, not separate profiles) |
 | Retrieval | `configs/retrieval/ollama_bge_m3_v3.yaml`, `docs/retrieval/rag_v3.md` | `base.yaml` is a mock config for unit tests |
-| Adapters | eval: `b2_testing_v2`, `b2_refactoring_v2`, `b1_shared_v2`; next: `*_v3` | v2 does not match the matrix JSON contract; v3 is trained with `configs/finetuning/training_*_wsl.yaml` on `data/processed/v3/`, `b2_*_onto` on `data/processed/v3_onto/` (one shared manifest, both from `scripts/datasets/prepare_v3_eval_aligned.py`); switch the matrices to v3 only with a new run ID |
-| Project ontology | `src/llm_ontology/ontology/` | per-case RDF graph from the supplied code only; `with_ontology` is the one way a block enters a prompt; cohort check `scripts/ontology/check_cohort.py` |
+| Adapters | eval: `b2_*_v3` (`ft_testing`/`ft_refactoring`, `ft_v3_onto`) and `b2_*_onto` (`ft_onto`), mapped per arm in each matrix JSON `adapters`; models in `configs/evaluation/eval_models.yaml` | v2 does not match the matrix JSON contract and is historical; v3 is trained with `configs/finetuning/training_*_wsl.yaml` on `data/processed/v3/`, `b2_*_onto` on `data/processed/v3_onto/` (one shared manifest, both from `scripts/datasets/prepare_v3_eval_aligned.py`); every matrix run needs a new run ID |
+| Project ontology | `src/llm_ontology/ontology/` | per-case RDF graph from the supplied code only; `with_ontology` is the one way a block enters a prompt (arms `onto_project`, `skills_onto`, `ft_v3_onto`, `ft_onto`); cohort check `scripts/ontology/check_cohort.py` |
 | HF model config | `configs/shared/models/qwen25_coder_7b_hf_wsl.yaml` | Ollama: `qwen25_coder_7b_ollama.yaml` |
 | Skills arm | `configs/skills/{testing,refactoring}/SKILL.md` | pinned, hash-guarded; never edit |
 | Fine-tuning scripts | `scripts/finetuning/` | runbook `docs/finetuning/v3_runbook.md` (v2: `v2_runbook.md`, historical) |
