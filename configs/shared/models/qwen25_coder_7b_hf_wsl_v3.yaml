@@ -1,0 +1,24 @@
+model:
+  status: "eval_aligned_v3"
+  provider: "huggingface"
+  name: "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct"
+  tokenizer_name: "/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct"
+  hub_id: "Qwen/Qwen2.5-Coder-7B-Instruct"
+  architecture: "causal_lm"
+  language_focus: "code"
+  primary_use: "fine_tuning"
+
+runtime:
+  # v3 records carry the full matrix contract (testing ~2-3k prompt tokens, refactoring
+  # context units up to ~5k tokens in + out). The v3 dataset builder DROPS records over this
+  # limit, so the trainer never truncates a prompt or a gold answer (v2 truncated 30 %).
+  max_seq_length: 8192
+  load_in_4bit: true
+  torch_dtype: "float16"
+  device_map: "auto"
+  trust_remote_code: true
+
+notes:
+  - "Same base model and QLoRA setup as v2; only the sequence budget differs."
+  - "Gradient checkpointing is enabled by peft.prepare_model_for_kbit_training."
+  - "Pass the same max_seq_length to scripts/datasets/prepare_v3_eval_aligned.py --max-seq-length."

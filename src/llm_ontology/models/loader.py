@@ -3,6 +3,20 @@ from __future__ import annotations
 from typing import Any
 
 
+def model_path(config: dict[str, Any], *, tokenizer: bool = False) -> str:
+    """Model location from either config schema.
+
+    ``configs/shared/base.yaml`` uses ``model.base_model``; the HF fine-tuning configs in
+    ``configs/shared/models/`` use ``model.name`` (+ ``model.tokenizer_name``).
+    """
+    model = config["model"]
+    keys = ("tokenizer_name", "base_model", "name") if tokenizer else ("base_model", "name")
+    for key in keys:
+        if model.get(key):
+            return str(model[key])
+    raise KeyError("Model config needs model.base_model or model.name")
+
+
 def load_tokenizer(config: dict[str, Any]) -> Any:
     """Load the configured tokenizer without importing training dependencies eagerly."""
 
@@ -12,9 +26,7 @@ def load_tokenizer(config: dict[str, Any]) -> Any:
         raise ImportError(
             "Install the training extra to load tokenizers: pip install -e .[training]"
         ) from exc
-    tokenizer = AutoTokenizer.from_pretrained(
-        config["model"]["base_model"], use_fast=True
-    )
+    tokenizer = AutoTokenizer.from_pretrained(model_path(config, tokenizer=True), use_fast=True)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     return tokenizer
@@ -46,8 +58,12 @@ def build_quantization_config(config: dict[str, Any]) -> Any | None:
     )
 
 
-def load_base_model(config: dict[str, Any]) -> Any:
-    """Load the configured causal LM and apply optional quantization settings."""
+def load_base_model(config: dict[str, Any], quantization: dict[str, Any] | None = None) -> Any:
+    """Load the configured causal LM and apply optional quantization settings.
+
+    ``quantization`` (e.g. the ``quantization`` block of ``lora_config.yaml``) takes
+    precedence over a ``quantization`` block inside the model config.
+    """
 
     try:
         from transformers import AutoModelForCausalLM
@@ -56,13 +72,13 @@ def load_base_model(config: dict[str, Any]) -> Any:
             "Install the training extra to load models: pip install -e .[training]"
         ) from exc
     model_kwargs: dict[str, Any] = {}
-    quantization_config = build_quantization_config(config)
+    quantization_config = build_quantization_config(
+        {"quantization": quantization} if quantization is not None else config
+    )
     if quantization_config is not None:
         model_kwargs["quantization_config"] = quantization_config
         model_kwargs["device_map"] = "auto"
-    return AutoModelForCausalLM.from_pretrained(
-        config["model"]["base_model"], **model_kwargs
-    )
+    return AutoModelForCausalLM.from_pretrained(model_path(config), **model_kwargs)
 
 
 def apply_lora(model: Any, config: dict[str, Any]) -> Any:
@@ -95,5 +111,6 @@ __all__ = [
     "apply_lora",
     "build_quantization_config",
     "load_base_model",
+    "model_path",
     "load_tokenizer",
 ]
