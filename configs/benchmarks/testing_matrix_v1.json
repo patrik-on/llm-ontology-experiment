@@ -12,8 +12,8 @@
     "rag_multi",
     "skills"
   ],
-  "cases": 5,
-  "max_actual_generation_calls": 25,
+  "cases": 100,
+  "max_actual_generation_calls": 500,
   "attempts_per_cell": 1,
   "retries": 0,
   "repairs": 0,
