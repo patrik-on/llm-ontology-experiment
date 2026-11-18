@@ -18,13 +18,16 @@ from statistics import mean, stdev
 from typing import Any
 import xml.etree.ElementTree as ET
 
+from llm_ontology.benchmarks.paired_tests import holm, mcnemar_exact, wilcoxon_signed_rank
+
 ARMS = ("qwen_base", "ft_testing", "rag_single", "rag_multi")
 SCOPES = ("method", "class")
 COUNTERS = ("line", "branch")
 Z95 = 1.959963984540054
 INTERPRETATION = (
-    "Descriptive only: convenience-selected, possibly project-clustered cases; "
-    "not random-sample population inference, a significance test, or a causal comparison."
+    "Convenience-selected, possibly project-clustered cases. Exact paired tests "
+    "(McNemar for class pass, Wilcoxon signed-rank for coverage credit, Holm across arm pairs) "
+    "are conditional on the selected cases; not random-sample population inference or a causal comparison."
 )
 
 
@@ -188,7 +191,7 @@ def _coverage_summary(rows: list[dict], references: dict, scope: str, metric: st
     }
 
 
-def _paired_summary(values: list[tuple[str, float, float]]) -> dict:
+def _paired_summary(values: list[tuple[str, float, float]], kind: str = "continuous") -> dict:
     differences = [a - b for _, a, b in values]
     n = len(differences)
     delta = mean(differences) if n else None
@@ -209,6 +212,10 @@ def _paired_summary(values: list[tuple[str, float, float]]) -> dict:
             "reason": "fewer_than_two_pairs" if n < 2 else None,
         },
         "per_case": [{"id": i, "a": a, "b": b, "difference": a - b} for i, a, b in values],
+        "significance": (
+            mcnemar_exact(sum(d > 0 for d in differences), sum(d < 0 for d in differences))
+            if kind == "binary" else wilcoxon_signed_rank(differences)
+        ),
         "interpretation": INTERPRETATION,
     }
 
@@ -234,7 +241,7 @@ def paired_comparisons(rows: list[dict], references: dict, ids: list[str], arms=
             "direction": "a_minus_b",
             "both_attempted_cases": len(pairs),
             "unattempted_pair_cases": len(ids) - len(pairs),
-            "class_pass": _paired_summary(observed),
+            "class_pass": _paired_summary(observed, "binary"),
             "coverage_success_credit": {},
         }
         comparison["class_pass"]["unavailable_pairs"] = len(pairs) - len(observed)
@@ -274,7 +281,25 @@ def paired_comparisons(rows: list[dict], references: dict, ids: list[str], arms=
                 )
                 comparison["coverage_success_credit"][scope][metric] = item
         result.append(comparison)
+    _apply_holm(result)
     return result
+
+
+def _apply_holm(result: list[dict]) -> None:
+    """Holm correction across the arm pairs, separately for each metric family."""
+    families = [("class_pass",)] + [
+        ("coverage_success_credit", scope, metric) for scope in SCOPES for metric in COUNTERS
+    ]
+    for path in families:
+        items = {}
+        for index, comparison in enumerate(result):
+            item = comparison
+            for key in path:
+                item = item[key]
+            items[str(index)] = item
+        adjusted = holm({k: v["significance"]["p_value"] for k, v in items.items()})
+        for key, item in items.items():
+            item["significance"].update(adjusted[key])
 
 
 def per_test_outcomes(reports: Path | str, *, test_class: str | None = None) -> list[dict]:

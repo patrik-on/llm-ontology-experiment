@@ -6,7 +6,7 @@ Lokálne porovnanie piatich systémov pri dvoch Java úlohách:
 - **Refactoring:** spoločný SWE + MaRV + ML4Ref pool; SWE navyše overuje pôvodný projekt.
 
 Obe matice porovnávajú **baseline, fine-tuned model, Single-RAG, MultiRAG a
-baseline + existujúci skill**. Testing má default 5 prípadov × 5 variantov.
+baseline + existujúci skill**. Testing má default **100 prípadov** × 5 variantov (500 volaní); menší beh cez `--cases N`.
 Refactoring má pripravených **100 úloh: 5 SWE + 35 MaRV + 60 ML4Ref**; podporuje
 menší výber N aj všetkých 100, vždy bez opravných pokusov. MaRV/ML4Ref používajú
 rozumný okolitý kontext a skórujú konkrétny zadaný refactoring; ďalšie zmeny sa

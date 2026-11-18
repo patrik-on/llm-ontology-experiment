@@ -141,7 +141,8 @@ pretraining-unseen datasetu.
 ## 6. Životný cyklus a ochrana interpretácie
 
 1. **Plán:** `--dry-run`, bez zápisu a modelových volaní. Nové behy majú
-   default 5 prípadov × 5 systémov, najviac 25 generačných pokusov.
+   default 100 prípadov × 5 systémov, najviac 500 generačných pokusov
+   (od 18. 11. 2026; pôvodne 5 × 5 = 25).
 2. **Príprava:** `--prepare-only`, validácia dát, referencií a hodnotiteľa,
    bez generovania odpovedí. Refactoring príprava môže stiahnuť verejný Git/Maven vstup.
 3. **Freeze:** `--freeze-only`, uloženie skutočných promptov, skillu,
@@ -182,8 +183,13 @@ Párové porovnania používajú **tie isté prípady**: uviesť, kde uspeli oba
 systémy, iba jeden alebo ani jeden, nielen priemer. Pri piatich systémoch je
 desať dvojíc. Coverage porovnávať iba podľa explicitne platných meraní
 a rovnakých cieľov; úspešnosť reportovať popri nej, aby sa nestratil vplyv
-zlyhaní. Intervaly a štatistiky sú deskriptívne, nie dôkaz signifikantného
-poradia alebo populačnej reprezentatívnosti.
+zlyhaní. Od 18. 11. 2026 reporty pridávajú exaktné párové testy: McNemar na
+nesúhlasných pároch pre pass/fail (testing class pass, refactoring structural
+success) a Wilcoxon signed-rank pre coverage credit, s Holmovou korekciou cez
+desať dvojíc každej metriky. Pri 100 prípadoch má McNemar rozumnú silu na
+rozdiely okolo 10–15 percentuálnych bodov, ak sú nesúhlasné páry dostatočne
+časté. P-hodnoty sú podmienené vybranými prípadmi (convenience výber, najviac
+10 prípadov z jedného projektu), nie dôkaz populačnej reprezentatívnosti.
 
 ## 8. Aktuálny stav a čo ešte nemožno uzavrieť
 

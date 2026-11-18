@@ -29,6 +29,10 @@ write = batch.durable_json
 read = batch.read
 
 
+def _fmt_p(value):
+    return "n/a" if value is None else f"{value:.4f}"
+
+
 def load_plan(cases=None):
     plan = read(CONFIG)
     if cases is not None:
@@ -352,6 +356,16 @@ class Matrix:
             lines.append(f"| {arm} | {stats['actual_calls']}/{len(self.ids)} | "
                 f"{stats['compiled']['count']} | {stats['class_pass']['count']} | "
                 f"{stats['focal_invoked_accepted']['count']} | {stats['class_pass']['unknown']} |")
+        lines += ["", "## Paired comparisons (exact tests, Holm across arm pairs)", "",
+                  "| A | B | Class pass A only / B only | p McNemar (Holm) | Method line credit Δ | p Wilcoxon (Holm) |",
+                  "|---|---|---:|---:|---:|---:|"]
+        for pair in result["paired_comparisons"]:
+            cp = pair["class_pass"]
+            cov = pair["coverage_success_credit"]["method"]["line"]
+            delta = "n/a" if cov["mean_difference"] is None else f"{cov['mean_difference']:+.3f}"
+            lines.append(f"| {pair['arm_a']} | {pair['arm_b']} | {cp['a_higher']} / {cp['b_higher']} | "
+                f"{_fmt_p(cp['significance']['p_value'])} ({_fmt_p(cp['significance']['p_holm'])}) | {delta} | "
+                f"{_fmt_p(cov['significance']['p_value'])} ({_fmt_p(cov['significance']['p_holm'])}) |")
         lines += ["", "## Repeat diagnostics (no scoring change)", ""]
         for row in result["paired_matrix"]:
             warnings = row["repeat_diagnostics"]["warnings"]
@@ -392,7 +406,7 @@ class Ledger(batch.Ledger):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--run-id", required=True)
-    parser.add_argument("--cases", type=int, help="1..100 (default 5 on new runs)")
+    parser.add_argument("--cases", type=int, help="1..100 (default 100 on new runs)")
     parser.add_argument("--skill-file", type=Path, help="Override SKILL.md or si-context-eval repo (default: pinned configs/skills/testing/SKILL.md)")
     parser.add_argument("--dry-run", action="store_true", help="Offline plan; no files/API/model calls")
     parser.add_argument("--prepare-only", action="store_true", help="Selection/reference controls, no generation")

@@ -22,6 +22,7 @@ from llm_ontology.benchmarks.refactoring_prepare import CONFIG, REPO, prepare, s
 from llm_ontology.benchmarks.refactoring_pool import pool
 from llm_ontology.benchmarks import refactoring_cohort as cohort
 from llm_ontology.benchmarks import refactoring_structural as structural
+from llm_ontology.benchmarks.paired_tests import holm, mcnemar_exact
 from llm_ontology.evaluation.run_layout import validate_evaluation_run_id
 from llm_ontology.inference.prompting.instruction import format_inference_prompt
 from llm_ontology.retrieval.config import load_rag_config
@@ -34,6 +35,10 @@ from llm_ontology.retrieval.token_budget import ContextBudgeter, HuggingFaceToke
 ARMS = ("qwen_base", "ft_refactoring", "rag_single", "rag_multi", "skills")
 PROTOCOL = "mixed_refactoring_matrix_v4"
 read, write = shared.read, shared.durable_json
+
+
+def _fmt_p(value):
+    return "n/a" if value is None else f"{value:.4f}"
 CONTRACT = (
     "Perform only the requested Java refactoring while preserving behavior and APIs except the explicitly requested rename/signature change. "
     "Return one JSON object with exactly file_path and refactored_code (both strings). "
@@ -491,7 +496,11 @@ class Matrix:
                         continue
                     key = "both" if left["structural_success"] and right["structural_success"] else "a_only" if left["structural_success"] else "b_only" if right["structural_success"] else "neither"
                     pair[key] += 1
+                pair["significance"] = mcnemar_exact(pair["a_only"], pair["b_only"])
                 pairs[a + " vs " + b] = pair
+        adjusted = holm({key: pair["significance"]["p_value"] for key, pair in pairs.items()})
+        for key, pair in pairs.items():
+            pair["significance"].update(adjusted[key])
         for arm, stats in arms.items():
             project_rows = [r for r in rows if r["arm"] == arm and r["evaluation_level"] == "project"]
             stats["project_verified_successes"] = sum(r["verified_success"] for r in project_rows)
@@ -522,6 +531,10 @@ class Matrix:
         lines += ["", "| Arm | Source | Operation | Structural success |", "|---|---|---|---:|"]
         lines += [f"| {a} | {g['source']} | {g['operation']} | {g['successes']}/{g['denominator']} |"
                   for a, s in arms.items() for g in s["by_source_and_type"]]
+        lines += ["", "## Paired structural success (exact McNemar, Holm across pairs)", "",
+                  "| Pair | Both | A only | B only | Neither | Unresolved | p | p Holm |", "|---|---:|---:|---:|---:|---:|---:|---:|"]
+        lines += [f"| {k} | {v['both']} | {v['a_only']} | {v['b_only']} | {v['neither']} | {v['unresolved']} | "
+                  f"{_fmt_p(v['significance']['p_value'])} | {_fmt_p(v['significance']['p_holm'])} |" for k, v in pairs.items()]
         lines += ["", "Pending/infra failures are not passes; all planned cells remain in denominators.",
                   "Passing checks is not proof of full behavioral equivalence.", self.plan["backend_caveat"], result["sampling_caveat"]]
         (self.root / "reports/summary.md").write_text("\n".join(lines) + "\n")
