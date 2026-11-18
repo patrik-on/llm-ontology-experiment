@@ -13,7 +13,7 @@ def test_model_path_accepts_both_config_schemas():
 
 
 def test_v3_training_configs_use_v3_data_and_a_non_truncating_budget():
-    for path in Path("configs/finetuning").glob("training_*_v3_wsl.yaml"):
+    for path in Path("configs/finetuning").glob("training_*_wsl.yaml"):
         config = read_yaml(path)
         assert config["dataset"]["train_file"].startswith("data/processed/v3/")
         model = read_yaml(Path(config["experiment"]["model_config"]))

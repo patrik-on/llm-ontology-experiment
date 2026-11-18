@@ -1,19 +1,20 @@
 experiment:
-  name: "b1_shared"
-  description: "Shared fine-tuning on testing + refactoring tasks"
+  name: "b1_shared_v3"
+  description: "Shared row-balanced mix of the two v3 datasets (eval-aligned v3)"
   model_config: "configs/shared/models/qwen25_coder_7b_hf_wsl.yaml"
   lora_config: "configs/finetuning/lora_config.yaml"
 
 dataset:
-  train_file: "data/processed/combined/train.jsonl"
-  val_file: "data/processed/combined/val.jsonl"
-  test_file: "data/processed/combined/test.jsonl"
+  train_file: "data/processed/v3/combined/train.jsonl"
+  val_file: "data/processed/v3/combined/val.jsonl"
+  # The held-out test for v3 is the evaluation matrices themselves; readiness checks need a path.
+  test_file: "data/processed/v3/combined/val.jsonl"
 
 output:
-  output_dir: "~/experiments/llm-ontology/b1_shared/checkpoints"
-  logging_dir: "~/experiments/llm-ontology/b1_shared/logs"
-  results_dir: "~/experiments/llm-ontology/b1_shared/results"
-  final_adapter_dir: "~/experiments/llm-ontology/b1_shared/checkpoints/final_adapter"
+  output_dir: "~/experiments/llm-ontology-v3/b1_shared/checkpoints"
+  logging_dir: "~/experiments/llm-ontology-v3/b1_shared/logs"
+  results_dir: "~/experiments/llm-ontology-v3/b1_shared/results"
+  final_adapter_dir: "~/experiments/llm-ontology-v3/b1_shared/checkpoints/final_adapter"
 
 run:
   dry_run: false

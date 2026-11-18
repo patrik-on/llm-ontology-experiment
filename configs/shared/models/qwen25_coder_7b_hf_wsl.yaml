@@ -1,5 +1,5 @@
 model:
-  status: "legacy_not_final"
+  status: "eval_aligned_v3"
   provider: "huggingface"
   name: "${LLM_ONTOLOGY_MODELS_ROOT}/huggingface/Qwen2.5-Coder-7B-Instruct"
   tokenizer_name: "${LLM_ONTOLOGY_MODELS_ROOT}/huggingface/Qwen2.5-Coder-7B-Instruct"
@@ -9,14 +9,18 @@ model:
   primary_use: "fine_tuning"
 
 runtime:
-  max_seq_length: 2048
+  # v3 records carry the full matrix contract (testing ~2k tokens, refactoring context
+  # units up to ~6k in + out). scripts/datasets/prepare_v3_eval_aligned.py DROPS records over
+  # this limit, so the trainer never truncates a prompt or a gold answer (v2 used 2048 and
+  # truncated 30 % of refactoring examples; reproduce v2 from Git history + adapter snapshots).
+  max_seq_length: 8192
   load_in_4bit: true
   torch_dtype: "float16"
   device_map: "auto"
   trust_remote_code: true
 
 notes:
-  - "Legacy Hugging Face fine-tuning config; not the current Ollama experiment runtime."
+  - "Hugging Face fine-tuning config (v3); evaluation HF inference uses configs/evaluation/eval_models_v2_only.yaml."
   - "WSL2/Linux model config for LoRA/QLoRA fine-tuning."
-  - "Uses Windows-hosted model files via /mnt/c."
+  - "Gradient checkpointing is enabled by peft.prepare_model_for_kbit_training."
   - "Requires CUDA-enabled PyTorch and bitsandbytes in WSL."

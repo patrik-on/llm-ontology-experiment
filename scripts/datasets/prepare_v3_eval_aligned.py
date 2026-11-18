@@ -14,14 +14,19 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "src"))
 
+from llm_ontology.core.config import read_yaml
+from llm_ontology.core.paths import expand_placeholders
 from llm_ontology.datasets import eval_aligned_v3 as v3
+
+MODEL_CONFIG = ROOT / "configs/shared/models/qwen25_coder_7b_hf_wsl.yaml"
 
 
 def fits_from(args):
     if not args.max_seq_length:
         return None
     from transformers import AutoTokenizer
-    tokenizer = AutoTokenizer.from_pretrained(args.tokenizer, use_fast=True, local_files_only=True)
+    path = args.tokenizer or read_yaml(MODEL_CONFIG)["model"]["tokenizer_name"]
+    tokenizer = AutoTokenizer.from_pretrained(path, use_fast=True, local_files_only=True)
     return v3.token_fit(tokenizer, args.max_seq_length)
 
 
@@ -30,8 +35,9 @@ def main() -> None:
     parser.add_argument("task", choices=["testing", "refactoring", "combined"])
     parser.add_argument("--out-root", default="data/processed/v3")
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--tokenizer", default="/mnt/c/models/huggingface/Qwen2.5-Coder-7B-Instruct")
-    parser.add_argument("--max-seq-length", type=int, default=8192,
+    parser.add_argument("--tokenizer", default=None, help="Default: tokenizer_name of the HF model config.")
+    parser.add_argument("--max-seq-length", type=int,
+                        default=read_yaml(MODEL_CONFIG)["runtime"]["max_seq_length"],
                         help="Drop (never truncate) records longer than this; 0 disables the check.")
     parser.add_argument("--methods2test-archive", default="data/raw/methods2test/dataset/train.tar.bz2")
     parser.add_argument("--testing-train", type=int, default=4000)
@@ -54,7 +60,7 @@ def main() -> None:
                                      project_cap=args.project_cap, seed=args.seed,
                                      max_records=args.max_records, fits=fits_from(args))
     elif args.task == "refactoring":
-        plan = json.loads((ROOT / args.plan).read_text())
+        plan = expand_placeholders(json.loads((ROOT / args.plan).read_text()))
         report = v3.build_refactoring_v3(ROOT, Path(plan["raw_ml4refactoring"]), ROOT / args.work_dir,
                                          out_root / "refactoring", plan=plan,
                                          train_size=args.refactoring_train, val_size=args.refactoring_val,
