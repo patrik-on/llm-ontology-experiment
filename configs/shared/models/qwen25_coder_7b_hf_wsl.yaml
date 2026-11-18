@@ -20,7 +20,7 @@ runtime:
   trust_remote_code: true
 
 notes:
-  - "Hugging Face fine-tuning config (v3); evaluation HF inference uses configs/evaluation/eval_models_v2_only.yaml."
+  - "Hugging Face fine-tuning config (v3); evaluation HF inference uses configs/evaluation/eval_models.yaml."
   - "WSL2/Linux model config for LoRA/QLoRA fine-tuning."
   - "Gradient checkpointing is enabled by peft.prepare_model_for_kbit_training."
   - "Requires CUDA-enabled PyTorch and bitsandbytes in WSL."

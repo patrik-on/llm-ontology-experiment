@@ -1,8 +1,22 @@
-# Mixed-source refactoring matrix (current protocol v4)
+# Mixed-source refactoring matrix (current protocol v5, ontology arms)
 
 The only refactoring entry point remains `scripts/benchmarks/run_refactoring_matrix.py`.
 Configuration stays `configs/benchmarks/refactoring_matrix_v1.json`; the protocol
-is `mixed_refactoring_matrix_v4`. Use NEW run IDs. Methods2Test is unchanged.
+is `mixed_refactoring_ontology_v5`. Use NEW run IDs; v4 runs are reproduced from their
+original commit. Methods2Test is unchanged.
+
+## Arms (v5)
+
+`qwen_base`, `onto_project`, `skills`, `skills_onto` and `rag_single` run on Ollama;
+`ft_refactoring` (adapter `b2_refactoring_v3`), `ft_v3_onto` (`b2_refactoring_v3` + block)
+and `ft_onto` (`b2_refactoring_onto` + block) run on HF. `rag_multi` is gone. The block is
+built at freeze from public inputs only (`before`, operation, target lines, request) by
+`ontology.refactoring_context`, stored in `cases/<id>/ontology/`, and inserted by
+`ontology.with_ontology` after the contract and any skill text, the same function the
+`v3_onto` training data uses. Each FT arm re-hashes its own `hf_identity/<adapter>.json`
+before loading, and the ledger compares the string the tokenizer received with the frozen
+prompt. The report tests only the predeclared `primary_pairs` (Holm across them) and
+gives the A−B difference in percentage points; cross-backend pairs are descriptive.
 
 ## Scope and endpoint
 
@@ -35,7 +49,7 @@ Do not compare v4 success rates directly with the earlier v3 isolated-change gat
 `data/validation/refactoring_mixed_v1/manifest.json` is released only after all
 100 cases pass their applicable reference, budget and negative-control gates.
 Before release, all generation is blocked, including smaller/filtered runs.
-Default after release: 100 cases x 5 arms = at most 500 generation calls.
+Default after release: 100 cases x 8 arms = at most 800 generation calls.
 Preparation itself makes ZERO model-generation calls.
 
 Current receipt: [v4 context preparation](refactoring_context_v4_2026-11-13.md).
@@ -124,7 +138,7 @@ Omitting a safe mode permits actual generation/evaluation. `--prepare-pool` cann
 be combined with cohort size/source/operation filters. Filtered runs default to
 all matching released cases. N uses deterministic round-robin source/type strata
 and stable SHA-ID order. N below the number of strata cannot cover every type.
-All five model arms receive the SAME tasks, one attempt each, no retry/repair.
+All eight model arms receive the SAME tasks, one attempt each, no retry/repair.
 
 ## Freeze, results and limits
 

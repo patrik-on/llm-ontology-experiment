@@ -1,8 +1,11 @@
 """Resumable current Methods2Test systems matrix.
 
 Reuses the existing selection, providers, prompt builders, execution and statistics.
-The skills arm is direct Qwen plus the unmodified external testing SKILL.md; it is
-not an agent/tool loop. No repair, training, download or index rebuild is performed.
+The skills arms add the unmodified external testing SKILL.md; they are not an
+agent/tool loop. The ontology arms add the per-case project-ontology block frozen at
+``--freeze-only`` (``ontology.with_ontology``). Each FT arm generates with its own
+adapter, re-hashed before loading, and charges the exact prompt the tokenizer received.
+No repair, training, download or index rebuild is performed.
 """
 from __future__ import annotations
 
@@ -16,13 +19,15 @@ from time import perf_counter
 from llm_ontology.benchmarks import matrix_support as batch
 from llm_ontology.benchmarks import methods2test_execution as offline
 from llm_ontology.benchmarks import methods2test_selection as selection
+from llm_ontology import ontology
 from llm_ontology.benchmarks.methods2test_statistics import aggregate
 from llm_ontology.evaluation.run_layout import validate_evaluation_run_id
 from llm_ontology.inference.experiment_runner import ExperimentCase
 from llm_ontology.inference.prompting.instruction import format_inference_prompt
 
-PROTOCOL = "methods2test_systems_skills_v1"
-ARMS = (*batch.ARMS, "skills")
+PROTOCOL = "methods2test_systems_ontology_v2"
+ARMS = batch.ARMS
+FT_ARMS = ("ft_testing", "ft_v3_onto", "ft_onto")
 CONFIG = Path("configs/benchmarks/testing_matrix_v1.json")
 REPO = Path(__file__).resolve().parents[3]
 write = batch.durable_json
@@ -43,6 +48,7 @@ def load_plan(cases=None):
     if (plan["protocol"] != PROTOCOL or plan["arms"] != list(ARMS)
             or plan["official_split"] != "eval" or plan["indexing_allowed"]):
         raise ValueError("Unexpected matrix protocol")
+    batch.check_arm_plan(plan, ARMS, FT_ARMS)
     for key, value in {"attempts_per_cell": 1, "retries": 0, "repairs": 0,
                        "max_new_tokens": 4096, "context_window_tokens": 32768,
                        "temperature": 0, "top_p": .9, "seed": 42, "repeats": 2,
@@ -94,17 +100,32 @@ class Matrix:
         return self.root / "cases" / ident / "predictions" / arm
 
     def case(self, ident, arm):
+        """The arm's case. FT arms get their full FT instruction (``ft_case``) here too, so
+        the frozen prompt and the generation call are built by this one function."""
         case = ExperimentCase.model_validate(read(self.root / "cases" / ident / "case.json"))
         if case.case_id != ident:
             raise ValueError("Mismatching case identity")
-        if arm == "skills":
+        if arm in batch.SKILL_ARMS:
             skill = (self.root / "context/SKILL.md").read_bytes().decode("utf-8")
             case = case.model_copy(update={"instruction": case.instruction
                 + "\n\n<testing-process-skill>\n" + skill
                 + "\n</testing-process-skill>\nApply relevant guidance within this single"
                 " response. The fixed two-body JSON contract takes precedence; no tools,"
                 " repairs or extra output are available."})
+        if arm in FT_ARMS:
+            case = batch.ft_case(case)
+        if arm in batch.ONTOLOGY_ARMS:
+            block = batch.frozen_block(self.root / "cases" / ident / "ontology")
+            case = case.model_copy(update={"instruction": batch.with_ontology(case.instruction, block)})
         return case
+
+    def prompt(self, ident, arm, c=None, out=None, audit=None):
+        case = self.case(ident, arm)
+        if arm in FT_ARMS:
+            return format_inference_prompt(case.instruction, case.input_text)
+        if arm == "rag_single":
+            return batch._render_rag(c, case, out, arm, audit)
+        return direct_prompt(case)
 
     def dispatches(self):
         paths = list(self.root.glob("cases/*/predictions/*/dispatch.json"))
@@ -143,11 +164,11 @@ class Matrix:
         c = batch.runtime()
         control_root = self.root / "preflight" / batch.uuid4().hex
         batch._controls(control_root, c, read(self.root / "selection.json"))
-        identity = batch.hf_identity(c)
-        write(self.root / "hf_identity.json", identity)
+        identities = batch.freeze_hf_identities(self.root, c, self.plan["adapters"])
+        model_files = sorted({p for path in identities.values() for p in read(path)["files"]})
         write(self.root / "hf_file_pins.json", {
             p: {"bytes": Path(p).stat().st_size, "mtime_ns": Path(p).stat().st_mtime_ns}
-            for p in identity["files"]})
+            for p in model_files})
         provider = batch.OllamaProvider(model_name=batch.direct.MODELS["qwen_base"][0])
         if provider.resolve_model_digest() != c.generation_model_digest:
             raise ValueError("Generation model digest mismatch")
@@ -180,6 +201,11 @@ class Matrix:
                     or not reference["coverage"]
                     or batch.file_sha256(classfile) != reference["production_class_sha256"]):
                 raise ValueError("Unsafe/changed wrapper or reference: " + ident)
+            # The ontology block sees only the supplied production class; the gold test is
+            # passed as forbidden text and must not appear in it.
+            batch.freeze_ontology(cr / "ontology", lambda: ontology.testing_context(
+                self.case(ident, "qwen_base"), forbidden=(gold[self.ids.index(ident)],)),
+                self.plan["ontology_schema_version"])
             # Pin original rich/corpus agreement as well as the audited source bytes.
             candidate = next(a for a in audit["candidates"] if a["id"] == ident)
             corpus = Path(candidate["corpus_path"])
@@ -189,11 +215,7 @@ class Matrix:
             for arm in ARMS:
                 out = cr / "frozen_prompts" / arm
                 out.mkdir(parents=True, exist_ok=True)
-                case = self.case(ident, arm)
-                prompt = (format_inference_prompt(batch.ft_case(case).instruction, case.input_text)
-                          if arm == "ft_testing" else
-                          batch._render_rag(c, case, out, arm, audit)
-                          if arm in {"rag_single", "rag_multi"} else direct_prompt(case))
+                prompt = self.prompt(ident, arm, c, out, audit)
                 if prompt.count(batch.profile.DEMO_BLOCK) != 1 or any(g and g in prompt for g in gold):
                     raise ValueError("One-shot/gold isolation failed")
                 (out / "prompt.txt").write_text(prompt, encoding="utf-8")
@@ -212,7 +234,8 @@ class Matrix:
             target.write_bytes(Path(source).read_bytes())
             files.add(target)
         files.update(self.root / n for n in ["matrix_plan.json", "selection.json",
-            "leakage_audit.json", "selection_protocol.json", "hf_identity.json",
+            "leakage_audit.json", "selection_protocol.json",
+            *(Path("hf_identity") / (n + ".json") for n in sorted(set(self.plan["adapters"].values()))),
             "hf_file_pins.json", "ollama_identity.json", "index_identity.json",
             "context/SKILL.md", "context/identity.json"])
         files.update(Path(p).resolve() for p in audit["snapshots"])
@@ -239,8 +262,7 @@ class Matrix:
                 raise ValueError("Model file changed: " + p)
 
     def generate(self, arm):
-        c, loaded = batch.runtime(), None
-        identity = read(self.root / "hf_identity.json")
+        c, loaded, identity = batch.runtime(), None, None
         pending = [i for i in self.ids if not (self.out(i, arm) / "dispatch.json").exists()
                    and not (self.out(i, arm) / "completion.json").exists()]
         stop = self.root / (arm + "-stop.json")
@@ -251,7 +273,10 @@ class Matrix:
         if not pending:
             return
         try:
-            if arm == "ft_testing":
+            if arm in FT_ARMS:
+                identity = batch.arm_hf_identity(self.root, self.plan["adapters"], arm)
+                write(self.root / (arm + "-loaded_identity.json"), {"adapter": self.plan["adapters"][arm],
+                    "verified_at": batch.now(), "files": identity["files"]})
                 loaded = batch.load_eval_model(identity["model"], {**identity["inference"],
                     "local_files_only": True, "trust_remote_code": False})
             for ident in pending:
@@ -260,12 +285,12 @@ class Matrix:
                 case, generated = self.case(ident, arm), None
                 ledger, started = Ledger(self, ident, arm), perf_counter()
                 try:
-                    if arm == "ft_testing":
-                        generated = batch.generate_ft(c, batch.ft_case(case), out,
+                    if arm in FT_ARMS:
+                        generated = batch.generate_ft(c, case, out,
                             loaded_model=loaded, model_identity=identity,
                             before_generation=lambda prompt: ledger.charge({"prompt": prompt,
                                 "max_new_tokens": 4096, "do_sample": False, "seed": 42}))
-                    elif arm in {"qwen_base", "skills"}:
+                    elif arm != "rag_single":
                         generated = batch._generate_direct(c, case, out, ledger, protocol_id=PROTOCOL)
                     else:
                         generated = batch.generate_rag(c, case, out, arm,
@@ -341,7 +366,7 @@ class Matrix:
                                 for counter in ["line", "branch"]:
                                     if coverage[scope]["counters"][counter]["total"] != reference[scope]["counters"][counter]["total"]:
                                         raise ValueError("Coverage denominator changed")
-        result = aggregate(self.root, arms=ARMS)
+        result = aggregate(self.root, arms=ARMS, pairs=self.plan["primary_pairs"])
         result.update(protocol=PROTOCOL, skill=read(self.root / "context/identity.json"),
             generation_budget_complete=all((self.out(i, a) / "completion.json").exists()
                 and (self.out(i, a) / "dispatch.json").exists() for i in self.ids for a in ARMS))
@@ -356,14 +381,16 @@ class Matrix:
             lines.append(f"| {arm} | {stats['actual_calls']}/{len(self.ids)} | "
                 f"{stats['compiled']['count']} | {stats['class_pass']['count']} | "
                 f"{stats['focal_invoked_accepted']['count']} | {stats['class_pass']['unknown']} |")
-        lines += ["", "## Paired comparisons (exact tests, Holm across arm pairs)", "",
-                  "| A | B | Class pass A only / B only | p McNemar (Holm) | Method line credit Δ | p Wilcoxon (Holm) |",
-                  "|---|---|---:|---:|---:|---:|"]
+        lines += ["", "## Primary pairs (exact tests, Holm across the predeclared pairs)", "",
+                  "A is the arm with the added context, B its control on the same cases and backend.", "",
+                  "| A | B | Class pass A only / B only | Class pass Δ (pp) | p McNemar (Holm) | Method line credit Δ | p Wilcoxon (Holm) |",
+                  "|---|---|---:|---:|---:|---:|---:|"]
         for pair in result["paired_comparisons"]:
             cp = pair["class_pass"]
             cov = pair["coverage_success_credit"]["method"]["line"]
             delta = "n/a" if cov["mean_difference"] is None else f"{cov['mean_difference']:+.3f}"
-            lines.append(f"| {pair['arm_a']} | {pair['arm_b']} | {cp['a_higher']} / {cp['b_higher']} | "
+            pp = "n/a" if cp["mean_difference"] is None else f"{100 * cp['mean_difference']:+.1f}"
+            lines.append(f"| {pair['arm_a']} | {pair['arm_b']} | {cp['a_higher']} / {cp['b_higher']} | {pp} | "
                 f"{_fmt_p(cp['significance']['p_value'])} ({_fmt_p(cp['significance']['p_holm'])}) | {delta} | "
                 f"{_fmt_p(cov['significance']['p_value'])} ({_fmt_p(cov['significance']['p_holm'])}) |")
         lines += ["", "## Repeat diagnostics (no scoring change)", ""]
@@ -374,7 +401,9 @@ class Matrix:
                     "Both measurements are in aggregate.json: paired_matrix / repeat_diagnostics / coverage_by_repeat.")
         lines += ["", "Pending/interrupted results are unknown; completed failures keep their existing scoring policy."]
         lines += ["", "Missing/unattempted cells are not passing or measured zero coverage.",
-                  "Extracted-method validation; no real-bug detection or causal FT claim."]
+                  "Extracted-method validation; no real-bug detection or causal FT claim.",
+                  "Ontology arms measure automatically derived structured context from the supplied code;"
+                  " FT and Ollama arms are compared only within their backend."]
         (self.root / "reports/summary.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
         return result
 

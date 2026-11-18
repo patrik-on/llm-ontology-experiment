@@ -10,6 +10,18 @@ from llm_ontology.benchmarks import methods2test_execution as offline
 from llm_ontology.benchmarks.methods2test_statistics import aggregate
 
 
+SOURCE = "public class Number {\n  public static int f(int n) {\n    if (n < 0) throw new IllegalArgumentException();\n    return n + 1;\n  }\n}\n"
+
+try:
+    from llm_ontology import ontology
+    import rdflib  # noqa: F401
+    import tree_sitter_java  # noqa: F401
+    HAS_ONTOLOGY = True
+except ImportError:
+    HAS_ONTOLOGY = False
+needs_ontology = pytest.mark.skipif(not HAS_ONTOLOGY, reason="rdflib/tree-sitter-java absent")
+
+
 @pytest.fixture
 def prepared(tmp_path, monkeypatch):
     monkeypatch.chdir(matrix.REPO)
@@ -18,16 +30,18 @@ def prepared(tmp_path, monkeypatch):
     matrix.write(root / "selection.json", {"ids": ["one", "two"],
         "cases": [{"id": "one"}, {"id": "two"}],
         "indexing_allowed": False, "split": "official eval"})
-    matrix.write(root / "hf_identity.json", {})
     matrix.write(root / "context/identity.json", {"sha256": "skill"})
     (root / "context/SKILL.md").write_text("Existing testing process guidance.")
     matrix.write(root / "leakage_audit.json", {})
     for ident in ["one", "two"]:
         case = root / "cases" / ident
         matrix.write(case / "case.json", {"case_id": ident, "instruction": "Generate tests",
-            "input_text": "public class Number { public static int f(int n){return n+1;} }",
-            "requirements": "Return JSON bodies only.", "project_context": "API context"})
+            "input_text": SOURCE, "requirements": "Return JSON bodies only.", "project_context": "API context",
+            "structured_identity": {"class_name": "org.x.Number", "method_name": "f"}})
         (case / "scaffold.java").write_text("scaffold")
+        if HAS_ONTOLOGY:
+            matrix.batch.freeze_ontology(case / "ontology", lambda: ontology.testing_context(
+                matrix.ExperimentCase.model_validate(matrix.read(case / "case.json"))), "project-ontology-v1")
         for arm in matrix.ARMS:
             prompt = case / "frozen_prompts" / arm / "prompt.txt"
             prompt.parent.mkdir(parents=True)
@@ -46,9 +60,9 @@ def fake_direct(c, case, out, ledger, **kwargs):
 def test_plan_and_skill_are_existing_inputs(tmp_path, monkeypatch):
     monkeypatch.chdir(matrix.REPO)
     default = matrix.load_plan()
-    assert default["cases"] == 100 and default["max_actual_generation_calls"] == 500
+    assert default["cases"] == 100 and default["max_actual_generation_calls"] == 800
     plan = matrix.load_plan(7)
-    assert plan["max_actual_generation_calls"] == 35
+    assert plan["max_actual_generation_calls"] == 56
     assert plan["arms"] == list(matrix.ARMS)
     path = tmp_path / "SKILL.md"
     path.write_bytes(b"# Workflow\r\nExisting process\r\n")
@@ -129,7 +143,10 @@ def test_invalid_output_counts_as_failed_attempt_not_arm_stop(prepared, monkeypa
     assert report["arms"]["skills"]["class_pass"]["denominator"] == 2
     assert report["arms"]["skills"]["class_pass"]["count"] == 0
     assert report["arms"]["qwen_base"]["unattempted_cases"] == 2
-    assert len(report["paired_comparisons"]) == 10
+    assert len(report["paired_comparisons"]) == 28
+    primary = aggregate(prepared.root, arms=matrix.ARMS, pairs=prepared.plan["primary_pairs"])
+    assert [(c["arm_a"], c["arm_b"]) for c in primary["paired_comparisons"]] == \
+        [tuple(p) for p in prepared.plan["primary_pairs"]]
     assert not (prepared.root / "skills-stop.json").exists()
 
 
@@ -148,5 +165,115 @@ def test_dry_run_has_no_files_or_model_calls(tmp_path, monkeypatch, capsys):
     skill = tmp_path / "SKILL.md"
     skill.write_text("process guidance")
     assert matrix.main(["--run-id", "plan-only", "--cases", "1", "--skill-file", str(skill), "--dry-run"]) == 0
-    assert json.loads(capsys.readouterr().out)["max_actual_generation_calls"] == 5
+    assert json.loads(capsys.readouterr().out)["max_actual_generation_calls"] == 8
     assert not (tmp_path / "artifacts").exists()
+
+
+def test_plan_maps_every_ft_arm_to_one_adapter(monkeypatch):
+    monkeypatch.chdir(matrix.REPO)
+    plan = matrix.load_plan()
+    assert "rag_multi" not in plan["arms"]
+    assert plan["adapters"] == {"ft_testing": "b2_testing_v3", "ft_v3_onto": "b2_testing_v3",
+                                "ft_onto": "b2_testing_onto"}
+    broken = {**plan, "adapters": {"ft_testing": "b2_testing_v3"}}
+    with pytest.raises(ValueError, match="adapter"):
+        matrix.batch.check_arm_plan(broken, matrix.ARMS, matrix.FT_ARMS)
+    with pytest.raises(ValueError, match="pairs"):
+        matrix.batch.check_arm_plan({**plan, "primary_pairs": [["ft_onto", "rag_multi"]]},
+                                    matrix.ARMS, matrix.FT_ARMS)
+
+
+@needs_ontology
+def test_each_ontology_arm_adds_only_the_frozen_block(prepared):
+    block = (prepared.root / "cases/one/ontology/block.txt").read_text()
+    assert block.startswith("<project-ontology>") and "throw IllegalArgumentException" in block
+    pairs = {"onto_project": "qwen_base", "skills_onto": "skills", "ft_v3_onto": "ft_testing",
+             "ft_onto": "ft_testing"}
+    for onto_arm, control in pairs.items():
+        with_block, without = prepared.case("one", onto_arm), prepared.case("one", control)
+        assert with_block.model_dump(exclude={"instruction"}) == without.model_dump(exclude={"instruction"})
+        assert with_block.instruction == matrix.batch.with_ontology(without.instruction, block)
+        assert block not in prepared.prompt("one", control)
+    # The two FT ontology arms see the same prompt; only the adapter differs.
+    assert prepared.prompt("one", "ft_v3_onto") == prepared.prompt("one", "ft_onto")
+    # Same rendering as the v3_onto training records: instruction + block, then the input.
+    base = matrix.batch.ft_case(prepared.case("one", "qwen_base"))
+    assert prepared.prompt("one", "ft_onto") == matrix.format_inference_prompt(
+        matrix.batch.with_ontology(base.instruction, block), base.input_text)
+
+
+@needs_ontology
+def test_changed_frozen_block_is_rejected(prepared):
+    path = prepared.root / "cases/one/ontology/block.txt"
+    path.write_text(path.read_text() + "\nextra")
+    with pytest.raises(ValueError, match="block changed"):
+        prepared.case("one", "onto_project")
+    assert prepared.case("one", "qwen_base")  # arms without the block do not read it
+
+
+def _fake_adapter(root, name):
+    adapter = root / "adapters" / name
+    adapter.mkdir(parents=True)
+    files = {}
+    for file in ["adapter_config.json", "adapter_model.safetensors"]:
+        (adapter / file).write_text(name + " " + file)
+        files[str(adapter / file)] = {"bytes": (adapter / file).stat().st_size,
+                                      "sha256": matrix.batch.file_sha256(adapter / file)}
+    matrix.write(root / "hf_identity" / (name + ".json"),
+                 {"model": {"name": name, "adapter_path": str(adapter)}, "inference": {}, "files": files,
+                  "prompt_contract": "instruction-v1"})
+    return adapter
+
+
+@needs_ontology
+def test_ft_arm_loads_its_own_verified_adapter_and_sends_the_frozen_prompt(prepared, monkeypatch):
+    """Acceptance: adapter hash at load time and byte-identical prompt at the model call."""
+    import sys
+    import types
+    from contextlib import nullcontext
+    from llm_ontology.benchmarks import evaluation_generation
+
+    adapter = _fake_adapter(prepared.root, "b2_testing_onto")
+    for ident in prepared.ids:
+        (prepared.root / "cases" / ident / "frozen_prompts/ft_onto/prompt.txt").write_text(
+            prepared.prompt(ident, "ft_onto"))
+    torch = types.SimpleNamespace(manual_seed=lambda s: None, inference_mode=nullcontext,
+        cuda=types.SimpleNamespace(is_available=lambda: False))
+    monkeypatch.setitem(sys.modules, "torch", torch)
+    monkeypatch.setattr(matrix.batch, "runtime", lambda: types.SimpleNamespace(
+        prompt_profile=None, max_new_tokens=4096, random_seed=42))
+    loads, sent = [], []
+    def generate_prediction(model, tokenizer, task, instruction, input_code, generation, on_prompt=None):
+        prompt = matrix.format_inference_prompt(instruction, input_code)
+        on_prompt(prompt)  # what the tokenizer received
+        sent.append(prompt)
+        raw = '{"testCase1":"assertTrue(true);","testCase2":"assertTrue(true);"}'
+        return raw, {"raw_response": raw}
+    monkeypatch.setattr(evaluation_generation, "generate_prediction", generate_prediction)
+    monkeypatch.setattr(evaluation_generation, "load_eval_model", lambda *a: pytest.fail("reload"))
+    monkeypatch.setattr(matrix.batch, "assemble", lambda *a: "class GeneratedBodyTests {}")
+
+    class Tokenizer:
+        def __call__(self, text):
+            return {"input_ids": text.split()}
+    monkeypatch.setattr(matrix.batch, "load_eval_model",
+                        lambda model, inference: loads.append(model["adapter_path"]) or ("model", Tokenizer()))
+    prepared.generate("ft_onto")
+    assert loads == [str(adapter)]
+    for ident, prompt in zip(prepared.ids, sent):
+        out = prepared.out(ident, "ft_onto")
+        assert matrix.read(out / "completion.json")["status"] == "assembled"
+        frozen = (prepared.root / "cases" / ident / "frozen_prompts/ft_onto/prompt.txt").read_text()
+        assert matrix.read(out / "dispatch.json")["request"]["prompt"] == prompt == frozen
+        assert "<project-ontology>" in prompt
+    assert matrix.read(prepared.root / "ft_onto-loaded_identity.json")["adapter"] == "b2_testing_onto"
+
+
+def test_changed_adapter_blocks_the_arm_before_any_dispatch(prepared, monkeypatch):
+    adapter = _fake_adapter(prepared.root, "b2_testing_v3")
+    (adapter / "adapter_model.safetensors").write_text("retrained")
+    monkeypatch.setattr(matrix.batch, "load_eval_model", lambda *a: pytest.fail("loaded a changed adapter"))
+    with pytest.raises(ValueError, match="changed"):
+        prepared.generate("ft_testing")
+    assert not prepared.dispatches()
+    assert (prepared.root / "ft_testing-stop.json").exists()
