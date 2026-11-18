@@ -79,9 +79,8 @@ data -> ingestion -> vectorstore -> retrieval -> approaches -> inference
 - `inference/` kombinuje retrieval výsledok s LLM providerom,
 - `evaluation/` ukladá reprodukovateľné experimentálne záznamy.
 
-Podrobný stav, CLI a explicitné obmedzenia sú v
-[RAG phase 1](../retrieval/rag_phase1.md). Aktuálny produkčný baseline, RRF a
-kolekcie sú v [RAG phase 2](../retrieval/rag_phase2.md).
+Aktuálny retrieval (task-aware query, reranking, index) je v
+[RAG v3](../retrieval/rag_v3.md). Staršie fázy sú v `docs/retrieval/archive/`.
 
 ## Compatibility
 

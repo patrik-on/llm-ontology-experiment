@@ -28,7 +28,7 @@ runtime.
 
 The standalone provider values are in
 `configs/embeddings/ollama_bge_m3.yaml`. The complete executable RAG setup is
-`configs/retrieval/ollama_bge_m3.yaml`:
+`configs/retrieval/ollama_bge_m3_v3.yaml`:
 
 ```yaml
 embeddings:

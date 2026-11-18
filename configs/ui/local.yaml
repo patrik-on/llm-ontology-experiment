@@ -4,7 +4,7 @@ ui:
   default_task: testing
   default_mode: no_rag
   log_level: INFO
-  retrieval_config: configs/retrieval/ollama_bge_m3.yaml
+  retrieval_config: configs/retrieval/ollama_bge_m3_v3.yaml
   history_path: experiments/results/ui/interactive_runs.jsonl
   prompt_artifacts_dir: artifacts/prompts/ui
   max_input_chars: 100000

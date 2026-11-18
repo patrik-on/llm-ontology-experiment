@@ -17,7 +17,7 @@ def build_parser() -> argparse.ArgumentParser:
     check.add_argument(
         "--config",
         type=Path,
-        default=Path("configs/retrieval/ollama_bge_m3.yaml"),
+        default=Path("configs/retrieval/ollama_bge_m3_v3.yaml"),
     )
     check.add_argument("--json", action="store_true", help="Print the complete JSON status.")
     return parser
