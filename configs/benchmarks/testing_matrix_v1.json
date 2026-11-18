@@ -1,5 +1,5 @@
 {
-  "protocol": "methods2test_systems_skills_v1",
+  "protocol": "methods2test_systems_ontology_v2",
   "dataset": "methods2test-systems-skills-eval-v1",
   "usage_role": "validation",
   "official_split": "eval",
@@ -7,13 +7,29 @@
   "prompt_profile": "testing-bodies-one-shot-v2",
   "arms": [
     "qwen_base",
-    "ft_testing",
+    "onto_project",
+    "skills",
+    "skills_onto",
     "rag_single",
-    "rag_multi",
-    "skills"
+    "ft_testing",
+    "ft_v3_onto",
+    "ft_onto"
   ],
+  "adapters": {
+    "ft_testing": "b2_testing_v3",
+    "ft_v3_onto": "b2_testing_v3",
+    "ft_onto": "b2_testing_onto"
+  },
+  "primary_pairs": [
+    ["onto_project", "qwen_base"],
+    ["ft_v3_onto", "ft_testing"],
+    ["ft_onto", "ft_v3_onto"],
+    ["skills_onto", "skills"],
+    ["skills_onto", "onto_project"]
+  ],
+  "ontology_schema_version": "project-ontology-v1",
   "cases": 100,
-  "max_actual_generation_calls": 500,
+  "max_actual_generation_calls": 800,
   "attempts_per_cell": 1,
   "retries": 0,
   "repairs": 0,
@@ -34,7 +50,7 @@
     "static_only": true
   },
   "skill": "Unmodified si-context-eval/skills/testing/SKILL.md, pinned in configs/skills/testing/SKILL.md; direct Qwen with extra process context only, no AGENTS/tool loop.",
-  "backend_caveat": "Systems comparison: Ollama Q4_K_M structured generation versus HF PEFT NF4 raw instruction. Not an isolated FT adapter ablation.",
+  "backend_caveat": "Systems comparison: Ollama Q4_K_M structured generation versus HF PEFT NF4 raw instruction. Primary pairs differ in one input on the same backend; cross-backend pairs are descriptive only.",
   "sampling_caveat": "Dependency/convenience filtered extracted methods, not representative random sampling or original-project builds.",
   "no_fault_detection_claim": true,
   "retrieval_changes": false,

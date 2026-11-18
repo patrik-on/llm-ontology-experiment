@@ -13,12 +13,12 @@ class EvaluationRuntime(BaseModel):
     work_root: Path
     junit_jar: Path
     junit_sha256: str = Field(pattern=r"^[0-9a-f]{64}$")
-    training_sources: list[Path] = Field(default_factory=lambda: [Path("data/processed/testing/train.jsonl")], min_length=1)
-    validation_sources: list[Path] = Field(default_factory=lambda: [Path("data/processed/testing/val.jsonl")], min_length=1)
-    checkpoint_selection_sources: list[Path] = Field(default_factory=lambda: [Path("data/processed/testing/val.jsonl")], min_length=1)
+    training_sources: list[Path] = Field(default_factory=lambda: [Path("data/processed/v3/testing/train.jsonl")], min_length=1)
+    validation_sources: list[Path] = Field(default_factory=lambda: [Path("data/processed/v3/testing/val.jsonl")], min_length=1)
+    checkpoint_selection_sources: list[Path] = Field(default_factory=lambda: [Path("data/processed/v3/testing/val.jsonl")], min_length=1)
     retrieval_config: Path = Path("configs/retrieval/ollama_bge_m3_v3.yaml")
-    hf_models_config: Path = Path("configs/evaluation/eval_models_v2_only.yaml")
-    hf_model_name: str = Field(default="b2_testing_v2", min_length=1, max_length=100)
+    hf_models_config: Path = Path("configs/evaluation/eval_models.yaml")
+    hf_model_name: str = Field(default="b2_testing_v3", min_length=1, max_length=100)
     generation_model_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
     embedding_model_digest: str = Field(pattern=r"^[0-9a-f]{64}$")
     max_new_tokens: int = Field(default=4096, ge=1, le=8192)

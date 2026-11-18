@@ -24,7 +24,6 @@ V aktualnych WSL configoch sa ocakava cesta:
 Ak je model ulozeny inde, uprav `model_path` v:
 
 - `configs/evaluation/eval_models.yaml`,
-- `configs/evaluation/eval_models_v2_only.yaml`,
 - `configs/finetuning/training_b2_testing_wsl.yaml`,
 - `configs/finetuning/training_b2_refactoring_wsl.yaml`,
 - `configs/finetuning/training_b1_shared_wsl.yaml`.
@@ -60,16 +59,16 @@ tokenizer_config.json
 Kontrola:
 
 ```bash
-python scripts/finetuning/check_adapters.py --models-config configs/evaluation/eval_models_v2_only.yaml
+python scripts/finetuning/check_adapters.py --models-config configs/evaluation/eval_models.yaml
 ```
 
-Ak budu adaptery ulozene na inych cestach, uprav `adapter_path` v `configs/evaluation/eval_models_v2_only.yaml`.
+Ak budu adaptery ulozene na inych cestach, uprav `adapter_path` v `configs/evaluation/eval_models.yaml`.
 
 ZIP subory sa daju vytvorit z lokalnych adapterov prikazom:
 
 ```bash
 python scripts/finetuning/package_v2_adapters.py \
-  --models-config configs/evaluation/eval_models_v2_only.yaml \
+  --models-config configs/evaluation/eval_models.yaml \
   --output-dir artifacts/finetuning/adapters
 ```
 
@@ -99,7 +98,7 @@ python scripts/benchmarks/run_testing_matrix.py --run-id model-check --dry-run
 Po stiahnuti base modelu, priprave test datasetov a rozbaleni adapterov:
 
 ```bash
-  --models-config configs/evaluation/eval_models_v2_only.yaml \
+  --models-config configs/evaluation/eval_models.yaml \
   --limit 5 \
   --run-id v2_final_smoke \
   --overwrite

@@ -1,0 +1,51 @@
+inference:
+  device_map: "auto"
+  torch_dtype: "float16"
+  load_in_4bit: true
+  bnb_4bit_compute_dtype: "float16"
+  bnb_4bit_use_double_quant: true
+  bnb_4bit_quant_type: "nf4"
+  offload_dir: "~/experiments/llm-ontology/eval_offload"
+
+models:
+  - name: "baseline_qwen25_coder_7b"
+    type: "baseline"
+    model_path: "${LLM_ONTOLOGY_MODELS_ROOT}/huggingface/Qwen2.5-Coder-7B-Instruct"
+    adapter_path: null
+
+  - name: "b2_testing_v2"
+    type: "lora"
+    model_path: "${LLM_ONTOLOGY_MODELS_ROOT}/huggingface/Qwen2.5-Coder-7B-Instruct"
+    adapter_path: "~/experiments/llm-ontology-v2/b2_testing/checkpoints/final_adapter"
+
+  - name: "b2_refactoring_v2"
+    type: "lora"
+    model_path: "${LLM_ONTOLOGY_MODELS_ROOT}/huggingface/Qwen2.5-Coder-7B-Instruct"
+    adapter_path: "~/experiments/llm-ontology-v2/b2_refactoring/checkpoints/final_adapter"
+
+  - name: "b1_shared_v2"
+    type: "lora"
+    model_path: "${LLM_ONTOLOGY_MODELS_ROOT}/huggingface/Qwen2.5-Coder-7B-Instruct"
+    adapter_path: "~/experiments/llm-ontology-v2/b1_shared/checkpoints/final_adapter"
+
+  # v3 adapters, trained from the shared manifest (configs/finetuning/training_b2_*_wsl.yaml).
+  # The matrices map each FT arm to one of these by name (configs/benchmarks/*_matrix_v1.json "adapters").
+  - name: "b2_testing_v3"
+    type: "lora"
+    model_path: "${LLM_ONTOLOGY_MODELS_ROOT}/huggingface/Qwen2.5-Coder-7B-Instruct"
+    adapter_path: "~/experiments/llm-ontology-v3/b2_testing/checkpoints/final_adapter"
+
+  - name: "b2_refactoring_v3"
+    type: "lora"
+    model_path: "${LLM_ONTOLOGY_MODELS_ROOT}/huggingface/Qwen2.5-Coder-7B-Instruct"
+    adapter_path: "~/experiments/llm-ontology-v3/b2_refactoring/checkpoints/final_adapter"
+
+  - name: "b2_testing_onto"
+    type: "lora"
+    model_path: "${LLM_ONTOLOGY_MODELS_ROOT}/huggingface/Qwen2.5-Coder-7B-Instruct"
+    adapter_path: "~/experiments/llm-ontology-v3/b2_testing_onto/checkpoints/final_adapter"
+
+  - name: "b2_refactoring_onto"
+    type: "lora"
+    model_path: "${LLM_ONTOLOGY_MODELS_ROOT}/huggingface/Qwen2.5-Coder-7B-Instruct"
+    adapter_path: "~/experiments/llm-ontology-v3/b2_refactoring_onto/checkpoints/final_adapter"

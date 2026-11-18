@@ -2,15 +2,20 @@ java_home: ${LLM_ONTOLOGY_WORK_ROOT}/deps/jdk-11.0.33+10
 work_root: ${LLM_ONTOLOGY_WORK_ROOT}/evaluation
 junit_jar: ${LLM_ONTOLOGY_WORK_ROOT}/downloads/junit-platform-console-standalone-1.11.4.jar
 junit_sha256: b016ef6b1c3454d6d7c2c88ce081dabf289699686af6622d6e4e2e1b54b4a2fc
+# Testing adapters of the ontology run: b2_testing_v3 and b2_testing_onto, trained on
+# the twin datasets of one shared manifest (scripts/datasets/prepare_v3_eval_aligned.py).
 training_sources:
-- data/processed/testing/train.jsonl
+- data/processed/v3/testing/train.jsonl
+- data/processed/v3_onto/testing/train.jsonl
 validation_sources:
-- data/processed/testing/val.jsonl
+- data/processed/v3/testing/val.jsonl
+- data/processed/v3_onto/testing/val.jsonl
 checkpoint_selection_sources:
-- data/processed/testing/val.jsonl
+- data/processed/v3/testing/val.jsonl
+- data/processed/v3_onto/testing/val.jsonl
 retrieval_config: configs/retrieval/ollama_bge_m3_v3.yaml
-hf_models_config: configs/evaluation/eval_models_v2_only.yaml
-hf_model_name: b2_testing_v2
+hf_models_config: configs/evaluation/eval_models.yaml
+hf_model_name: b2_testing_v3
 max_new_tokens: 4096
 generation_timeout_seconds: 1800
 timeout_seconds: 30

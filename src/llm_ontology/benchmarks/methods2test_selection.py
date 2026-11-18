@@ -158,7 +158,9 @@ def snapshots(current_root=None):
     ids = set()
     pins = {}
     repositories = set()
-    for folder in ["testing", "refactoring_ml4ref", "refactoring_marv", "refactoring", "combined"]:
+    # v3 = the eval-aligned FT data of the ontology run (v3_onto holds the same records).
+    for folder in ["testing", "refactoring_ml4ref", "refactoring_marv", "refactoring", "combined",
+                   "v3/testing", "v3/refactoring"]:
         for split in ["train", "val"]:
             p = Path(f"data/processed/{folder}/{split}.jsonl")
             pins[str(p)] = file_sha256(p)
