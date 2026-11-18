@@ -21,35 +21,37 @@ nezávislé osi a možno ich kombinovať bez duplikovania pipeline.
 
 ```text
 src/llm_ontology/
-├── core/          spoločná konfigurácia, cesty a logging
-├── data/          príprava a validácia datasetov
-├── benchmarks/    read-only adaptéry TestBench a SWE-Refactor
+├── core/          spoločná konfigurácia, cesty (${LLM_ONTOLOGY_*} premenné), logging
+├── datasets/      príprava a validácia Methods2Test, MaRV a ML4Refactoring, splity
+├── benchmarks/    dve evaluačné matice (testing, refactoring) a ich interné helpery
+├── evaluation/    HF inference, JaCoCo coverage runner, experiment log, run layout
 ├── models/        model, tokenizer, kvantizácia a LoRA loading
-├── training/      fine-tuning workflow
-├── inference/     modelové backendy a spoločné promptovanie
+├── finetuning/    prompt formatter, dataset loader a QLoRA tréning (training/)
+├── inference/     Ollama klient, spoločné promptovanie, structured output
 ├── approaches/    direct, RAG a multi-RAG zostavenie kontextu
-├── ingestion/     manifesty, leakage audit a pair-aware corpus
-├── providers/     Ollama, mock a legacy Sentence Transformers embeddings
-├── retrieval/     single/multi-collection retrieval, RRF a token budget
+├── ingestion/     manifesty, leakage audit, Java parsing a pair-aware corpus
+├── providers/     Ollama, mock a Sentence Transformers embeddings
+├── retrieval/     single/multi-collection retrieval, RRF, reranking a token budget
 ├── vectorstore/   Chroma adaptér, lifecycle a sidecar manifesty
 ├── ui/            tenká Gradio prezentačná vrstva
-└── evaluation/    task metriky, agregácie a reporty
+├── env/           kontrola runtime prostredia (`python -m llm_ontology.env check`)
+└── cli/           RAG CLI
 ```
 
-`benchmarks/` v koreni je vendored evaluation obsah. Kód v
-`src/llm_ontology/benchmarks/` ho iba číta a normalizuje; pôvodné skripty ani
-projekty neupravuje.
+Lokálne benchmarkové checkouty (`benchmarks/swe-refactor/`) a veľké dáta sú
+mimo Gitu. Kód v `src/llm_ontology/benchmarks/` ich iba číta; pôvodné projekty
+neupravuje. Mapa zodpovedností je v [project_map.md](project_map.md).
 
 ## Benchmark flow
 
 ```text
-vendored benchmark → read-only adapter → BenchmarkCase
-                                         ↓
-                                  direct prompt → model → prediction
+dataset → deterministický výber + QA hodnotiteľa → zmrazený prompt pre každé rameno
+        → jedna generácia (Ollama alebo HF/PEFT) → kompilácia / vykonanie / detekcia
+        → artifacts/evaluation/runs/<run-id>/reports/
 ```
 
-TestBench `source/simple/full context` je kontrolovaná vlastnosť vstupu úlohy.
-SWE-Refactor adaptér uchováva referenčný výstup a compile/project metadata.
+Ramená: `qwen_base`, `ft_*`, `rag_single`, `rag_multi`, `skills`. Detaily sú v
+[eval dokumentácii](../evaluation/README.md).
 
 ## Retrieval safety
 
@@ -69,7 +71,7 @@ data -> ingestion -> vectorstore -> retrieval -> approaches -> inference
                                           +-> evaluation experiment record
 ```
 
-- `data/` naďalej vlastní datasety a ich splity,
+- `datasets/` naďalej vlastní datasety a ich splity,
 - `ingestion/` pridáva loader/chunker rozhrania a train-only guard,
 - `vectorstore/` izoluje ChromaDB API,
 - `retrieval/` vlastní request, filtre, token budget a trace,

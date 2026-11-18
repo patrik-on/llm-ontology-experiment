@@ -43,6 +43,7 @@ def _chunk(
     return make_document_chunk(source)
 
 
+@pytest.mark.rag
 def test_chroma_store_deduplicates_by_content_hash_and_filters_metadata() -> None:
     store = ChromaVectorStore(create_chroma_client(), DeterministicEmbeddingProvider())
     collection = "refactoring_examples_dedup"
@@ -63,6 +64,7 @@ def test_chroma_store_deduplicates_by_content_hash_and_filters_metadata() -> Non
     assert [hit.document_id for hit in hits] == [extract.document_id]
 
 
+@pytest.mark.rag
 def test_retrieval_trace_contains_filters_scores_and_prompt_selection() -> None:
     store = ChromaVectorStore(create_chroma_client(), DeterministicEmbeddingProvider())
     collection = "refactoring_examples_trace"
@@ -107,6 +109,7 @@ def test_no_rag_bypasses_store_and_generation_uses_direct_approach() -> None:
     assert result.retrieval.documents == []
 
 
+@pytest.mark.rag
 def test_retrieved_documents_are_rendered_as_untrusted_context() -> None:
     store = ChromaVectorStore(create_chroma_client(), DeterministicEmbeddingProvider())
     collection = "refactoring_examples_unsafe"
