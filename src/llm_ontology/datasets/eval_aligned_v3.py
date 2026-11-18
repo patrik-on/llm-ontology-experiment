@@ -11,6 +11,12 @@ matrices parse:
 * refactoring: ``refactoring_matrix.instruction(case)`` + aligned context unit ->
   ``{"file_path": ..., "refactored_code": ...}``.
 
+Every build writes two datasets from ONE shared manifest: v3 (no ontology) and
+v3_onto (the same records with the project-ontology block added to the instruction by
+``ontology.with_ontology``). Records whose block cannot be built, or whose longer
+variant exceeds the token limit, leave both datasets, and one project-grouped split is
+made, so the two adapters see identical cases, order, splits and gold outputs.
+
 Nothing here touches an evaluation run, its frozen inputs or its cohort. Training
 sources are screened against the released refactoring cohort and the processed
 held-out test splits; Methods2Test training comes from the official TRAIN archive,
@@ -188,13 +194,14 @@ def testing_record(first: dict[str, Any], second: dict[str, Any], case_id: str) 
     from llm_ontology.benchmarks.matrix_support import ft_case
 
     case = ft_case(testing_case(first, case_id))
+    block = _ontology_block(lambda: _ontology().testing_context(testing_case(first, case_id)))
     output = json.dumps({"testCase1": first["body"], "testCase2": second["body"]},
                         ensure_ascii=False, separators=(",", ":"))
     return {"instruction": case.instruction, "input": case.input_text, "output": output,
             "domain": "testing", "source": "methods2test", "format": FORMAT,
             "prompt_profile": case.metadata.get("prompt_profile"), "case_id": case_id,
             "project": first["project"], "repository": first["repository"],
-            "method_id": "|".join(first["focal_key"])}
+            "method_id": "|".join(first["focal_key"]), **block}
 
 
 def iter_methods2test_archive(path: str | Path, max_member_bytes: int = 4_000_000
@@ -229,8 +236,8 @@ def pair_testing_candidates(candidates: Iterable[dict[str, Any]], project_cap: i
 
 def build_testing_v3(archive: str | Path, out_dir: str | Path, *, train_size: int = 4000,
                      val_size: int = 500, project_cap: int = 20, seed: int = 42,
-                     max_records: int | None = None, fits: Callable[[dict], bool] | None = None
-                     ) -> dict[str, Any]:
+                     max_records: int | None = None, fits: Callable[[dict], bool] | None = None,
+                     onto_out_dir: str | Path | None = None) -> dict[str, Any]:
     reasons, candidates, scanned = Counter(), [], 0
     for ident, d in iter_methods2test_archive(archive):
         scanned += 1
@@ -246,7 +253,7 @@ def build_testing_v3(archive: str | Path, out_dir: str | Path, *, train_size: in
     records = [testing_record(a, b, a["id"] + "+" + b["id"]) for a, b in pairs]
     return _finish(records, out_dir, {"train": train_size, "val": val_size}, seed, fits,
                    {"scanned": scanned, "candidates": len(candidates), "pairs": len(pairs),
-                    "rejections": dict(reasons), "archive": str(archive)})
+                    "rejections": dict(reasons), "archive": str(archive)}, onto_out_dir)
 
 
 # ----------------------------------------------------------------------- refactoring
@@ -390,11 +397,12 @@ def refactoring_record(case: dict[str, Any], after: str) -> dict[str, Any]:
     from llm_ontology.benchmarks.refactoring_matrix import instruction
 
     output = json.dumps({"file_path": case["file_path"], "refactored_code": after}, ensure_ascii=False)
+    block = _ontology_block(lambda: _ontology().refactoring_context(case))
     return {"instruction": instruction(case), "input": case["before"], "output": output,
             "domain": "refactoring", "source": case["source"], "format": FORMAT,
             "refactoring_type": case["operation"], "case_id": case["id"],
             "project": case.get("project") or case["source"] + ":" + str(case.get("commit")),
-            "commit_sha": case.get("commit") or ""}
+            "commit_sha": case.get("commit") or "", **block}
 
 
 def refactoring_records_from_contexts(directory: Path) -> tuple[list[dict[str, Any]], Counter]:
@@ -418,7 +426,8 @@ def refactoring_records_from_contexts(directory: Path) -> tuple[list[dict[str, A
 def build_refactoring_v3(repo: Path, raw_ml4ref: Path, work_dir: Path, out_dir: Path, *,
                          plan: dict[str, Any], train_size: int, val_size: int, per_type: int = 400,
                          max_archives: int | None = None, seed: int = 42,
-                         fits: Callable[[dict], bool] | None = None) -> dict[str, Any]:
+                         fits: Callable[[dict], bool] | None = None,
+                         onto_out_dir: Path | None = None) -> dict[str, Any]:
     """discover -> RefactoringMiner materialize -> aligned context -> eval-format records."""
     from llm_ontology.benchmarks.refactoring_mixed_prepare import contextualize, materialize
 
@@ -430,7 +439,7 @@ def build_refactoring_v3(repo: Path, raw_ml4ref: Path, work_dir: Path, out_dir: 
     records, reasons = refactoring_records_from_contexts(work_dir)
     return _finish(records, out_dir, {"train": train_size, "val": val_size}, seed, fits,
                    {"work_dir": str(work_dir), "rejections": dict(reasons),
-                    "by_type": dict(Counter(r["refactoring_type"] for r in records))})
+                    "by_type": dict(Counter(r["refactoring_type"] for r in records))}, onto_out_dir)
 
 
 # -------------------------------------------------------------------------- combined
@@ -480,22 +489,74 @@ def _stats(records: list[dict[str, Any]]) -> dict[str, Any]:
             "projects": len({r.get("project") for r in records})}
 
 
+def _ontology():
+    from llm_ontology import ontology
+    return ontology
+
+
+def _ontology_block(build: Callable[[], tuple[str, dict[str, str]]]) -> dict[str, Any]:
+    """Block for the v3_onto twin of a record; a failure is recorded, never raised, and
+    removes the record from BOTH datasets in ``_finish``."""
+    try:
+        block, identity = build()
+    except ImportError:  # a missing dependency (rdflib, tree-sitter) must stop the build
+        raise
+    except Exception as exc:  # parser/guard failures are counted in the build report
+        return {"ontology_block": None, "ontology_error": f"{type(exc).__name__}: {str(exc)[:120]}"}
+    return {"ontology_block": block, "ontology_block_sha256": identity["block_sha256"],
+            "ontology_schema_sha256": identity["schema_sha256"]}
+
+
+ONTOLOGY_FIELDS = ("ontology_block", "ontology_error", "ontology_block_sha256", "ontology_schema_sha256")
+
+
+def split_twins(record: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+    """(v3 record, v3_onto record) from one built record with an ontology block."""
+    base = {k: v for k, v in record.items() if k not in ONTOLOGY_FIELDS}
+    onto = {**base, "instruction": _ontology().with_ontology(base["instruction"], record["ontology_block"]),
+            "format": FORMAT + "_onto", "ontology_block_sha256": record["ontology_block_sha256"],
+            "ontology_schema_sha256": record["ontology_schema_sha256"]}
+    return base, onto
+
+
 def _finish(records: list[dict[str, Any]], out_dir: str | Path, sizes: dict[str, int], seed: int,
-            fits: Callable[[dict], bool] | None, report: dict[str, Any]) -> dict[str, Any]:
+            fits: Callable[[dict], bool] | None, report: dict[str, Any],
+            onto_out_dir: str | Path | None = None) -> dict[str, Any]:
+    """Shared manifest: drop ontology failures and over-length twins, split once, write both."""
+    failures = Counter(r.get("ontology_error", "missing ontology block")
+                       for r in records if r.get("ontology_block") is None)
+    twins = [split_twins(r) for r in records if r.get("ontology_block") is not None]
     dropped = 0
     if fits is not None:
-        kept = [r for r in records if fits(r)]
-        dropped, records = len(records) - len(kept), kept
-    if not records:
+        kept = [t for t in twins if fits(t[0]) and fits(t[1])]
+        dropped, twins = len(twins) - len(kept), kept
+    if not twins:
         raise ValueError("No eval-aligned records were produced; see rejections: " + json.dumps(report)[:2000])
-    splits = grouped_split_by_ratios(records, ratios=SPLIT_RATIOS,
+    onto_of = {id(base): onto for base, onto in twins}
+    splits = grouped_split_by_ratios([base for base, _ in twins], ratios=SPLIT_RATIOS,
                                      group_key=lambda r: record_group_key(r, GroupLevel.PROJECT), seed=seed)
     out = Path(out_dir)
-    out.mkdir(parents=True, exist_ok=True)
-    result = {**report, "format": FORMAT, "dropped_over_token_limit": dropped, "splits": {}}
+    onto_out = Path(onto_out_dir) if onto_out_dir is not None else None
+    for directory in (out, onto_out):
+        if directory is not None:
+            directory.mkdir(parents=True, exist_ok=True)
+    result = {**report, "format": FORMAT, "dropped_over_token_limit": dropped,
+              "dropped_ontology_failure": sum(failures.values()),
+              "ontology_failures": dict(failures.most_common(20)), "splits": {}}
+    manifest = []
     for split, size in sizes.items():
         chosen = splits.get(split, [])[:size]
         write_jsonl(chosen, out / f"{split}.jsonl")
+        if onto_out is not None:
+            write_jsonl([onto_of[id(r)] for r in chosen], onto_out / f"{split}.jsonl")
         result["splits"][split] = {**_stats(chosen), "requested": size}
-    (out / "build_report.json").write_text(json.dumps(result, indent=2, ensure_ascii=False))
+        manifest += [{"case_id": r.get("case_id"), "split": split, "output_sha256": _sha(r["output"]),
+                      "prompt_sha256": _sha(format_prompt(r)),
+                      "onto_prompt_sha256": _sha(format_prompt(onto_of[id(r)])),
+                      "ontology_block_sha256": onto_of[id(r)]["ontology_block_sha256"]} for r in chosen]
+    result["manifest_sha256"] = _sha(json.dumps(manifest, sort_keys=True))
+    for directory in (out, onto_out):
+        if directory is not None:
+            (directory / "manifest.json").write_text(json.dumps(manifest, indent=1) + "\n")
+            (directory / "build_report.json").write_text(json.dumps(result, indent=2, ensure_ascii=False))
     return result
