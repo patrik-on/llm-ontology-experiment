@@ -1,5 +1,7 @@
 # Current matrix validation (2026-11-13)
 
+> Historický záznam k 13. 11. 2026. Neskôr pribudli `mixed-context-pool-v4-20261113` a `refactoring-context-v4-ready-20261114` (refactoring pool 100 úloh); aktuálny zoznam pripravených behov je v [README](../../README.md).
+
 Only two evaluation CLIs and two entry scripts remain: Methods2Test testing and
 SWE refactoring. Only their current preparation directories remain under
 `artifacts/evaluation/runs/`. Legacy pilot/full/smoke frameworks, their configs,

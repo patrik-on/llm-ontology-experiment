@@ -73,12 +73,32 @@ zostávajú oddelené od evaluácie. Datasetové audity a nástroje ako Refactor
   archivované handcrafted výsledky a dôkazy; nie ďalší aktívny eval runner.
 - [Prečo sú aktuálne evaluácie takto navrhnuté](thesis_materials/reports/evaluation_design_2026-11-13.md)
 
+## Inštalácia a lokálne cesty
+
+```bash
+python -m venv .venv_wsl && source .venv_wsl/bin/activate
+pip install -r requirements.txt          # = pip install -e ".[dev,rag,ui]"
+pip install -e ".[training]"             # iba pre reálny fine-tuning
+```
+
+Konfigurácie neobsahujú absolútne cesty konkrétneho počítača. Používajú
+premenné `${LLM_ONTOLOGY_WORK_ROOT}` (default `~/benchmark-work`: JDK, JUnit/JaCoCo
+jary, git mirrory), `${LLM_ONTOLOGY_MODELS_ROOT}` (default `/mnt/c/models`) a
+`${LLM_ONTOLOGY_DATASETS_ROOT}` (default `/mnt/c/datasets`). Na inom stroji ich
+stačí exportovať, pozri [.env.example](.env.example).
+
+Rameno `skills` používa pinnuté kópie `SKILL.md` v [configs/skills/](configs/skills/info.md)
+(z `si-context-eval@57ce660`), takže susedný checkout už nie je potrebný.
+
 ## Kontroly implementácie
 
 ```bash
-.venv_wsl/bin/python -m pytest -q
+.venv_wsl/bin/python -m pytest -q -rs
 .venv_wsl/bin/ruff check src scripts tests
 ```
 
-Niektoré integračné kontroly potrebujú už nainštalované lokálne Java/modelové
-závislosti. Nevytvárajú experimentálne skóre modelov.
+Testy označené `local_data` potrebujú Gitom ignorované lokálne vstupy
+(SWE-Refactor dataset a overlap audit v `artifacts/swe_overlap_audit_20261113/`),
+testy `rag` potrebujú `chromadb`. Ak chýbajú, preskočia sa s dôvodom, takže čistý
+klon a CI (`.github/workflows/ci.yml`) bežia zelene. Integračné kontroly
+nevytvárajú experimentálne skóre modelov.
