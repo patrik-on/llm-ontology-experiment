@@ -1,8 +1,6 @@
-import json
 
 import pytest
 
-from llm_ontology.benchmarks.defects4j_bodies_pilot import Ledger
 from llm_ontology.core.task_mode import CanonicalTask
 from llm_ontology.inference.experiment_runner import ExperimentCase
 from llm_ontology.inference.prompting.testing_bodies_v1 import (
@@ -68,51 +66,11 @@ def test_strict_retain_failure_and_no_retry(raw):
     assert error.value.attempts[0].raw_response == raw
 
 
-def test_ledger_exclusive_and_direct_gate(tmp_path):
-    out = tmp_path / "predictions/qwen_base"
-    out.mkdir(parents=True)
-    ledger = Ledger(tmp_path, "qwen_base")
-    ledger.charge({"one": "request"})
-    with pytest.raises(FileExistsError):
-        ledger.charge({"second": "request"})
-    with pytest.raises(ValueError):
-        Ledger(tmp_path, "rag_single").charge({})
-    with pytest.raises(ValueError):
-        Ledger(tmp_path, "unknown")
-    assert len(list(tmp_path.glob("predictions/*/dispatch.json"))) == 1
-    assert json.loads((out / "dispatch.json").read_text())["charged_to_budget"]
 
 
 
-def test_all_four_arms_exclusive_cap(tmp_path, monkeypatch):
-    import llm_ontology.benchmarks.defects4j_bodies_pilot as pilot
-    monkeypatch.setattr(pilot, "usable", lambda root: True)
-    for arm in pilot.ARMS:
-        (tmp_path / "predictions" / arm).mkdir(parents=True)
-        ledger = Ledger(tmp_path, arm)
-        ledger.charge({"request": arm})
-        with pytest.raises(FileExistsError):
-            ledger.charge({"retry": arm})
-    assert len(list(tmp_path.glob("predictions/*/dispatch.json"))) == 4
 
 
-def test_http_failure_charged_and_error_retained(tmp_path, monkeypatch):
-    from urllib.error import HTTPError
-    from urllib.request import Request
-    from io import BytesIO
-    import llm_ontology.benchmarks.defects4j_bodies_pilot as pilot
-    out = tmp_path / "predictions/qwen_base"
-    out.mkdir(parents=True)
-    def fail(request, **kwargs):
-        raise HTTPError(request.full_url, 500, "fail", {}, BytesIO(b"server failure"))
-    monkeypatch.setattr(pilot, "urlopen", fail)
-    payload = {"model": "qwen2.5-coder:7b", "options": {"temperature": 0.0, "top_p": .9,
-        "num_predict": 4096, "num_ctx": 32768, "seed": 42}, "format": Bodies.model_json_schema()}
-    request = Request("http://localhost:11434/api/generate", data=json.dumps(payload).encode())
-    with pytest.raises(HTTPError):
-        Ledger(tmp_path, "qwen_base")(request)
-    assert (out / "dispatch.json").exists()
-    assert (out / "http_error.txt").read_bytes() == b"server failure"
 
 
 def test_duplicate_keys_rejected():
@@ -121,17 +79,6 @@ def test_duplicate_keys_rejected():
         parse_testing_bodies('{"testCase1":"x;","testCase1":"z;","testCase2":"y;"}')
 
 
-def test_wrong_assertions_still_functionally_usable(tmp_path):
-    from llm_ontology.benchmarks.defects4j_bodies_pilot import usable
-    path = tmp_path / "predictions/qwen_base/metrics/evaluation.json"
-    path.parent.mkdir(parents=True)
-    run = {"compile": {"returncode": 0}, "console_summary": {"tests_started": 2},
-           "status": "assertion_failure"}
-    path.write_text(json.dumps({"outcomes": {"fixed": [run, run]}}))
-    assert usable(tmp_path)
-    run["console_summary"]["tests_started"] = 0
-    path.write_text(json.dumps({"outcomes": {"fixed": [run, run]}}))
-    assert not usable(tmp_path)
 
 
 def test_identical_scaffold_and_contract_across_retrieval_modes():

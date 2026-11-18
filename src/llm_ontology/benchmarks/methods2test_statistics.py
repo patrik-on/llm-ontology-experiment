@@ -1,7 +1,7 @@
 """Model-free statistics for arbitrary Methods2Test case counts, one call per cell.
 
-Read the existing selection/generation/metrics/coverage layout without importing or
-changing the frozen five-case runner. aggregate(root) is read-only; optionally
+Read the current matrix selection/generation/metrics/coverage layout.
+aggregate(root) is read-only; optionally
 supply output to persist a new report. Unattempted cells are explicit, not failed
 attempts. Failed attempts earn zero *success credit*, never measured zero coverage.
 Convenience-selected cases are not random independent project samples: intervals
@@ -10,7 +10,6 @@ below are descriptive and do not justify population, causal or ranking inference
 
 from __future__ import annotations
 
-import argparse
 from itertools import combinations
 import json
 from math import isfinite, sqrt
@@ -314,6 +313,7 @@ def _row(root: Path, ident: str, arm: str) -> dict:
     server = _read(out / "server_response.json", optional=True)
     ft = _read(out / "generation_metadata.json", optional=True)
     received = _read(out / "received.json", optional=True)
+    completion = _read(out / "completion.json", optional=True)
     record = received.get("experiment_record") or {}
     assembled = (out / "generated.java").is_file()
     attempted = (out / "dispatch.json").is_file()
@@ -322,6 +322,7 @@ def _row(root: Path, ident: str, arm: str) -> dict:
         id=ident,
         arm=arm,
         actual_calls=int(attempted),
+        generation_status=completion.get("status", "interrupted_unresolved" if attempted else "pending"),
         body_schema=(out / "bodies.json").is_file(),
         assembled=assembled,
         truncated=server.get("done_reason") == "length" or ft.get("output_truncated", False),
@@ -341,8 +342,11 @@ def _row(root: Path, ident: str, arm: str) -> dict:
         failure=_read(out / "failure.json", optional=True) or None,
     )
     if not ev:
-        # An assembled but unevaluated output is pending/unknown, not a measured failure.
-        unknown = not attempted or assembled
+        # A charged request alone proves cost, not a failed model answer.
+        # Preserve the historical policy for completed failures; only unresolved
+        # dispatches become unknown. generation_status keeps infra/model distinct.
+        terminal_failure = completion.get("status") in {"model_output_failure", "infrastructure_failure"}
+        unknown = not attempted or assembled or not terminal_failure
         row.update(
             class_pass=None if unknown else False,
             compiled=None if unknown else False,
@@ -364,6 +368,23 @@ def _row(root: Path, ident: str, arm: str) -> dict:
         row["coverage_reason"] = (
             row.get("coverage_reason") or "passing_class_missing_instrumentation"
         )
+    outcomes = ev.get("outcomes", [])
+    repeat_coverages = [r.get("coverage") or r.get("diagnostic_coverage") for r in outcomes]
+    measured = len(repeat_coverages) == 2 and all(c is not None for c in repeat_coverages)
+    coverage_equal = repeat_coverages[0] == repeat_coverages[1] if measured else None
+    warnings = []
+    if coverage_equal is False or ev.get("repeat_coverage_equal") is False:
+        warnings.append("coverage_repeat_mismatch")
+    if ev.get("per_test_outcomes_repeat_equal") is False:
+        warnings.append("test_outcomes_repeat_mismatch")
+    row["repeat_diagnostics"] = {
+        "coverage_equal": coverage_equal,
+        "coverage_by_repeat": repeat_coverages,
+        "test_outcomes_equal": ev.get("per_test_outcomes_repeat_equal"),
+        "warnings": warnings,
+        "diagnostic_only": True,
+        "primary_score_policy_changed": False,
+    }
     return row
 
 
@@ -392,8 +413,9 @@ def aggregate(root: Path | str, *, arms=ARMS, output: Path | str | None = None) 
     ):
         raise ValueError("Selection ids must be unique safe case identifiers")
     arms = tuple(arms)
-    if len(arms) != 4 or len(set(arms)) != 4 or any(a not in ARMS for a in arms):
-        raise ValueError("Exactly the four existing comparison arms are required")
+    allowed = (*ARMS, "skills")
+    if not arms or len(set(arms)) != len(arms) or any(a not in allowed for a in arms):
+        raise ValueError("Require distinct known comparison arms")
     references = {
         i: _read(root / "cases" / i / "reference-coverage/coverage.json", optional=True).get(
             "coverage"
@@ -423,6 +445,11 @@ def aggregate(root: Path | str, *, arms=ARMS, output: Path | str | None = None) 
         stats["repeat_stable"] = {
             "count": sum(r.get("repeat_stable") is True for r in rs),
             "measured": sum(r.get("repeat_stable") is not None for r in rs),
+        }
+        stats["repeat_diagnostics"] = {
+            "coverage_mismatch_cases": sum("coverage_repeat_mismatch" in r["repeat_diagnostics"]["warnings"] for r in rs),
+            "test_outcome_mismatch_cases": sum("test_outcomes_repeat_mismatch" in r["repeat_diagnostics"]["warnings"] for r in rs),
+            "diagnostic_only": True,
         }
         stats["tests_first_run"] = {
             k: sum((r.get("tests_first_run") or {}).get(k, 0) for r in rs)
@@ -470,15 +497,3 @@ def aggregate(root: Path | str, *, arms=ARMS, output: Path | str | None = None) 
             encoding="utf-8",
         )
     return result
-
-
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", type=Path, required=True)
-    parser.add_argument("--output", type=Path)
-    args = parser.parse_args()
-    print(json.dumps(aggregate(args.root, output=args.output), indent=2, allow_nan=False))
-
-
-if __name__ == "__main__":
-    main()

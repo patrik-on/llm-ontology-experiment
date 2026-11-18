@@ -1,0 +1,3 @@
+# Local historical evidence; no automatic inclusion of logs, workspaces or snapshots.
+*
+!.gitignore

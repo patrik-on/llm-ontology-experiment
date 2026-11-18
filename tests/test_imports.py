@@ -15,3 +15,9 @@ def test_all_llm_ontology_modules_import() -> None:
             failures.append(f"{module.name}: {type(exc).__name__}: {exc}")
 
     assert not failures, "\n".join(failures)
+
+
+def test_training_import_in_fresh_process():
+    import subprocess
+    import sys
+    subprocess.run([sys.executable, "-c", "from llm_ontology.finetuning.training.finetuning import build_tokenized_training_example; from llm_ontology.approaches import ApproachPromptBuilder, get_approach; assert get_approach('direct').name == 'direct'"], check=True, timeout=30)

@@ -6,7 +6,7 @@ Spoločná inferenčná vrstva nezávislá od konkrétneho experimentu.
 - `approach_runner.py`: výber direct/RAG/multi-RAG prompt composition,
 - `prompts.py`: kompatibilné high-level prompt helpery,
 - `ollama_client.py`: HTTP klient pre Ollama,
-- `ollama_baseline.py`: limitovaný Ollama runner,
+- Baseline generation is owned by the two current evaluation matrices, not a standalone runner.
 - `model_setup_check.py`: kontrola modelových configov a lokálneho runtime.
 
 Direct, RAG a MultiRAG používajú spoločný `RagExperimentRunner`, canonical

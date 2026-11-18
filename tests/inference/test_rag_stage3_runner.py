@@ -10,7 +10,6 @@ from llm_ontology.inference.experiment_runner import (
     ExperimentCase,
     RagExperimentConfig,
     RagExperimentRunner,
-    load_experiment_config,
 )
 from llm_ontology.inference.ollama_client import OllamaGenerationResult, OllamaProvider
 from llm_ontology.inference.structured_output import StructuredOutputGenerator
@@ -488,30 +487,6 @@ def test_runner_enforces_retrieval_budget_and_reports_runtime_prompt_count(
     assert record.token_budget["runtime_prompt_truncation_suspected"] is True
 
 
-def test_eight_controlled_matrix_configs_are_valid_and_disabled() -> None:
-    root = Path("configs/experiments/rag_v2")
-    configs = [load_experiment_config(path) for path in sorted(root.glob("*.yaml"))]
-    cells = {
-        (
-            config.canonical_task.value,  # type: ignore[union-attr]
-            config.collection,
-            tuple(config.collections),
-        )
-        for config in configs
-    }
-
-    assert len(configs) == 8
-    assert cells == {
-        ("refactoring", None, ()),
-        ("refactoring", "refactoring_db", ()),
-        ("refactoring", "mixed", ()),
-        ("refactoring", None, ("testing_db", "refactoring_db")),
-        ("testing", None, ()),
-        ("testing", "testing_db", ()),
-        ("testing", "mixed", ()),
-        ("testing", None, ("testing_db", "refactoring_db")),
-    }
-    assert all(not config.enabled for config in configs)
 
 
 def _config(

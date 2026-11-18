@@ -1,6 +1,0 @@
-models_config: "configs/evaluation/eval_models.yaml"
-run_id: "v1_v2_pilot"
-testing:
-  dataset: "data/processed/testing/test.jsonl"
-refactoring:
-  dataset: "data/processed/refactoring/test.jsonl"

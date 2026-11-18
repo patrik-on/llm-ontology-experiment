@@ -1,137 +1,32 @@
-# Reproducible handoff
+# Current evaluation handoff
 
-Tento dokument popisuje, co je pripravene na odovzdanie do Gitu a co ostava ako externy artefakt mimo repozitara.
+Writing-oriented materials now have a dedicated home:
+[thesis_materials](../../thesis_materials/README.md). Start with the
+[current evaluation design report](../../thesis_materials/reports/evaluation_design_2026-11-13.md)
+and the [historical handcrafted archive](../../thesis_materials/handcrafted_skills/README.md).
+This page remains a compact operational/reproducibility handoff.
 
-Repozitar je pripraveny tak, aby sa dal spustit aj bez plnych datasetov, base modelu a LoRA vah. V Gite maju byt zdrojove kody, konfiguracie, testy, male ukazky dat, runbooky a vysledkove reporty. Velke modelove a datasetove subory sa maju odovzdat separatne alebo znovu vytvorit podla runbookov.
+The supported experiment implementation consists of the
+[Methods2Test matrix](../evaluation/testing_matrix_v1.md) and the
+[SWE refactoring matrix](../evaluation/refactoring_matrix_v1.md).
 
-## Download links
+Each uses baseline, FT, Single-RAG, MultiRAG and the existing task skill. The
+normal bounded pilot is 5 cases × 5 variants, one response each, no repair/retry.
+Current retained preparations contain zero model-answer calls; do not report
+infrastructure QA as model performance.
 
-Kompletny zoznam odkazov je v `docs/finetuning/download_links.md`.
+Methods2Test measures generated-test validity, execution, focal invocation and
+coverage in an extracted-method harness. It does not claim original-project
+builds or real-bug detection. SWE refactoring requires the requested operation
+on the target method, compilation and stable existing tests; that is not a
+universal proof of behavior equivalence.
 
-Zakladne verejne zdroje:
+Reproduction uses source/input/model/tool/index hashes, saved actual prompts,
+dispatch ledgers and per-case logs under the relevant run root. Different
+Ollama/HF quantization and output backends are explicitly recorded; comparisons
+are system-level, not isolated adapter ablations. Source or manifest changes
+require a new pre-generation freeze; never silently re-sign completed results.
 
-- Qwen2.5-Coder-7B-Instruct: <https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct>
-- Methods2Test: <https://github.com/microsoft/methods2test>
-- ML4Refactoring: <https://zenodo.org/records/3547639>
-- MaRV Scripts and Dataset: <https://zenodo.org/records/14450098>
-
-V2 LoRA adaptery su projektove artefakty a treba ich odovzdat separatne ako ZIP subory alebo release assets.
-
-ZIP subory z lokalnych adapterov vytvoris:
-
-```bash
-python scripts/package_v2_adapters.py \
-  --models-config configs/evaluation/eval_models_v2_only.yaml \
-  --output-dir artifacts/finetuning/adapters
-```
-
-## Quick start pre ucitela
-
-V root priecinku projektu:
-
-```bash
-python -m pip install -e ".[dev]"
-python -m compileall -q src scripts tests
-python -m pytest tests
-python scripts/evaluation/smoke_eval_metrics.py
-```
-
-Tieto prikazy nevyzaduju lokalny Qwen model, plne datasety ani LoRA adaptery. Overuju importy, testy a malu evaluation metrics pipeline na syntetickych prikladoch.
-
-## Co je commitovatelne
-
-- `src/llm_ontology/`: kniznicny kod projektu,
-- `scripts/`: spustitelne CLI entrypointy,
-- `configs/`: training a evaluation konfiguracie,
-- `tests/`: automaticke testy,
-- `docs/`: runbooky a projektova dokumentacia,
-- `data/samples/`: male ukazky datasetoveho formatu,
-- `results/*.md` a `results/*.tex`: male textove reporty z vysledkov.
-
-## Co nie je v Gite
-
-Tieto subory su zamerne mimo repozitara:
-
-- base model `Qwen2.5-Coder-7B-Instruct`,
-- plne `data/processed/*.jsonl` datasety,
-- training checkpointy,
-- LoRA adapter weights `adapter_model.safetensors`,
-- evaluation predikcie a per-example metriky.
-
-Aktualne v2 LoRA adaptery maju priblizne 50 MB kazdy. Su relativne male oproti base modelu, ale stale ide o binarne modelove vahy, preto zostavaju mimo bezneho Git commitu.
-
-## Externe artefakty
-
-V2 adaptery pouzite vo finalnej evaluacii:
-
-| Model | Adapter directory |
-|---|---|
-| `b2_testing_v2` | `~/experiments/llm-ontology-v2/b2_testing/checkpoints/final_adapter` |
-| `b2_refactoring_v2` | `~/experiments/llm-ontology-v2/b2_refactoring/checkpoints/final_adapter` |
-| `b1_shared_v2` | `~/experiments/llm-ontology-v2/b1_shared/checkpoints/final_adapter` |
-
-Kazdy adapter directory ma obsahovat minimalne:
-
-```text
-adapter_config.json
-adapter_model.safetensors
-tokenizer_config.json
-```
-
-Ak budu adaptery odovzdane separatne, staci ich skopirovat na tieto cesty alebo upravit `adapter_path` v `configs/evaluation/eval_models_v2_only.yaml`.
-
-Kontrola adapterov:
-
-```bash
-python scripts/check_v2_adapters.py --models-config configs/evaluation/eval_models_v2_only.yaml
-```
-
-## Volitelna reprodukcia v2 evaluacie
-
-Ak su dostupne base model, v2 adaptery a test datasety:
-
-```bash
-python scripts/run_full_evaluation.py \
-  --models-config configs/evaluation/eval_models_v2_only.yaml \
-  --limit 50 \
-  --run-id v2_final \
-  --overwrite
-```
-
-Finalny vacsi beh s limitom 100 je popisany v
-`docs/evaluation/v2_runbook.md`. Tento repozitar ho nespusta automaticky.
-
-## Vysledkove reporty
-
-Hlavne textove vystupy pripravene na citanie:
-
-- `results/29.5.md`: suhrn dnesnej prace, pipeline oprav, v2 treningu/evaluacie a analyz,
-- `results/current_approaches_ml_report.tex`: LaTeX report k projektu,
-- `docs/finetuning/v2_runbook.md`: manualny runbook pre v2 fine-tuning,
-- `docs/evaluation/v2_runbook.md`: manualny runbook pre v2 evaluation.
-
-## Minimalny spustitelny rozsah
-
-Bez externych modelov a datasetov je garantovane spustitelne:
-
-```bash
-python -m compileall -q src scripts tests
-python -m pytest tests
-python scripts/evaluation/smoke_eval_metrics.py
-```
-
-S externymi adaptermi navyse:
-
-```bash
-python scripts/check_v2_adapters.py --models-config configs/evaluation/eval_models_v2_only.yaml
-```
-
-S plnym base modelom a datasetmi navyse:
-
-```bash
-python scripts/run_full_evaluation.py \
-  --models-config configs/evaluation/eval_models_v2_only.yaml \
-  --limit 5 \
-  --run-id v2_final_smoke \
-  --overwrite
-```
+The old standalone full/smoke/pilot evaluations and their scores are no longer
+part of the active project. Training provenance, datasets and index metadata
+remain separately available; see the [project map](../architecture/project_map.md).
