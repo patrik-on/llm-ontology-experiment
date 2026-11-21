@@ -6,7 +6,7 @@
 | `evaluation/` | modely a Java nástroje pre evaluáciu | `eval_models.yaml`, `jacoco_v1.json`, `methods2test_assertions_v1.json` |
 | `retrieval/` | RAG | `ollama_bge_m3_v3.yaml` (jediný aktuálny), `base.yaml` (mock/test) |
 | `embeddings/` | samostatný embedding provider | `ollama_bge_m3.yaml` |
-| `finetuning/` | LoRA tréning (configy, ktorými vznikli v2 adaptéry) | `lora_config.yaml`, `training_*_wsl.yaml` |
+| `finetuning/` | LoRA tréning štyroch v3 adaptérov | `lora_config.yaml`, `training_*_wsl.yaml` |
 | `shared/` | base config a modely | `base.yaml`, `models/` |
 | `skills/` | pinnuté `SKILL.md` pre rameno `skills` | `testing/`, `refactoring/` |
 | `datasets/` | spracovanie datasetov a manifesty | |

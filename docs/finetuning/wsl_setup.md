@@ -16,7 +16,7 @@ Tento dokument popisuje WSL2/Ubuntu setup pre QLoRA fine-tuning modelu Qwen2.5-C
 cd /path/to/llm-ontology-experiment
 source .venv_wsl/bin/activate
 
-python scripts/finetuning/check_transformers_compat.py
+python -m llm_ontology.env check
 ```
 
 ## Experiment outputs
@@ -26,42 +26,29 @@ WSL fine-tuning outputs are stored outside the OneDrive-backed repository to avo
 Output root:
 
 ```text
-~/experiments/llm-ontology
+~/experiments/llm-ontology-v3
 ```
 
 The repository remains on `/mnt/c`, but checkpoints, logs, results and final adapters are written to the native WSL filesystem.
 
-## B2-T Testing
+## Tréning v3 adaptérov
+
+Štyri adaptéry (`b2_testing`, `b2_refactoring`, `b2_testing_onto`, `b2_refactoring_onto`) a
+ich poradie sú v `docs/finetuning/v3_runbook.md`. Pred každým behom:
 
 ```bash
 python scripts/finetuning/check_finetuning_ready.py --config configs/finetuning/training_b2_testing_wsl.yaml
-python scripts/finetuning/train_finetuning.py --config configs/finetuning/training_b2_testing_wsl.yaml
 ```
 
-## B2-R Refactoring
+## Pokračovanie po prerušení
 
-```bash
-python scripts/finetuning/check_finetuning_ready.py --config configs/finetuning/training_b2_refactoring_wsl.yaml
-python scripts/finetuning/train_finetuning.py --config configs/finetuning/training_b2_refactoring_wsl.yaml
-```
-
-## B1 Shared
-
-```bash
-python scripts/finetuning/check_finetuning_ready.py --config configs/finetuning/training_b1_shared_wsl.yaml
-python scripts/finetuning/train_finetuning.py --config configs/finetuning/training_b1_shared_wsl.yaml
-```
-
-## Resume interrupted training
+Checkpoint sa ukladá každých 100 krokov. Beh zastav `kill -TERM` (nie Ctrl+C, ten uloží
+`final_adapter` ako interrupted), prázdny `final_adapter` zmaž a pokračuj:
 
 ```bash
 python scripts/finetuning/train_finetuning.py \
-  --config configs/finetuning/training_b1_shared_wsl.yaml \
-  --resume_from_checkpoint ~/experiments/llm-ontology/b1_shared/checkpoints/checkpoint-300
+  --config configs/finetuning/training_b2_refactoring_onto_wsl.yaml \
+  --resume_from_checkpoint ~/experiments/llm-ontology-v3/b2_refactoring_onto/checkpoints/checkpoint-700
 ```
 
-Odporúčané poradie spustenia:
-
-1. B2-T testing
-2. B2-R refactoring
-3. B1 shared
+Nepoužívaj `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`; WSL ho nepodporuje.

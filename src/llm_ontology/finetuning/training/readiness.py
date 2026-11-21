@@ -11,7 +11,8 @@ from llm_ontology.finetuning.dataset_loader import load_jsonl, validate_example
 DEFAULT_TRAINING_CONFIGS = (
     Path("configs/finetuning/training_b2_testing_wsl.yaml"),
     Path("configs/finetuning/training_b2_refactoring_wsl.yaml"),
-    Path("configs/finetuning/training_b1_shared_wsl.yaml"),
+    Path("configs/finetuning/training_b2_testing_onto_wsl.yaml"),
+    Path("configs/finetuning/training_b2_refactoring_onto_wsl.yaml"),
 )
 TRAINING_SCRIPT = Path("scripts/finetuning/train_finetuning.py")
 

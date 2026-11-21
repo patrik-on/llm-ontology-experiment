@@ -10,8 +10,9 @@ The supported experiment implementation consists of the
 [Methods2Test matrix](../evaluation/testing_matrix_v1.md) and the
 [SWE refactoring matrix](../evaluation/refactoring_matrix_v1.md).
 
-Each uses baseline, FT, Single-RAG, MultiRAG and the existing task skill. The
-normal bounded pilot is 5 cases × 5 variants, one response each, no repair/retry.
+Each uses the same eight arms (baseline, ontology block, skill, skill + block,
+Single-RAG, v3 adapter, v3 adapter + block, adapter trained with the block). The
+full run is 100 cases × 8 arms, one response each, no repair/retry.
 Current retained preparations contain zero model-answer calls; do not report
 infrastructure QA as model performance.
 

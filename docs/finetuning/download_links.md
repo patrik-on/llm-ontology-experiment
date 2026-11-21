@@ -25,8 +25,7 @@ Ak je model ulozeny inde, uprav `model_path` v:
 
 - `configs/evaluation/eval_models.yaml`,
 - `configs/finetuning/training_b2_testing_wsl.yaml`,
-- `configs/finetuning/training_b2_refactoring_wsl.yaml`,
-- `configs/finetuning/training_b1_shared_wsl.yaml`.
+- `configs/shared/models/qwen25_coder_7b_hf_wsl.yaml` (všetky `training_*_wsl.yaml` ho používajú).
 
 ## Public datasets
 
@@ -38,49 +37,20 @@ Ak je model ulozeny inde, uprav `model_path` v:
 
 Plne spracovane JSONL splity nie su commitovane do Gitu. Male ukazky formatu su v `data/samples/`.
 
-## V2 LoRA adapters
+## LoRA adaptéry v3
 
-Tieto adaptery vznikli v projekte a nie su verejne dostupne cez upstream dataset/model stranky. Treba ich odovzdat separatne, napriklad ako GitHub Release asset, Google Drive/OneDrive ZIP alebo skolsky upload.
+Adaptéry vznikli v projekte a nie sú verejne dostupné. Odovzdávajú sa samostatne (napr. ZIP
+celého priečinka `final_adapter`). Očakávané cesty sú v `configs/evaluation/eval_models.yaml`:
 
-| Adapter | Ocakavana cesta v aktualnom configu | Odporucany nazov ZIP suboru |
-|---|---|---|
-| `b2_testing_v2` | `~/experiments/llm-ontology-v2/b2_testing/checkpoints/final_adapter` | `b2_testing_v2_final_adapter.zip` |
-| `b2_refactoring_v2` | `~/experiments/llm-ontology-v2/b2_refactoring/checkpoints/final_adapter` | `b2_refactoring_v2_final_adapter.zip` |
-| `b1_shared_v2` | `~/experiments/llm-ontology-v2/b1_shared/checkpoints/final_adapter` | `b1_shared_v2_final_adapter.zip` |
+| Adaptér | Cesta |
+|---|---|
+| `b2_testing_v3` | `~/experiments/llm-ontology-v3/b2_testing/checkpoints/final_adapter` |
+| `b2_refactoring_v3` | `~/experiments/llm-ontology-v3/b2_refactoring/checkpoints/final_adapter` |
+| `b2_testing_onto` | `~/experiments/llm-ontology-v3/b2_testing_onto/checkpoints/final_adapter` |
+| `b2_refactoring_onto` | `~/experiments/llm-ontology-v3/b2_refactoring_onto/checkpoints/final_adapter` |
 
-Po rozbaleni musi kazdy adapter obsahovat:
-
-```text
-adapter_config.json
-adapter_model.safetensors
-tokenizer_config.json
-```
-
-Kontrola:
-
-```bash
-python scripts/finetuning/check_adapters.py --models-config configs/evaluation/eval_models.yaml
-```
-
-Ak budu adaptery ulozene na inych cestach, uprav `adapter_path` v `configs/evaluation/eval_models.yaml`.
-
-ZIP subory sa daju vytvorit z lokalnych adapterov prikazom:
-
-```bash
-python scripts/finetuning/package_v2_adapters.py \
-  --models-config configs/evaluation/eval_models.yaml \
-  --output-dir artifacts/finetuning/adapters
-```
-
-Skript vytvori:
-
-- `artifacts/finetuning/adapters/b2_testing_v2_final_adapter.zip`,
-- `artifacts/finetuning/adapters/b2_refactoring_v2_final_adapter.zip`,
-- `artifacts/finetuning/adapters/b1_shared_v2_final_adapter.zip`,
-- `.sha256` checksum subory,
-- `artifacts/finetuning/adapters/v2_adapter_zip_manifest.json`.
-
-ZIP subory zostavaju mimo Gitu, ale `.sha256` a manifest su male textove subory vhodne na commit.
+Každý obsahuje aspoň `adapter_config.json` a `adapter_model.safetensors`; freeze matice ich
+hashuje (`hf_identity/<adaptér>.json`). Tréning: `docs/finetuning/v3_runbook.md`.
 
 ## Minimal run without external artifacts
 
@@ -92,18 +62,5 @@ python -m compileall -q src scripts tests
 python -m pytest tests
 python scripts/benchmarks/run_testing_matrix.py --run-id model-check --dry-run
 ```
-
-## Model evaluation after downloads
-
-Po stiahnuti base modelu, priprave test datasetov a rozbaleni adapterov:
-
-```bash
-  --models-config configs/evaluation/eval_models.yaml \
-  --limit 5 \
-  --run-id v2_final_smoke \
-  --overwrite
-```
-
-Finalny limit 50/100 spustaj az po tom, co prejde smoke beh.
 
 Evaluation entry points are documented in [current evaluation](../evaluation/README.md). Training/retrieval utilities do not define additional evaluation protocols.
