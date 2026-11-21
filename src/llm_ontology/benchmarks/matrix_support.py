@@ -312,6 +312,30 @@ def _generate_direct(c, case, out, ledger, *, protocol_id=PROTOCOL):
     return {"experiment_record": record.model_dump(mode="json")}
 
 
+def replay_frozen_request(c, frozen, ledger):
+    """rag_single: send the Ollama request captured at --freeze-only, unchanged.
+
+    Retrieval runs once, at freeze. Running it again at generation can order
+    documents with tied scores differently and so change the prompt; the frozen
+    request is the prompt that was reviewed and pinned. The ledger still checks
+    the payload against the frozen prompt and charges the call.
+    """
+    payload = json.loads((frozen / "request.json").read_text(encoding="utf-8"))
+    if payload.get("prompt") != (frozen / "prompt.txt").read_text(encoding="utf-8"):
+        raise ValueError("Frozen request and frozen prompt differ")
+    validate_payload(payload)
+    provider = OllamaProvider(model_name=direct.MODELS["qwen_base"][0],
+                              timeout_seconds=c.generation_timeout_seconds, opener=ledger)
+    if provider.resolve_model_digest() != c.generation_model_digest:
+        raise ValueError("Pinned Qwen generation digest changed")
+    request = Request("http://localhost:11434/api/generate", data=json.dumps(payload).encode(),
+                      headers={"Content-Type": "application/json"}, method="POST")
+    with ledger(request, timeout=c.generation_timeout_seconds) as response:
+        server = json.loads(response.read())
+    return {"replayed_frozen_request": file_sha256(frozen / "request.json"),
+            "done": server.get("done"), "done_reason": server.get("done_reason")}
+
+
 def _raw(out, generated=None, exc=None):
     path = out / "raw.txt"
     if path.exists():
@@ -438,6 +462,7 @@ __all__ = [
     "_infrastructure",
     "_raw",
     "_render_rag",
+    "replay_frozen_request",
     "assemble",
     "build_dependency_identity",
     "direct",
