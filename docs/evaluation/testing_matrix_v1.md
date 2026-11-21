@@ -13,11 +13,11 @@ Z koreňa `llm-ontology-experiment` **vo WSL**:
 ```bash
 # Plán: bez zápisov, bez Ollama API a bez modelových volaní.
 .venv_wsl/bin/python scripts/benchmarks/run_testing_matrix.py \
-  --run-id testing-matrix-20261113 --dry-run
+  --run-id testing-matrix-20261121 --dry-run
 
 # Predvolený experiment: 100 prípadov × 8 ramien = najviac 800 volaní.
 .venv_wsl/bin/python scripts/benchmarks/run_testing_matrix.py \
-  --run-id testing-matrix-20261113
+  --run-id testing-matrix-20261121
 ```
 
 Na minimálny samostatný skúšobný beh použite **nové ID** a `--cases 1` (8 volaní),
@@ -34,7 +34,7 @@ než samotné načítanie datasetu; priebežný stav je v `preparation_progress.
 Z PowerShellu možno rovnaký vstup spustiť takto (z koreňa projektu):
 
 ```powershell
-wsl --cd "$PWD" -- .venv_wsl/bin/python scripts/benchmarks/run_testing_matrix.py --run-id testing-matrix-20261113 --dry-run
+wsl --cd "$PWD" -- .venv_wsl/bin/python scripts/benchmarks/run_testing_matrix.py --run-id testing-matrix-20261121 --dry-run
 ```
 
 ### Predpoklady
@@ -151,7 +151,7 @@ Report bez generovania/spúšťania:
 
 ```bash
 .venv_wsl/bin/python scripts/benchmarks/run_testing_matrix.py \
-  --run-id testing-matrix-20261113 --report-only
+  --run-id testing-matrix-20261121 --report-only
 ```
 
 V projekte sú podporované iba aktuálne dve matice. Source freeze musí zodpovedať

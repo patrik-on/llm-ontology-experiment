@@ -12,6 +12,4 @@ LoRA/QLoRA tréningové konfigurácie (WSL + CUDA), aktuálne pre eval-aligned *
 
 Všetky štyri používajú `configs/shared/models/qwen25_coder_7b_hf_wsl.yaml` (`max_seq_length` 8192)
 a dáta z `data/processed/v3/` alebo `v3_onto/` (`scripts/datasets/prepare_v3_eval_aligned.py`). Výstupy idú
-mimo repozitára. Postup: `docs/finetuning/v3_runbook.md`. v2 adaptéry (`training` na
-`data/processed/{testing,refactoring,combined}`, 2048 tokenov) sú v Git histórii a v ich
-`results/config_snapshot.yaml`.
+mimo repozitára. Postup: `docs/finetuning/v3_runbook.md`. v2 configy sú v Git histórii.

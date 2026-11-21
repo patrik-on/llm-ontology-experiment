@@ -1,8 +1,9 @@
 # Agent guide: llm-ontology-experiment
 
 Master's thesis experiment: Qwen2.5-Coder-7B on Java test generation and
-refactoring, comparing baseline, LoRA fine-tuning, Single-RAG, MultiRAG and a
-process skill. Read this file first; it lists the only active versions.
+refactoring, comparing eight arms per task: baseline, a per-case project
+ontology block, a process skill (with and without the block), Single-RAG, a v3
+LoRA adapter (with and without the block) and an adapter trained with the block. Read this file first; it lists the only active versions.
 
 ## Active entry points (the only two eval runners)
 
