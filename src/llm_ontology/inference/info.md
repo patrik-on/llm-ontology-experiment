@@ -2,13 +2,9 @@
 
 Spoločná inferenčná vrstva nezávislá od konkrétneho experimentu.
 
-- `prompting/`: jednotný instruction prompt pre training a inference,
-- `approach_runner.py`: výber direct/RAG/multi-RAG prompt composition,
-- `prompts.py`: kompatibilné high-level prompt helpery,
-- `ollama_client.py`: HTTP klient pre Ollama,
-- Baseline generation is owned by the two current evaluation matrices, not a standalone runner.
-- `model_setup_check.py`: kontrola modelových configov a lokálneho runtime.
+- `prompting/`: jednotný instruction prompt pre training a inference
+  (aktívny testing profil `testing_bodies_one_shot_v2.py`),
+- `ollama_client.py`: HTTP klient pre Ollama.
 
-Direct, RAG a MultiRAG používajú spoločný `RagExperimentRunner`, canonical
-prompt builder a generation boundary; režimy sa líšia iba retrieval kontextom.
-Hugging Face/LoRA model execution zostáva v samostatnom evaluation runneri.
+Generovanie vlastnia dve evaluačné matice (`scripts/benchmarks/`), nie samostatný
+runner. Hugging Face/LoRA volania sú v `llm_ontology.evaluation.hf_inference`.
