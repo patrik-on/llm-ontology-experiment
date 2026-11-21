@@ -7,17 +7,20 @@ Only two protocols are supported:
 | Methods2Test testing | `scripts/benchmarks/run_testing_matrix.py` | [Testing](testing_matrix_v1.md) |
 | Mixed SWE + MaRV + ML4Ref refactoring | `scripts/benchmarks/run_refactoring_matrix.py` | [Refactoring](refactoring_matrix_v1.md) |
 
-Both compare baseline, FT, Single-RAG, MultiRAG and baseline + existing skill,
-with one attempt per case/variant and no repair. Testing defaults to 100 x 5 (500 calls); use `--cases N` for a smaller run.
+Both compare eight arms (`qwen_base`, `onto_project`, `skills`, `skills_onto`,
+`rag_single`, `ft_testing`/`ft_refactoring`, `ft_v3_onto`, `ft_onto`), with one attempt
+per case/arm and no repair. Testing defaults to 100 x 8 (800 calls); use `--cases N` for a smaller run.
 Refactoring has a released 100-task cohort (5 SWE + 35 MaRV + 60 ML4Ref), with
 contextual target-only structural scoring and separate SWE project checks.
-N/all and source/type filters use that same fixed cohort. No models have been run.
-See the [v4 preparation receipt](refactoring_context_v4_2026-11-13.md).
+N/all and source/type filters use that same fixed cohort. The cohort was re-released
+on 2026-11-21 (pool run `mixed-context-pool-v5-20261121`, same 100 case IDs as the
+[v4 preparation](refactoring_context_v4_2026-11-13.md)) after code and JDK pins changed.
+Current frozen runs: `testing-matrix-20261121`, `refactoring-matrix-20261121`.
 
 Both reports include exact paired tests on the same cases: McNemar for
 pass/fail outcomes (testing class pass, refactoring structural success) and
 Wilcoxon signed-rank for testing coverage credit, with Holm correction across
-the ten arm pairs of each metric (`src/llm_ontology/benchmarks/paired_tests.py`).
+the five primary pairs (`primary_pairs` in each matrix JSON) (`src/llm_ontology/benchmarks/paired_tests.py`).
 Cases are convenience-selected and at most ten come from one Methods2Test
 project, so p-values are conditional on the selected cases.
 
