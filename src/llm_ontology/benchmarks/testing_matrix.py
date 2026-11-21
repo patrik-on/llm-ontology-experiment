@@ -293,8 +293,8 @@ class Matrix:
                     elif arm != "rag_single":
                         generated = batch._generate_direct(c, case, out, ledger, protocol_id=PROTOCOL)
                     else:
-                        generated = batch.generate_rag(c, case, out, arm,
-                            read(self.root / "leakage_audit.json"), body_profile=True, opener=ledger)
+                        generated = batch.replay_frozen_request(
+                            c, self.root / "cases" / ident / "frozen_prompts" / arm, ledger)
                     if ledger.dispatch_time is None:
                         raise RuntimeError("Generation returned without charged dispatch")
                     raw = batch._raw(out, generated)
@@ -408,6 +408,88 @@ class Matrix:
         return result
 
 
+def continue_arm(root, source_root, arm):
+    """Create a new run that completes one fail-stopped arm of a frozen run.
+
+    Everything the source froze (selection, cases, frozen prompts, controls, the
+    other arms' generations and metrics, and this arm's completed charged cells)
+    is copied after its pins are checked. Cells of ``arm`` that never charged a
+    call are left out and generated here; nothing that was dispatched is repeated.
+    The new freeze pins the copied files and the current code, so the run's
+    report covers all arms on the same cases.
+    """
+    import shutil
+    root, source_root = Path(root), Path(source_root).resolve()
+    if root.exists():
+        raise ValueError("Continuation run-id already exists")
+    if arm not in ARMS or not (source_root / (arm + "-stop.json")).exists():
+        raise ValueError("Only a fail-stopped arm of the source run can be continued")
+    frozen = read(source_root / "freeze.json")
+    if frozen["protocol"] != PROTOCOL:
+        raise ValueError("Source run has another protocol")
+    # The source's code pins are the old code by design; its inputs must be unchanged.
+    for group in ["files", "java"]:
+        for path, digest in frozen[group].items():
+            if batch.file_sha256(Path(path)) != digest:
+                raise ValueError("Source run input changed: " + path)
+    for path, pin in read(source_root / "hf_file_pins.json").items():
+        stat = Path(path).stat()
+        if pin != {"bytes": stat.st_size, "mtime_ns": stat.st_mtime_ns}:
+            raise ValueError("Model file changed: " + path)
+    ids = read(source_root / "selection.json")["ids"]
+    for ident in ids:
+        cell = source_root / "cases" / ident / "predictions" / arm
+        if (cell / "dispatch.json").exists() and not (cell / "completion.json").exists():
+            raise ValueError("Interrupted charged cell cannot be continued: " + ident)
+    # Only cells that never charged a call are generated again.
+    skipped = [i for i in ids if not (source_root / "cases" / i / "predictions" / arm
+                                      / "dispatch.json").exists()]
+    copied = {}
+    for path in sorted(source_root.rglob("*")):
+        rel = path.relative_to(source_root)
+        if (not path.is_file() or rel.parts[0] in {"reports", "source_snapshot"}
+                or rel.name.startswith(".") or rel.as_posix() in {"freeze.json", arm + "-stop.json"}):
+            continue
+        if (len(rel.parts) > 4 and rel.parts[0] == "cases" and rel.parts[2:4] == ("predictions", arm)
+                and rel.parts[1] in skipped):
+            continue
+        target = root / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(path, target)
+        copied[rel.as_posix()] = batch.file_sha256(target)
+    write(root / "continuation.json", {"source_run": source_root.name, "arm": arm,
+        "source_freeze_sha256": batch.file_sha256(source_root / "freeze.json"),
+        "reason": read(source_root / (arm + "-stop.json")),
+        "regenerated_cells": skipped, "copied_files": copied, "created_at": batch.now()}, exclusive=True)
+    files = {}
+    for path, digest in frozen["files"].items():
+        path = Path(path)
+        try:
+            path = root / path.relative_to(source_root)
+        except ValueError:
+            pass
+        if "source_snapshot" in path.parts:
+            continue
+        if batch.file_sha256(path) != digest:
+            raise ValueError("Copy differs from the frozen source file: " + str(path))
+        files[str(path.absolute())] = digest
+    c = batch.runtime()
+    sources = batch.build_dependency_identity(c)
+    sources[str(CONFIG.resolve())] = batch.file_sha256(CONFIG)
+    entry = REPO / "scripts/benchmarks/run_testing_matrix.py"
+    sources[str(entry)] = batch.file_sha256(entry)
+    for source in sources:
+        target = root / "source_snapshot" / Path(source).relative_to(REPO)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(Path(source).read_bytes())
+        files[str(target.absolute())] = batch.file_sha256(target)
+    files[str((root / "continuation.json").absolute())] = batch.file_sha256(root / "continuation.json")
+    write(root / "freeze.json", {"protocol": PROTOCOL, "created_at": batch.now(),
+        "continuation_of": source_root.name, "files": files, "sources": sources,
+        "java": frozen["java"], "maximum": frozen["maximum"]}, exclusive=True)
+    return skipped
+
+
 class Ledger(batch.Ledger):
     """Reuse the provider interceptor, with this matrix's frozen prompts and cap."""
     def __init__(self, matrix, ident, arm):
@@ -441,12 +523,37 @@ def main(argv=None):
     parser.add_argument("--prepare-only", action="store_true", help="Selection/reference controls, no generation")
     parser.add_argument("--freeze-only", action="store_true", help="Prepare and freeze actual prompts; metadata/embeddings only, no generation")
     parser.add_argument("--report-only", action="store_true", help="Read stored evidence without generation/execution")
+    parser.add_argument("--continue-from", metavar="RUN_ID",
+                        help="New run completing the fail-stopped --arm of this frozen run on the same cases")
+    parser.add_argument("--arm", choices=ARMS, help="Arm to complete with --continue-from")
     args = parser.parse_args(argv)
     if sum([args.dry_run, args.prepare_only, args.freeze_only, args.report_only]) > 1:
         parser.error("Choose only one planning/preparation/report mode")
+    if bool(args.continue_from) != bool(args.arm) or (args.continue_from and (
+            args.cases is not None or args.dry_run or args.prepare_only or args.freeze_only or args.report_only)):
+        parser.error("--continue-from needs --arm and no other mode or --cases")
     validate_evaluation_run_id(args.run_id)
     os.chdir(REPO)
     root = REPO / "artifacts/evaluation/runs" / args.run_id
+    if args.continue_from:
+        validate_evaluation_run_id(args.continue_from)
+        batch.require_wsl()
+        os.environ.update(HF_HUB_OFFLINE="1", TRANSFORMERS_OFFLINE="1")
+        with batch.file_lock(REPO / "artifacts/evaluation", ".testing-matrix-gpu.lock", blocking=False):
+            if not root.exists():
+                regenerated = continue_arm(root, REPO / "artifacts/evaluation/runs" / args.continue_from, args.arm)
+                print("CONTINUATION", args.arm, "CELLS TO GENERATE", len(regenerated), flush=True)
+            elif read(root / "continuation.json")["arm"] != args.arm:
+                raise ValueError("Run-id continues another arm")
+            matrix = Matrix(root)
+            matrix.verify()
+            matrix.generate(args.arm)
+            offline.run(root, arms=ARMS)
+            matrix.verify()
+            result = matrix.report()
+            matrix.progress()
+            print("REPORT", root / "reports/summary.md", flush=True)
+            return 0 if result["evaluation_complete"] else 2
     existing = root / "matrix_plan.json"
     plan = read(existing) if existing.exists() else load_plan(args.cases)
     if args.cases is not None and args.cases != plan["cases"]:
