@@ -65,7 +65,7 @@ zostávajú oddelené od evaluácie. Datasetové audity a nástroje ako Refactor
 či JaCoCo sú podklady/závislosti aktuálnych matíc, nie dodatočné eval runnery.
 
 - [Mapa projektu](docs/architecture/project_map.md)
-- [Tréning](docs/finetuning/v2_runbook.md)
+- [Tréning](docs/finetuning/v3_runbook.md)
 - [Aktuálny retrieval](docs/retrieval/rag_v3.md)
 - [Eval dokumentácia](docs/evaluation/README.md)
 - [Podklady na písanie práce](thesis_materials/README.md) — metodické reporty,
