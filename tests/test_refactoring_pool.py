@@ -115,7 +115,7 @@ def test_all_dry_run_has_upper_bound_no_runtime(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(matrix.shared, "require_wsl", lambda: pytest.fail("Runtime invoked"))
     assert matrix.main(["--run-id", "all-preview", "--cases", "all", "--dry-run"]) == 0
     result = json.loads(capsys.readouterr().out)
-    assert result["maximum_is_upper_bound"] and result["maximum_calls"] == result["pool_size"] * 5
+    assert result["maximum_is_upper_bound"] and result["maximum_calls"] == result["pool_size"] * len(matrix.ARMS)
     assert not list(tmp_path.iterdir())
 
 
@@ -125,7 +125,7 @@ def test_numeric_six_dry_run(tmp_path, monkeypatch, capsys):
     monkeypatch.setattr(matrix, "REPO", tmp_path)
     assert matrix.main(["--run-id", "six-preview", "--cases", "6", "--dry-run"]) == 0
     result = json.loads(capsys.readouterr().out)
-    assert result["maximum_calls"] == 30 and not result["maximum_is_upper_bound"]
+    assert result["maximum_calls"] == 6 * len(matrix.ARMS) and not result["maximum_is_upper_bound"]
     assert not list(tmp_path.iterdir())
 
 
