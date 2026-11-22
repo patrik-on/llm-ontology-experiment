@@ -147,11 +147,25 @@ nové matrix runy zdieľajú flock. Obe matice musia rešpektovať spoločný GP
 Pri neúplnom matrixe je exit code 2. Nové ID zakladá nový experiment, nie opravu
 zlyhaní predchádzajúceho.
 
+Ak sa jedno rameno zastavilo pred dispatchom (`<arm>-stop.json` so stavom
+`pre_dispatch_failure`), dá sa dokončiť na tých istých prípadoch novým run ID:
+
+```bash
+.venv_wsl/bin/python scripts/benchmarks/run_testing_matrix.py \
+  --run-id <nové-id> --continue-from <zdrojové-id> --arm <arm>
+```
+
+Pokračovanie overí vstupné piny zdroja, skopíruje výber, prípady (symlinky
+`cases/` → `candidates/` prepojí na nový beh), zmrazené prompty a všetky
+zaplatené bunky. Znovu vygeneruje iba bunky rameňa bez `dispatch.json`;
+prerušenú zaplatenú bunku odmietne. Zápis je v `continuation.json` a nový
+`freeze.json` pinuje kópie aj aktuálny kód.
+
 Report bez generovania/spúšťania:
 
 ```bash
 .venv_wsl/bin/python scripts/benchmarks/run_testing_matrix.py \
-  --run-id testing-matrix-20261121 --report-only
+  --run-id testing-matrix-20261122-rag2 --report-only
 ```
 
 V projekte sú podporované iba aktuálne dve matice. Source freeze musí zodpovedať
@@ -161,13 +175,10 @@ nepodpisujú novými hashmi.
 
 ## Aktuálny stav
 
-Zostávajúci pripravený testing beh je
-`testing-matrix-preparation-check-20261113`: jeden EVAL prípad `5973732_198`,
-päť skutočných promptov a **0 generovaní**. Patrí k protokolu
-`methods2test_systems_skills_v1`; nový protokol potrebuje nové run ID.
-Referenčné a evaluator QA dôkazy sú súčasťou tohto run rootu; ručne napísané
-kontroly nepredstavujú modelové skóre. Model-free QA súhrn je v
-`readiness/evaluator-qa.json`. Staršie piloty, eval skripty a výsledky boli odstránené.
-
-Po konsolidácii celá zostávajúca testovacia sada prešla: **288 passed, 2 skipped**.
-Skips sú voliteľné integračné kontroly. Ruff a whitespace kontroly tiež prešli.
+Finálny testing beh je `testing-matrix-20261122-rag2`: 100 prípadov × 8 ramien,
+800/800 volaní, bez stop súborov. Je to pokračovanie `testing-matrix-20261121`,
+v ktorom sa `rag_single` zastavil na 4. prípade, lebo generovanie znovu
+vyhľadávalo a pri zhodnom skóre vybralo iný kontext. `rag_single` teraz posiela
+zmrazený `frozen_prompts/rag_single/request.json`; 3 jeho bunky sú zo zdroja,
+97 sa vygenerovalo v pokračovaní. Report: `reports/summary.md` a
+`reports/aggregate.json` v run roote.

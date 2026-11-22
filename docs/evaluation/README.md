@@ -15,7 +15,9 @@ contextual target-only structural scoring and separate SWE project checks.
 N/all and source/type filters use that same fixed cohort. The cohort was re-released
 on 2026-11-21 (pool run `mixed-context-pool-v5-20261121`, same 100 case IDs as the
 [v4 preparation](refactoring_context_v4_2026-11-13.md)) after code and JDK pins changed.
-Current frozen runs: `testing-matrix-20261121`, `refactoring-matrix-20261121`.
+Final runs: testing `testing-matrix-20261122-rag2` (a continuation of
+`testing-matrix-20261121` that completed its fail-stopped `rag_single` arm on the same
+100 cases; see `continuation.json` in the run) and `refactoring-matrix-20261121`.
 
 Both reports include exact paired tests on the same cases: McNemar for
 pass/fail outcomes (testing class pass, refactoring structural success) and
