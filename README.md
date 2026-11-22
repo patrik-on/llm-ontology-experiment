@@ -89,20 +89,41 @@ Testy `local_data` a `rag` sa bez lokálnych dát alebo `chromadb` preskočia s 
 
 Skopíruj odovzdané run adresáre do `artifacts/evaluation/runs/`
 (`testing-matrix-20261121`, `testing-matrix-20261122-rag2`, `refactoring-matrix-20261121`).
-Report sa prepočíta z uložených odpovedí bez volania modelu:
+
+**Analýza** číta iba uložené výsledky a beží na aktuálnom main:
 
 ```bash
-python scripts/benchmarks/run_testing_matrix.py --run-id testing-matrix-20261122-rag2 --report-only
-python scripts/benchmarks/run_refactoring_matrix.py --run-id refactoring-matrix-20261121 --report-only
 pip install -e ".[analysis]"
 python scripts/analysis/deep_analysis.py     # zapíše artifacts/analysis/deep-20261122/
 ```
 
-Každý beh má `freeze.json` s hashmi vstupov, zdrojového kódu, modelov, adaptérov,
-indexu a Javy a uložené skutočné prompty (`cases/<id>/frozen_prompts/`). Report
-overí, že sa zmrazené vstupy nezmenili. `testing-matrix-20261122-rag2` je
-pokračovanie `testing-matrix-20261121`, ktoré dokončilo zastavené rameno
-`rag_single` na tých istých prípadoch (`continuation.json`).
+**Prepočet reportu** (`--report-only`) najprv overí `freeze.json`: hashe vstupov,
+modelov, indexu, Javy aj zdrojového kódu, s ktorým beh bežal. Preto prejde iba na
+commite daného behu, na neskoršom kóde skončí chybou `Frozen dependency changed`.
+
+| Beh | Commit | Čo obsahuje |
+|---|---|---|
+| `testing-matrix-20261121` | `2c3a35d` | testing, 7 ramien + 3 bunky `rag_single` |
+| `testing-matrix-20261122-rag2` | `4542d53` | finálny testing, všetkých 8 ramien |
+| `refactoring-matrix-20261121` | `2c3a35d` | finálny refactoring |
+
+```bash
+git checkout --detach 4542d53          # v hlavnom checkoute, nie vo worktree
+python scripts/benchmarks/run_testing_matrix.py --run-id testing-matrix-20261122-rag2 --report-only
+git checkout --detach 2c3a35d
+python scripts/benchmarks/run_refactoring_matrix.py --run-id refactoring-matrix-20261121 --report-only
+git checkout main
+```
+
+Na týchto commitoch report bajtovo zopakuje uložené `reports/summary.md` aj
+`reports/aggregate.json` (overené 2026-11-22). `freeze.json` pinuje súbory
+absolútnymi cestami, takže kontrola prejde iba pri rovnakom umiestnení repozitára,
+dát a modelov ako na pôvodnom stroji. Na inom stroji sa dá použiť analýza vyššie
+a kód behu je uložený aj v jeho `source_snapshot/`.
+
+Report prepíše `reports/` v run adresári. Ak ich chceš zachovať, spusti ho na kópii.
+`testing-matrix-20261122-rag2` je pokračovanie `testing-matrix-20261121`, ktoré
+dokončilo zastavené rameno `rag_single` na tých istých prípadoch (`continuation.json`).
 
 ### C. Celý experiment
 
