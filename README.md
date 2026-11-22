@@ -41,8 +41,9 @@ porovnanie so základom iba opisné. Podrobnosti:
 
 - [Testing report](docs/results/testing_summary.md) (`testing-matrix-20261122-rag2`)
 - [Refactoring report](docs/results/refactoring_summary.md) (`refactoring-matrix-20261121`)
-- [Hĺbková analýza](docs/results/deep_analysis.md), [príklady](docs/results/deep_analysis_examples.md),
-  [čísla v JSON](docs/results/deep_analysis.json)
+- Analýzy a porovnania do práce (s dátumom, každá vo vlastnom priečinku) sú v
+  [thesis_materials/](thesis_materials/README.md), napríklad [hĺbková analýza](thesis_materials/2026-11-22_hlbkova_analyza_evalu/deep_analysis.md)
+  a [adaptéry vo váhovom priestore](thesis_materials/2026-11-22_adaptery_vo_vahovom_priestore/README.md)
 
 ## Replikácia
 
