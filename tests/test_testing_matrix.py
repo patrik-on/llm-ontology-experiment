@@ -334,9 +334,15 @@ def test_rag_single_rejects_a_frozen_request_that_disagrees_with_the_frozen_prom
 def _stopped_source(prepared, monkeypatch):
     """A frozen source run whose rag_single arm fail-stopped before dispatch on case two."""
     root = prepared.root
+    # As in a real cohort, case directories are absolute links to prepared candidates.
+    for ident in prepared.ids:
+        candidate = root / "candidates" / ident
+        candidate.parent.mkdir(exist_ok=True)
+        (root / "cases" / ident).rename(candidate)
+        (root / "cases" / ident).symlink_to(candidate.absolute(), target_is_directory=True)
     java = root.parent / "java"
     java.write_text("java")
-    files = {str((root / "cases" / i / "frozen_prompts" / a / "prompt.txt").absolute()): None
+    files = {str((root / "cases" / i / "frozen_prompts" / a / "prompt.txt").resolve()): None
              for i in prepared.ids for a in matrix.ARMS}
     files = {p: matrix.batch.file_sha256(Path(p)) for p in files}
     matrix.write(root / "hf_file_pins.json", {})
@@ -368,6 +374,9 @@ def test_continuation_regenerates_only_uncharged_cells_of_the_stopped_arm(prepar
     assert continuation["arm"] == "rag_single" and continuation["reason"]["id"] == "two"
     assert not (target / "rag_single-stop.json").exists()
     assert not (target / "cases/two/predictions/rag_single").exists()
+    assert (target / "cases/one").is_symlink()
+    assert (target / "cases/one").resolve() == (target / "candidates/one").resolve()
+    assert continuation["links"]["cases/one"] == str(target / "candidates/one")
     assert (target / "cases/one/predictions/rag_single/completion.json").exists()
     assert (target / "cases/two/predictions/qwen_base/generated.java").exists()
     continued = matrix.Matrix(target)
