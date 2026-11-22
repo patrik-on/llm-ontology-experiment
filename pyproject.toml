@@ -30,6 +30,11 @@ rag = [
 ontology = [
   "rdflib>=7,<8",
 ]
+analysis = [
+  "numpy>=2",
+  "scipy>=1.13",
+  "transformers>=4.45,<5",
+]
 training = [
   "transformers>=4.40",
   "datasets>=2.18",

@@ -1,0 +1,4384 @@
+{
+ "T1": {
+  "qwen_base": {
+   "pass": 22,
+   "not_assembled:empty_or_escape": 1,
+   "not_assembled:unbalanced_body": 18,
+   "runtime:assertion_failure": 47,
+   "compile:wrong_arguments": 1,
+   "compile:syntax": 6,
+   "runtime:unexpected_exception": 2,
+   "compile:incompatible_types": 1,
+   "compile:access_violation": 1,
+   "not_assembled:invalid_json": 1
+  },
+  "onto_project": {
+   "compile:cannot_find_symbol:class": 2,
+   "not_assembled:empty_or_escape": 1,
+   "not_assembled:unbalanced_body": 21,
+   "compile:syntax": 7,
+   "runtime:assertion_failure": 43,
+   "pass": 22,
+   "runtime:unexpected_exception": 2,
+   "compile:incompatible_types": 2
+  },
+  "skills": {
+   "runtime:assertion_failure": 54,
+   "not_assembled:empty_or_escape": 2,
+   "not_assembled:unbalanced_body": 8,
+   "pass": 21,
+   "compile:syntax": 5,
+   "compile:cannot_find_symbol:method": 1,
+   "compile:wrong_arguments": 1,
+   "runtime:unexpected_exception": 3,
+   "not_assembled:invalid_json": 1,
+   "compile:incompatible_types": 2,
+   "compile:access_violation": 1,
+   "not_assembled:forbidden_construct": 1
+  },
+  "skills_onto": {
+   "compile:cannot_find_symbol:class": 2,
+   "not_assembled:empty_or_escape": 1,
+   "runtime:assertion_failure": 49,
+   "not_assembled:unbalanced_body": 12,
+   "pass": 23,
+   "compile:syntax": 8,
+   "runtime:unexpected_exception": 3,
+   "compile:incompatible_types": 2
+  },
+  "rag_single": {
+   "not_assembled:unbalanced_body": 19,
+   "not_assembled:empty_or_escape": 2,
+   "runtime:assertion_failure": 45,
+   "pass": 14,
+   "compile:syntax": 4,
+   "compile:cannot_find_symbol:method": 1,
+   "compile:wrong_arguments": 2,
+   "compile:cannot_find_symbol:class": 3,
+   "compile:cannot_find_symbol:variable": 8,
+   "compile:incompatible_types": 1,
+   "runtime:unexpected_exception": 1
+  },
+  "ft_testing": {
+   "pass": 53,
+   "not_assembled:empty_or_escape": 2,
+   "runtime:assertion_failure": 18,
+   "runtime:unexpected_exception": 1,
+   "compile:syntax": 1,
+   "not_assembled:forbidden_construct": 1,
+   "compile:wrong_arguments": 8,
+   "compile:incompatible_types": 1,
+   "compile:cannot_find_symbol:variable": 6,
+   "not_assembled:invalid_json": 5,
+   "compile:access_violation": 1,
+   "compile:cannot_find_symbol:class": 3
+  },
+  "ft_v3_onto": {
+   "pass": 48,
+   "not_assembled:empty_or_escape": 2,
+   "runtime:unexpected_exception": 1,
+   "runtime:assertion_failure": 23,
+   "compile:syntax": 2,
+   "compile:cannot_find_symbol:class": 3,
+   "compile:cannot_find_symbol:variable": 6,
+   "compile:wrong_arguments": 7,
+   "not_assembled:invalid_json": 4,
+   "compile:cannot_find_symbol:method": 3,
+   "compile:access_violation": 1
+  },
+  "ft_onto": {
+   "compile:cannot_find_symbol:variable": 8,
+   "not_assembled:empty_or_escape": 2,
+   "pass": 51,
+   "runtime:assertion_failure": 18,
+   "compile:syntax": 2,
+   "compile:cannot_find_symbol:class": 3,
+   "compile:wrong_arguments": 7,
+   "not_assembled:invalid_json": 5,
+   "compile:cannot_find_symbol:method": 2,
+   "compile:access_violation": 1,
+   "compile:incompatible_types": 1
+  }
+ },
+ "T1_all_compile_errors": {
+  "qwen_base": {
+   "wrong_arguments": 1,
+   "syntax": 13,
+   "incompatible_types": 1,
+   "access_violation": 1
+  },
+  "onto_project": {
+   "cannot_find_symbol:class": 4,
+   "syntax": 25,
+   "incompatible_types": 3
+  },
+  "skills": {
+   "syntax": 17,
+   "cannot_find_symbol:method": 2,
+   "cannot_find_symbol:variable": 2,
+   "wrong_arguments": 1,
+   "incompatible_types": 4,
+   "access_violation": 1
+  },
+  "skills_onto": {
+   "cannot_find_symbol:class": 4,
+   "syntax": 21,
+   "incompatible_types": 3,
+   "other_compile": 1
+  },
+  "rag_single": {
+   "syntax": 8,
+   "cannot_find_symbol:method": 3,
+   "wrong_arguments": 4,
+   "cannot_find_symbol:class": 6,
+   "cannot_find_symbol:variable": 13,
+   "other_compile": 3,
+   "incompatible_types": 1
+  },
+  "ft_testing": {
+   "syntax": 1,
+   "wrong_arguments": 10,
+   "incompatible_types": 1,
+   "cannot_find_symbol:variable": 33,
+   "access_violation": 1,
+   "cannot_find_symbol:class": 5
+  },
+  "ft_v3_onto": {
+   "syntax": 26,
+   "cannot_find_symbol:class": 8,
+   "cannot_find_symbol:variable": 35,
+   "wrong_arguments": 7,
+   "cannot_find_symbol:method": 6,
+   "access_violation": 1
+  },
+  "ft_onto": {
+   "cannot_find_symbol:variable": 36,
+   "syntax": 2,
+   "cannot_find_symbol:class": 10,
+   "wrong_arguments": 8,
+   "cannot_find_symbol:method": 4,
+   "access_violation": 1,
+   "incompatible_types": 2
+  }
+ },
+ "T2": {
+  "onto_project vs qwen_base": {
+   "A_only": [
+    [
+     "125332958_120",
+     "not_assembled:unbalanced_body"
+    ],
+    [
+     "159218865_100",
+     "runtime:assertion_failure"
+    ],
+    [
+     "46648544_120",
+     "runtime:assertion_failure"
+    ],
+    [
+     "74562982_99",
+     "compile:syntax"
+    ],
+    [
+     "99995945_138",
+     "runtime:assertion_failure"
+    ],
+    [
+     "133340671_109",
+     "not_assembled:invalid_json"
+    ]
+   ],
+   "B_only": [
+    [
+     "5973732_200",
+     "compile:cannot_find_symbol:class"
+    ],
+    [
+     "179549243_826",
+     "compile:cannot_find_symbol:class"
+    ],
+    [
+     "13357953_0",
+     "runtime:assertion_failure"
+    ],
+    [
+     "29480568_2527",
+     "runtime:assertion_failure"
+    ],
+    [
+     "30952948_965",
+     "runtime:assertion_failure"
+    ],
+    [
+     "30952948_1058",
+     "runtime:assertion_failure"
+    ]
+   ]
+  },
+  "ft_v3_onto vs ft_testing": {
+   "A_only": [
+    [
+     "6101685_163",
+     "runtime:unexpected_exception"
+    ],
+    [
+     "37871055_58",
+     "compile:incompatible_types"
+    ],
+    [
+     "80633575_0",
+     "not_assembled:invalid_json"
+    ],
+    [
+     "30952948_1176",
+     "compile:cannot_find_symbol:class"
+    ],
+    [
+     "30952948_965",
+     "not_assembled:invalid_json"
+    ]
+   ],
+   "B_only": [
+    [
+     "241153419_13",
+     "runtime:unexpected_exception"
+    ],
+    [
+     "46648544_107",
+     "runtime:assertion_failure"
+    ],
+    [
+     "858685_213",
+     "not_assembled:invalid_json"
+    ],
+    [
+     "858685_182",
+     "runtime:assertion_failure"
+    ],
+    [
+     "177212349_345",
+     "compile:cannot_find_symbol:method"
+    ],
+    [
+     "177212349_369",
+     "compile:cannot_find_symbol:method"
+    ],
+    [
+     "177212349_374",
+     "compile:cannot_find_symbol:method"
+    ],
+    [
+     "30952948_139",
+     "runtime:assertion_failure"
+    ],
+    [
+     "12537665_103",
+     "compile:cannot_find_symbol:variable"
+    ],
+    [
+     "31415856_53",
+     "runtime:assertion_failure"
+    ]
+   ]
+  },
+  "ft_onto vs ft_v3_onto": {
+   "A_only": [
+    [
+     "241153419_13",
+     "runtime:unexpected_exception"
+    ],
+    [
+     "858685_182",
+     "runtime:assertion_failure"
+    ],
+    [
+     "261751286_16",
+     "runtime:assertion_failure"
+    ],
+    [
+     "177212349_345",
+     "compile:cannot_find_symbol:method"
+    ],
+    [
+     "177212349_374",
+     "compile:cannot_find_symbol:method"
+    ],
+    [
+     "30952948_139",
+     "runtime:assertion_failure"
+    ],
+    [
+     "12537665_103",
+     "compile:cannot_find_symbol:variable"
+    ]
+   ],
+   "B_only": [
+    [
+     "5973732_200",
+     "compile:cannot_find_symbol:variable"
+    ],
+    [
+     "159218865_100",
+     "compile:syntax"
+    ],
+    [
+     "30952948_1176",
+     "not_assembled:invalid_json"
+    ],
+    [
+     "30952948_965",
+     "not_assembled:invalid_json"
+    ]
+   ]
+  },
+  "skills_onto vs skills": {
+   "A_only": [
+    [
+     "11673895_20",
+     "runtime:assertion_failure"
+    ],
+    [
+     "159218865_73",
+     "compile:cannot_find_symbol:method"
+    ],
+    [
+     "159218865_100",
+     "runtime:assertion_failure"
+    ],
+    [
+     "37871055_55",
+     "not_assembled:unbalanced_body"
+    ],
+    [
+     "46648544_120",
+     "runtime:assertion_failure"
+    ],
+    [
+     "177212349_345",
+     "runtime:unexpected_exception"
+    ],
+    [
+     "78477907_2",
+     "runtime:assertion_failure"
+    ],
+    [
+     "99995945_138",
+     "runtime:assertion_failure"
+    ]
+   ],
+   "B_only": [
+    [
+     "13357953_0",
+     "runtime:assertion_failure"
+    ],
+    [
+     "261751286_17",
+     "not_assembled:unbalanced_body"
+    ],
+    [
+     "29480568_2527",
+     "runtime:assertion_failure"
+    ],
+    [
+     "3694329_20",
+     "runtime:assertion_failure"
+    ],
+    [
+     "30952948_965",
+     "runtime:assertion_failure"
+    ],
+    [
+     "30952948_928",
+     "runtime:assertion_failure"
+    ]
+   ]
+  },
+  "skills_onto vs onto_project": {
+   "A_only": [
+    [
+     "11673895_20",
+     "runtime:assertion_failure"
+    ],
+    [
+     "77034155_1",
+     "runtime:assertion_failure"
+    ],
+    [
+     "37871055_55",
+     "not_assembled:unbalanced_body"
+    ],
+    [
+     "206366_92",
+     "not_assembled:unbalanced_body"
+    ],
+    [
+     "12537665_103",
+     "not_assembled:unbalanced_body"
+    ]
+   ],
+   "B_only": [
+    [
+     "125332958_120",
+     "runtime:assertion_failure"
+    ],
+    [
+     "261751286_17",
+     "not_assembled:unbalanced_body"
+    ],
+    [
+     "30952948_928",
+     "runtime:assertion_failure"
+    ],
+    [
+     "74562982_99",
+     "runtime:assertion_failure"
+    ]
+   ]
+  },
+  "rag_single vs qwen_base": {
+   "A_only": [
+    [
+     "50872805_15",
+     "runtime:assertion_failure"
+    ],
+    [
+     "858685_214",
+     "runtime:assertion_failure"
+    ],
+    [
+     "30952948_1176",
+     "runtime:assertion_failure"
+    ],
+    [
+     "11830269_91",
+     "not_assembled:unbalanced_body"
+    ],
+    [
+     "91349782_7",
+     "runtime:assertion_failure"
+    ],
+    [
+     "99995945_138",
+     "runtime:assertion_failure"
+    ]
+   ],
+   "B_only": [
+    [
+     "5973732_200",
+     "not_assembled:unbalanced_body"
+    ],
+    [
+     "3487509_20",
+     "runtime:assertion_failure"
+    ],
+    [
+     "159218865_73",
+     "compile:cannot_find_symbol:method"
+    ],
+    [
+     "179549243_826",
+     "compile:cannot_find_symbol:class"
+    ],
+    [
+     "46648544_37",
+     "not_assembled:unbalanced_body"
+    ],
+    [
+     "46648544_77",
+     "compile:cannot_find_symbol:variable"
+    ],
+    [
+     "13357953_0",
+     "runtime:assertion_failure"
+    ],
+    [
+     "177212349_369",
+     "compile:cannot_find_symbol:variable"
+    ],
+    [
+     "177212349_374",
+     "compile:cannot_find_symbol:variable"
+    ],
+    [
+     "29480568_950",
+     "compile:cannot_find_symbol:variable"
+    ],
+    [
+     "30952948_965",
+     "not_assembled:unbalanced_body"
+    ],
+    [
+     "30952948_928",
+     "runtime:assertion_failure"
+    ],
+    [
+     "30952948_1058",
+     "runtime:assertion_failure"
+    ],
+    [
+     "78477907_2",
+     "compile:cannot_find_symbol:variable"
+    ]
+   ]
+  }
+ },
+ "T3": {
+  "vetvenie": {
+   "0": {
+    "n": 30,
+    "qwen_base": 7,
+    "onto_project": 7,
+    "skills": 9,
+    "skills_onto": 7,
+    "rag_single": 8,
+    "ft_testing": 14,
+    "ft_v3_onto": 13,
+    "ft_onto": 15
+   },
+   "1–2": {
+    "n": 39,
+    "qwen_base": 12,
+    "onto_project": 13,
+    "skills": 10,
+    "skills_onto": 13,
+    "rag_single": 6,
+    "ft_testing": 21,
+    "ft_v3_onto": 18,
+    "ft_onto": 18
+   },
+   "3+": {
+    "n": 31,
+    "qwen_base": 3,
+    "onto_project": 2,
+    "skills": 2,
+    "skills_onto": 3,
+    "rag_single": 0,
+    "ft_testing": 18,
+    "ft_v3_onto": 17,
+    "ft_onto": 18
+   }
+  },
+  "throws/throw": {
+   "nie": {
+    "n": 89,
+    "qwen_base": 18,
+    "onto_project": 17,
+    "skills": 18,
+    "skills_onto": 17,
+    "rag_single": 14,
+    "ft_testing": 45,
+    "ft_v3_onto": 40,
+    "ft_onto": 44
+   },
+   "áno": {
+    "n": 11,
+    "qwen_base": 4,
+    "onto_project": 5,
+    "skills": 3,
+    "skills_onto": 6,
+    "rag_single": 0,
+    "ft_testing": 8,
+    "ft_v3_onto": 8,
+    "ft_onto": 7
+   }
+  },
+  "LOC metódy (tercily ≤5, ≤12)": {
+   "T1 (nízke)": {
+    "n": 33,
+    "qwen_base": 10,
+    "onto_project": 10,
+    "skills": 10,
+    "skills_onto": 9,
+    "rag_single": 9,
+    "ft_testing": 17,
+    "ft_v3_onto": 14,
+    "ft_onto": 17
+   },
+   "T2": {
+    "n": 34,
+    "qwen_base": 7,
+    "onto_project": 9,
+    "skills": 7,
+    "skills_onto": 10,
+    "rag_single": 5,
+    "ft_testing": 18,
+    "ft_v3_onto": 16,
+    "ft_onto": 16
+   },
+   "T3 (vysoké)": {
+    "n": 33,
+    "qwen_base": 5,
+    "onto_project": 3,
+    "skills": 4,
+    "skills_onto": 4,
+    "rag_single": 0,
+    "ft_testing": 18,
+    "ft_v3_onto": 18,
+    "ft_onto": 18
+   }
+  },
+  "iné projektové typy v metóde": {
+   "0": {
+    "n": 86,
+    "qwen_base": 19,
+    "onto_project": 21,
+    "skills": 20,
+    "skills_onto": 19,
+    "rag_single": 14,
+    "ft_testing": 46,
+    "ft_v3_onto": 41,
+    "ft_onto": 43
+   },
+   "1–2": {
+    "n": 14,
+    "qwen_base": 3,
+    "onto_project": 1,
+    "skills": 1,
+    "skills_onto": 4,
+    "rag_single": 0,
+    "ft_testing": 7,
+    "ft_v3_onto": 7,
+    "ft_onto": 8
+   }
+  },
+  "LOC triedy (tercily ≤9, ≤17)": {
+   "T1 (nízke)": {
+    "n": 35,
+    "qwen_base": 10,
+    "onto_project": 10,
+    "skills": 10,
+    "skills_onto": 8,
+    "rag_single": 11,
+    "ft_testing": 18,
+    "ft_v3_onto": 17,
+    "ft_onto": 19
+   },
+   "T2": {
+    "n": 35,
+    "qwen_base": 8,
+    "onto_project": 9,
+    "skills": 8,
+    "skills_onto": 11,
+    "rag_single": 3,
+    "ft_testing": 19,
+    "ft_v3_onto": 15,
+    "ft_onto": 15
+   },
+   "T3 (vysoké)": {
+    "n": 30,
+    "qwen_base": 4,
+    "onto_project": 3,
+    "skills": 3,
+    "skills_onto": 4,
+    "rag_single": 0,
+    "ft_testing": 16,
+    "ft_v3_onto": 16,
+    "ft_onto": 17
+   }
+  }
+ },
+ "T4": {
+  "block_tokens": {
+   "5973732_200": 132,
+   "5973732_75": 300,
+   "241153419_13": 76,
+   "50872805_15": 76,
+   "6937573_520": 121,
+   "6937573_515": 57,
+   "125332958_120": 76,
+   "125332958_38": 87,
+   "6101685_172": 83,
+   "6101685_163": 97,
+   "6101685_168": 89,
+   "11673895_20": 231,
+   "77034155_1": 56,
+   "13322751_226": 87,
+   "3487509_20": 92,
+   "159218865_73": 85,
+   "159218865_98": 119,
+   "159218865_100": 127,
+   "50205742_199": 42,
+   "179549243_826": 163,
+   "19006562_10": 170,
+   "31687471_36": 93,
+   "31687471_75": 67,
+   "37871055_55": 91,
+   "37871055_60": 64,
+   "37871055_58": 46,
+   "37871055_57": 46,
+   "46648544_73": 58,
+   "46648544_41": 95,
+   "46648544_32": 49,
+   "46648544_37": 72,
+   "46648544_107": 112,
+   "46648544_120": 101,
+   "46648544_109": 101,
+   "46648544_60": 62,
+   "46648544_77": 84,
+   "46648544_39": 53,
+   "80633575_0": 113,
+   "36057260_157": 126,
+   "13357953_1": 86,
+   "13357953_0": 73,
+   "2136477_10": 70,
+   "206366_94": 193,
+   "206366_91": 317,
+   "206366_92": 136,
+   "858685_213": 49,
+   "858685_182": 51,
+   "858685_198": 42,
+   "858685_214": 49,
+   "858685_183": 50,
+   "261751286_17": 62,
+   "261751286_19": 42,
+   "261751286_16": 42,
+   "6959258_21": 182,
+   "177212349_370": 46,
+   "177212349_345": 71,
+   "177212349_375": 47,
+   "177212349_311": 116,
+   "177212349_369": 64,
+   "177212349_374": 65,
+   "177212349_312": 115,
+   "177212349_346": 49,
+   "29480568_950": 97,
+   "29480568_231": 49,
+   "29480568_2527": 47,
+   "2782441_153": 44,
+   "2782441_152": 43,
+   "3694329_21": 120,
+   "3694329_20": 66,
+   "30502761_15": 39,
+   "30952948_1046": 103,
+   "30952948_1053": 66,
+   "30952948_1176": 81,
+   "30952948_1034": 110,
+   "30952948_965": 140,
+   "30952948_928": 41,
+   "30952948_1058": 133,
+   "30952948_960": 83,
+   "30952948_970": 108,
+   "30952948_139": 72,
+   "11830269_91": 50,
+   "78477907_2": 75,
+   "91349782_7": 94,
+   "74562982_99": 44,
+   "12537665_96": 97,
+   "12537665_103": 56,
+   "31415856_46": 150,
+   "31415856_51": 57,
+   "31415856_48": 57,
+   "31415856_47": 109,
+   "31415856_45": 109,
+   "31415856_50": 69,
+   "31415856_53": 77,
+   "26163430_1126": 102,
+   "99995945_138": 47,
+   "133340671_107": 52,
+   "133340671_109": 198,
+   "13970820_3": 99,
+   "7437073_1272": 117,
+   "7437073_1257": 110
+  },
+  "boundary": {
+   "5973732_200": false,
+   "5973732_75": true,
+   "241153419_13": false,
+   "50872805_15": false,
+   "6937573_520": true,
+   "6937573_515": false,
+   "125332958_120": false,
+   "125332958_38": false,
+   "6101685_172": false,
+   "6101685_163": false,
+   "6101685_168": false,
+   "11673895_20": true,
+   "77034155_1": false,
+   "13322751_226": false,
+   "3487509_20": true,
+   "159218865_73": true,
+   "159218865_98": true,
+   "159218865_100": true,
+   "50205742_199": false,
+   "179549243_826": true,
+   "19006562_10": false,
+   "31687471_36": false,
+   "31687471_75": false,
+   "37871055_55": false,
+   "37871055_60": true,
+   "37871055_58": false,
+   "37871055_57": false,
+   "46648544_73": false,
+   "46648544_41": false,
+   "46648544_32": false,
+   "46648544_37": false,
+   "46648544_107": true,
+   "46648544_120": false,
+   "46648544_109": true,
+   "46648544_60": false,
+   "46648544_77": false,
+   "46648544_39": false,
+   "80633575_0": true,
+   "36057260_157": true,
+   "13357953_1": true,
+   "13357953_0": true,
+   "2136477_10": false,
+   "206366_94": true,
+   "206366_91": true,
+   "206366_92": false,
+   "858685_213": false,
+   "858685_182": false,
+   "858685_198": false,
+   "858685_214": false,
+   "858685_183": false,
+   "261751286_17": false,
+   "261751286_19": false,
+   "261751286_16": false,
+   "6959258_21": true,
+   "177212349_370": false,
+   "177212349_345": false,
+   "177212349_375": false,
+   "177212349_311": true,
+   "177212349_369": false,
+   "177212349_374": false,
+   "177212349_312": true,
+   "177212349_346": false,
+   "29480568_950": false,
+   "29480568_231": false,
+   "29480568_2527": false,
+   "2782441_153": false,
+   "2782441_152": false,
+   "3694329_21": true,
+   "3694329_20": false,
+   "30502761_15": false,
+   "30952948_1046": false,
+   "30952948_1053": false,
+   "30952948_1176": false,
+   "30952948_1034": false,
+   "30952948_965": true,
+   "30952948_928": false,
+   "30952948_1058": false,
+   "30952948_960": true,
+   "30952948_970": false,
+   "30952948_139": false,
+   "11830269_91": false,
+   "78477907_2": false,
+   "91349782_7": true,
+   "74562982_99": false,
+   "12537665_96": true,
+   "12537665_103": false,
+   "31415856_46": true,
+   "31415856_51": false,
+   "31415856_48": false,
+   "31415856_47": false,
+   "31415856_45": false,
+   "31415856_50": false,
+   "31415856_53": false,
+   "26163430_1126": true,
+   "99995945_138": false,
+   "133340671_107": false,
+   "133340671_109": true,
+   "13970820_3": false,
+   "7437073_1272": false,
+   "7437073_1257": true
+  },
+  "invented_from_block": {
+   "qwen_base": {
+    "cells": 0,
+    "symbols": 0
+   },
+   "onto_project": {
+    "cells": 0,
+    "symbols": 0
+   },
+   "skills": {
+    "cells": 0,
+    "symbols": 0
+   },
+   "skills_onto": {
+    "cells": 0,
+    "symbols": 0
+   },
+   "rag_single": {
+    "cells": 0,
+    "symbols": 0
+   },
+   "ft_testing": {
+    "cells": 0,
+    "symbols": 0
+   },
+   "ft_v3_onto": {
+    "cells": 0,
+    "symbols": 0
+   },
+   "ft_onto": {
+    "cells": 0,
+    "symbols": 0
+   }
+  }
+ },
+ "T5": {
+  "n_docs": {
+   "3": 91,
+   "2": 8,
+   "1": 1
+  },
+  "score_median": 0.7062941193580627,
+  "score_min": 0.560455322265625,
+  "score_max": 0.7500972747802734,
+  "same_project_cases": 0,
+  "same_class_cases": 0,
+  "leak_cases": [],
+  "prompt_tokens_median": {
+   "qwen_base": 1264.5,
+   "rag_single": 2738.5
+  },
+  "copied_from_retrieval": {
+   "rag_single_project_cells": [
+    [
+     "206366_94",
+     [
+      "ByteBufferUtil"
+     ]
+    ],
+    [
+     "177212349_369",
+     [
+      "getEmptyImplementationForCollectionInterface"
+     ]
+    ],
+    [
+     "29480568_231",
+     [
+      "CreateSnapshotRequestBinder"
+     ]
+    ],
+    [
+     "30952948_970",
+     [
+      "InvalidDataException"
+     ]
+    ]
+   ],
+   "rag_single": {
+    "cells": 7,
+    "symbols": 7,
+    "project_symbol_cells": 4
+   },
+   "qwen_base": {
+    "cells": 0,
+    "symbols": 0,
+    "project_symbol_cells": 0
+   }
+  }
+ },
+ "T6": {
+  "qwen_base": {
+   "tertiles": [
+    [
+     8,
+     33
+    ],
+    [
+     9,
+     34
+    ],
+    [
+     5,
+     33
+    ]
+   ],
+   "median_pass": 1256.5,
+   "median_fail": 1269.0,
+   "mwu_p": 0.22916603157935522
+  },
+  "onto_project": {
+   "tertiles": [
+    [
+     7,
+     33
+    ],
+    [
+     12,
+     34
+    ],
+    [
+     3,
+     33
+    ]
+   ],
+   "median_pass": 1349.5,
+   "median_fail": 1388.0,
+   "mwu_p": 0.08497664369522505
+  },
+  "skills": {
+   "tertiles": [
+    [
+     11,
+     35
+    ],
+    [
+     6,
+     33
+    ],
+    [
+     4,
+     32
+    ]
+   ],
+   "median_pass": 3254,
+   "median_fail": 3290,
+   "mwu_p": 0.057422207439726425
+  },
+  "skills_onto": {
+   "tertiles": [
+    [
+     6,
+     33
+    ],
+    [
+     12,
+     34
+    ],
+    [
+     5,
+     33
+    ]
+   ],
+   "median_pass": 3367,
+   "median_fail": 3385,
+   "mwu_p": 0.7154821779124856
+  },
+  "rag_single": {
+   "tertiles": [
+    [
+     6,
+     33
+    ],
+    [
+     6,
+     34
+    ],
+    [
+     2,
+     33
+    ]
+   ],
+   "median_pass": 2577.0,
+   "median_fail": 2749.5,
+   "mwu_p": 0.14975033594726514
+  },
+  "ft_testing": {
+   "tertiles": [
+    [
+     19,
+     35
+    ],
+    [
+     16,
+     33
+    ],
+    [
+     18,
+     32
+    ]
+   ],
+   "median_pass": 980,
+   "median_fail": 995,
+   "mwu_p": 0.6189721590888672
+  },
+  "ft_v3_onto": {
+   "tertiles": [
+    [
+     17,
+     33
+    ],
+    [
+     11,
+     34
+    ],
+    [
+     20,
+     33
+    ]
+   ],
+   "median_pass": 1100.5,
+   "median_fail": 1075.0,
+   "mwu_p": 0.8875197559012451
+  },
+  "ft_onto": {
+   "tertiles": [
+    [
+     19,
+     33
+    ],
+    [
+     14,
+     34
+    ],
+    [
+     18,
+     33
+    ]
+   ],
+   "median_pass": 1079,
+   "median_fail": 1104,
+   "mwu_p": 0.425779983040959
+  }
+ },
+ "T_stats": {
+  "wilson": {
+   "qwen_base": {
+    "k": 22,
+    "n": 100,
+    "lower": 0.15001282338296415,
+    "upper": 0.3107035359276738
+   },
+   "onto_project": {
+    "k": 22,
+    "n": 100,
+    "lower": 0.15001282338296415,
+    "upper": 0.3107035359276738
+   },
+   "skills": {
+    "k": 21,
+    "n": 100,
+    "lower": 0.14165654017044627,
+    "upper": 0.2997996891155716
+   },
+   "skills_onto": {
+    "k": 23,
+    "n": 100,
+    "lower": 0.15843265832598313,
+    "upper": 0.32154383100927497
+   },
+   "rag_single": {
+    "k": 14,
+    "n": 100,
+    "lower": 0.08526343626497378,
+    "upper": 0.2213718828487036
+   },
+   "ft_testing": {
+    "k": 53,
+    "n": 100,
+    "lower": 0.4328885689548006,
+    "upper": 0.6248918211190597
+   },
+   "ft_v3_onto": {
+    "k": 48,
+    "n": 100,
+    "lower": 0.38464551686177634,
+    "upper": 0.5768342230889836
+   },
+   "ft_onto": {
+    "k": 51,
+    "n": 100,
+    "lower": 0.41348011860427875,
+    "upper": 0.6057800114203413
+   }
+  },
+  "pairs": [
+   {
+    "A": "onto_project",
+    "B": "qwen_base",
+    "a_only": 6,
+    "b_only": 6,
+    "delta": 0.0,
+    "p": 1.0,
+    "boot_lo": -0.07,
+    "boot_hi": 0.07,
+    "discordant_rate": 0.12,
+    "mde_005": 0.1,
+    "mde_holm_001": 0.12,
+    "p_holm": 1
+   },
+   {
+    "A": "ft_v3_onto",
+    "B": "ft_testing",
+    "a_only": 5,
+    "b_only": 10,
+    "delta": -0.05,
+    "p": 0.30175781249999994,
+    "boot_lo": -0.12,
+    "boot_hi": 0.02,
+    "discordant_rate": 0.15,
+    "mde_005": 0.11,
+    "mde_holm_001": 0.13,
+    "p_holm": 1
+   },
+   {
+    "A": "ft_onto",
+    "B": "ft_v3_onto",
+    "a_only": 7,
+    "b_only": 4,
+    "delta": 0.03,
+    "p": 0.548828125,
+    "boot_lo": -0.03,
+    "boot_hi": 0.09,
+    "discordant_rate": 0.11,
+    "mde_005": 0.1,
+    "mde_holm_001": 0.11,
+    "p_holm": 1
+   },
+   {
+    "A": "skills_onto",
+    "B": "skills",
+    "a_only": 8,
+    "b_only": 6,
+    "delta": 0.02,
+    "p": 0.79052734375,
+    "boot_lo": -0.05,
+    "boot_hi": 0.09,
+    "discordant_rate": 0.14,
+    "mde_005": 0.11,
+    "mde_holm_001": 0.13,
+    "p_holm": 1
+   },
+   {
+    "A": "skills_onto",
+    "B": "onto_project",
+    "a_only": 5,
+    "b_only": 4,
+    "delta": 0.01,
+    "p": 1.0,
+    "boot_lo": -0.05,
+    "boot_hi": 0.07,
+    "discordant_rate": 0.09,
+    "mde_005": 0.09,
+    "mde_holm_001": null,
+    "p_holm": 1
+   }
+  ],
+  "descriptive": [
+   {
+    "A": "rag_single",
+    "B": "qwen_base",
+    "a_only": 6,
+    "b_only": 14,
+    "delta": -0.08,
+    "p": 0.11531829833984375,
+    "boot_lo": -0.17,
+    "boot_hi": 0.01
+   },
+   {
+    "A": "ft_testing",
+    "B": "qwen_base",
+    "a_only": 42,
+    "b_only": 11,
+    "delta": 0.31,
+    "p": 2.2475594023241285e-05,
+    "boot_lo": 0.18,
+    "boot_hi": 0.44
+   },
+   {
+    "A": "ft_v3_onto",
+    "B": "onto_project",
+    "a_only": 39,
+    "b_only": 13,
+    "delta": 0.26,
+    "p": 0.0004095414537825804,
+    "boot_lo": 0.13,
+    "boot_hi": 0.39
+   },
+   {
+    "A": "ft_onto",
+    "B": "onto_project",
+    "a_only": 41,
+    "b_only": 12,
+    "delta": 0.29,
+    "p": 8.171334999262925e-05,
+    "boot_lo": 0.16,
+    "boot_hi": 0.42
+   },
+   {
+    "A": "ft_onto",
+    "B": "qwen_base",
+    "a_only": 42,
+    "b_only": 13,
+    "delta": 0.29,
+    "p": 0.00011361060320691506,
+    "boot_lo": 0.15,
+    "boot_hi": 0.43
+   }
+  ]
+ },
+ "R1": {
+  "qwen_base|marv|Extract Method": {
+   "invalid_java": 2,
+   "checks_failed": 4,
+   "structural_pass": 3
+  },
+  "onto_project|marv|Extract Method": {
+   "checks_failed": 5,
+   "invalid_java": 2,
+   "structural_pass": 2
+  },
+  "skills|marv|Extract Method": {
+   "checks_failed": 7,
+   "invalid_java": 1,
+   "structural_pass": 1
+  },
+  "skills_onto|marv|Extract Method": {
+   "checks_failed": 6,
+   "invalid_java": 1,
+   "structural_pass": 2
+  },
+  "rag_single|marv|Extract Method": {
+   "checks_failed": 7,
+   "no_op": 1,
+   "invalid_java": 1
+  },
+  "ft_refactoring|marv|Extract Method": {
+   "checks_failed": 4,
+   "structural_pass": 4,
+   "model_output_failure": 1
+  },
+  "ft_v3_onto|marv|Extract Method": {
+   "structural_pass": 5,
+   "checks_failed": 3,
+   "model_output_failure": 1
+  },
+  "ft_onto|marv|Extract Method": {
+   "structural_pass": 5,
+   "model_output_failure": 2,
+   "checks_failed": 2
+  },
+  "qwen_base|marv|Remove Parameter": {
+   "structural_pass": 5,
+   "model_output_failure": 2,
+   "invalid_java": 1
+  },
+  "onto_project|marv|Remove Parameter": {
+   "structural_pass": 5,
+   "model_output_failure": 2,
+   "invalid_java": 1
+  },
+  "skills|marv|Remove Parameter": {
+   "invalid_java": 2,
+   "model_output_failure": 2,
+   "structural_pass": 3,
+   "checks_failed": 1
+  },
+  "skills_onto|marv|Remove Parameter": {
+   "structural_pass": 5,
+   "model_output_failure": 2,
+   "invalid_java": 1
+  },
+  "rag_single|marv|Remove Parameter": {
+   "structural_pass": 3,
+   "model_output_failure": 1,
+   "checks_failed": 2,
+   "no_op": 1,
+   "invalid_java": 1
+  },
+  "ft_refactoring|marv|Remove Parameter": {
+   "structural_pass": 4,
+   "no_op": 1,
+   "checks_failed": 1,
+   "model_output_failure": 2
+  },
+  "ft_v3_onto|marv|Remove Parameter": {
+   "structural_pass": 4,
+   "checks_failed": 2,
+   "no_op": 1,
+   "model_output_failure": 1
+  },
+  "ft_onto|marv|Remove Parameter": {
+   "structural_pass": 4,
+   "no_op": 2,
+   "model_output_failure": 2
+  },
+  "qwen_base|marv|Rename Method": {
+   "invalid_java": 1,
+   "structural_pass": 7,
+   "checks_failed": 1
+  },
+  "onto_project|marv|Rename Method": {
+   "invalid_java": 1,
+   "structural_pass": 8
+  },
+  "skills|marv|Rename Method": {
+   "invalid_java": 3,
+   "structural_pass": 6
+  },
+  "skills_onto|marv|Rename Method": {
+   "invalid_java": 3,
+   "structural_pass": 6
+  },
+  "rag_single|marv|Rename Method": {
+   "no_op": 1,
+   "structural_pass": 6,
+   "model_output_failure": 1,
+   "checks_failed": 1
+  },
+  "ft_refactoring|marv|Rename Method": {
+   "structural_pass": 8,
+   "model_output_failure": 1
+  },
+  "ft_v3_onto|marv|Rename Method": {
+   "structural_pass": 6,
+   "checks_failed": 1,
+   "no_op": 1,
+   "model_output_failure": 1
+  },
+  "ft_onto|marv|Rename Method": {
+   "structural_pass": 7,
+   "checks_failed": 1,
+   "model_output_failure": 1
+  },
+  "qwen_base|marv|Rename Variable": {
+   "structural_pass": 9
+  },
+  "onto_project|marv|Rename Variable": {
+   "structural_pass": 6,
+   "invalid_java": 2,
+   "checks_failed": 1
+  },
+  "skills|marv|Rename Variable": {
+   "structural_pass": 6,
+   "invalid_java": 3
+  },
+  "skills_onto|marv|Rename Variable": {
+   "structural_pass": 8,
+   "invalid_java": 1
+  },
+  "rag_single|marv|Rename Variable": {
+   "structural_pass": 6,
+   "invalid_java": 2,
+   "checks_failed": 1
+  },
+  "ft_refactoring|marv|Rename Variable": {
+   "structural_pass": 9
+  },
+  "ft_v3_onto|marv|Rename Variable": {
+   "structural_pass": 9
+  },
+  "ft_onto|marv|Rename Variable": {
+   "structural_pass": 9
+  },
+  "qwen_base|ml4refactoring|Extract Variable": {
+   "checks_failed": 4,
+   "structural_pass": 4,
+   "invalid_java": 2
+  },
+  "onto_project|ml4refactoring|Extract Variable": {
+   "checks_failed": 4,
+   "structural_pass": 4,
+   "invalid_java": 2
+  },
+  "skills|ml4refactoring|Extract Variable": {
+   "checks_failed": 7,
+   "structural_pass": 2,
+   "invalid_java": 1
+  },
+  "skills_onto|ml4refactoring|Extract Variable": {
+   "checks_failed": 6,
+   "structural_pass": 3,
+   "invalid_java": 1
+  },
+  "rag_single|ml4refactoring|Extract Variable": {
+   "checks_failed": 7,
+   "structural_pass": 1,
+   "invalid_java": 2
+  },
+  "ft_refactoring|ml4refactoring|Extract Variable": {
+   "structural_pass": 7,
+   "checks_failed": 3
+  },
+  "ft_v3_onto|ml4refactoring|Extract Variable": {
+   "structural_pass": 7,
+   "checks_failed": 3
+  },
+  "ft_onto|ml4refactoring|Extract Variable": {
+   "structural_pass": 6,
+   "checks_failed": 4
+  },
+  "qwen_base|ml4refactoring|Inline Variable": {
+   "structural_pass": 5,
+   "checks_failed": 3,
+   "invalid_java": 2
+  },
+  "onto_project|ml4refactoring|Inline Variable": {
+   "checks_failed": 4,
+   "no_op": 1,
+   "structural_pass": 3,
+   "invalid_java": 2
+  },
+  "skills|ml4refactoring|Inline Variable": {
+   "structural_pass": 2,
+   "no_op": 1,
+   "checks_failed": 5,
+   "invalid_java": 2
+  },
+  "skills_onto|ml4refactoring|Inline Variable": {
+   "checks_failed": 3,
+   "no_op": 1,
+   "structural_pass": 4,
+   "invalid_java": 2
+  },
+  "rag_single|ml4refactoring|Inline Variable": {
+   "structural_pass": 2,
+   "checks_failed": 5,
+   "invalid_java": 2,
+   "no_op": 1
+  },
+  "ft_refactoring|ml4refactoring|Inline Variable": {
+   "structural_pass": 7,
+   "checks_failed": 2,
+   "invalid_java": 1
+  },
+  "ft_v3_onto|ml4refactoring|Inline Variable": {
+   "no_op": 1,
+   "checks_failed": 2,
+   "structural_pass": 5,
+   "invalid_java": 1,
+   "model_output_failure": 1
+  },
+  "ft_onto|ml4refactoring|Inline Variable": {
+   "structural_pass": 7,
+   "checks_failed": 2,
+   "invalid_java": 1
+  },
+  "qwen_base|ml4refactoring|Parameterize Variable": {
+   "checks_failed": 6,
+   "structural_pass": 1,
+   "invalid_java": 2,
+   "no_op": 1
+  },
+  "onto_project|ml4refactoring|Parameterize Variable": {
+   "checks_failed": 9,
+   "structural_pass": 1
+  },
+  "skills|ml4refactoring|Parameterize Variable": {
+   "checks_failed": 7,
+   "structural_pass": 2,
+   "invalid_java": 1
+  },
+  "skills_onto|ml4refactoring|Parameterize Variable": {
+   "checks_failed": 9,
+   "no_op": 1
+  },
+  "rag_single|ml4refactoring|Parameterize Variable": {
+   "checks_failed": 6,
+   "no_op": 1,
+   "invalid_java": 1,
+   "model_output_failure": 2
+  },
+  "ft_refactoring|ml4refactoring|Parameterize Variable": {
+   "checks_failed": 5,
+   "structural_pass": 5
+  },
+  "ft_v3_onto|ml4refactoring|Parameterize Variable": {
+   "checks_failed": 3,
+   "structural_pass": 7
+  },
+  "ft_onto|ml4refactoring|Parameterize Variable": {
+   "checks_failed": 4,
+   "structural_pass": 6
+  },
+  "qwen_base|ml4refactoring|Rename Class": {
+   "structural_pass": 9,
+   "invalid_java": 1
+  },
+  "onto_project|ml4refactoring|Rename Class": {
+   "structural_pass": 9,
+   "invalid_java": 1
+  },
+  "skills|ml4refactoring|Rename Class": {
+   "structural_pass": 10
+  },
+  "skills_onto|ml4refactoring|Rename Class": {
+   "structural_pass": 10
+  },
+  "rag_single|ml4refactoring|Rename Class": {
+   "structural_pass": 10
+  },
+  "ft_refactoring|ml4refactoring|Rename Class": {
+   "structural_pass": 9,
+   "model_output_failure": 1
+  },
+  "ft_v3_onto|ml4refactoring|Rename Class": {
+   "structural_pass": 9,
+   "model_output_failure": 1
+  },
+  "ft_onto|ml4refactoring|Rename Class": {
+   "structural_pass": 9,
+   "model_output_failure": 1
+  },
+  "qwen_base|ml4refactoring|Rename Parameter": {
+   "structural_pass": 9,
+   "invalid_java": 1
+  },
+  "onto_project|ml4refactoring|Rename Parameter": {
+   "structural_pass": 9,
+   "invalid_java": 1
+  },
+  "skills|ml4refactoring|Rename Parameter": {
+   "structural_pass": 9,
+   "invalid_java": 1
+  },
+  "skills_onto|ml4refactoring|Rename Parameter": {
+   "structural_pass": 9,
+   "invalid_java": 1
+  },
+  "rag_single|ml4refactoring|Rename Parameter": {
+   "structural_pass": 7,
+   "checks_failed": 2,
+   "invalid_java": 1
+  },
+  "ft_refactoring|ml4refactoring|Rename Parameter": {
+   "structural_pass": 10
+  },
+  "ft_v3_onto|ml4refactoring|Rename Parameter": {
+   "structural_pass": 10
+  },
+  "ft_onto|ml4refactoring|Rename Parameter": {
+   "structural_pass": 10
+  },
+  "qwen_base|ml4refactoring|Replace Variable With Attribute": {
+   "checks_failed": 4,
+   "structural_pass": 5,
+   "invalid_java": 1
+  },
+  "onto_project|ml4refactoring|Replace Variable With Attribute": {
+   "invalid_java": 2,
+   "structural_pass": 4,
+   "checks_failed": 4
+  },
+  "skills|ml4refactoring|Replace Variable With Attribute": {
+   "invalid_java": 2,
+   "checks_failed": 4,
+   "structural_pass": 4
+  },
+  "skills_onto|ml4refactoring|Replace Variable With Attribute": {
+   "invalid_java": 2,
+   "structural_pass": 3,
+   "checks_failed": 5
+  },
+  "rag_single|ml4refactoring|Replace Variable With Attribute": {
+   "invalid_java": 2,
+   "structural_pass": 2,
+   "checks_failed": 6
+  },
+  "ft_refactoring|ml4refactoring|Replace Variable With Attribute": {
+   "structural_pass": 5,
+   "checks_failed": 4,
+   "invalid_java": 1
+  },
+  "ft_v3_onto|ml4refactoring|Replace Variable With Attribute": {
+   "structural_pass": 5,
+   "checks_failed": 4,
+   "invalid_java": 1
+  },
+  "ft_onto|ml4refactoring|Replace Variable With Attribute": {
+   "checks_failed": 5,
+   "structural_pass": 4,
+   "invalid_java": 1
+  },
+  "qwen_base|swe|Extract Method": {
+   "checks_failed": 3,
+   "passed": 1
+  },
+  "onto_project|swe|Extract Method": {
+   "checks_failed": 3,
+   "passed": 1
+  },
+  "skills|swe|Extract Method": {
+   "checks_failed": 3,
+   "passed": 1
+  },
+  "skills_onto|swe|Extract Method": {
+   "checks_failed": 3,
+   "passed": 1
+  },
+  "rag_single|swe|Extract Method": {
+   "no_op": 4
+  },
+  "ft_refactoring|swe|Extract Method": {
+   "checks_failed": 1,
+   "no_op": 3
+  },
+  "ft_v3_onto|swe|Extract Method": {
+   "checks_failed": 1,
+   "no_op": 3
+  },
+  "ft_onto|swe|Extract Method": {
+   "checks_failed": 2,
+   "no_op": 2
+  },
+  "qwen_base|swe|Inline Method": {
+   "checks_failed": 1
+  },
+  "onto_project|swe|Inline Method": {
+   "checks_failed": 1
+  },
+  "skills|swe|Inline Method": {
+   "checks_failed": 1
+  },
+  "skills_onto|swe|Inline Method": {
+   "checks_failed": 1
+  },
+  "rag_single|swe|Inline Method": {
+   "no_op": 1
+  },
+  "ft_refactoring|swe|Inline Method": {
+   "no_op": 1
+  },
+  "ft_v3_onto|swe|Inline Method": {
+   "no_op": 1
+  },
+  "ft_onto|swe|Inline Method": {
+   "no_op": 1
+  }
+ },
+ "R2": {
+  "qwen_base": {
+   "op_missing+compile": 1,
+   "op_ok+compile": 2,
+   "op_missing+build_ok": 1,
+   "op_missing+nič": 6,
+   "op_missing+iné": 16
+  },
+  "onto_project": {
+   "op_ok+compile": 3,
+   "op_missing+build_ok": 1,
+   "op_missing+iné": 24,
+   "op_missing+nič": 3
+  },
+  "skills": {
+   "op_ok+compile": 3,
+   "op_missing+build_ok": 1,
+   "op_missing+nič": 7,
+   "op_missing+iné": 23,
+   "op_ok+iné": 1
+  },
+  "skills_onto": {
+   "op_ok+compile": 3,
+   "op_missing+build_ok": 1,
+   "op_missing+iné": 25,
+   "op_missing+nič": 3,
+   "op_ok+iné": 1
+  },
+  "rag_single": {
+   "op_missing+iné": 26,
+   "op_missing+nič": 10,
+   "op_ok+iné": 1
+  },
+  "ft_refactoring": {
+   "op_missing+compile": 1,
+   "op_missing+iné": 11,
+   "op_missing+nič": 8
+  },
+  "ft_v3_onto": {
+   "op_missing+compile": 1,
+   "op_missing+iné": 12,
+   "op_missing+nič": 6
+  },
+  "ft_onto": {
+   "op_missing+compile": 2,
+   "op_missing+nič": 8,
+   "op_missing+iné": 10
+  }
+ },
+ "R3": {
+  "onto_project vs qwen_base": {
+   "A_only": [
+    [
+     "12dbeafe93f7d63512db1c07cbe7bd9bef985044_33_41_54_63_36_44",
+     "checks_failed"
+    ],
+    [
+     "marv-9aeaf380720b882494abb080",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-005dfd16df3b5cbfedafa622",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-08bccb1cea13603171e25c95",
+     "invalid_java"
+    ],
+    [
+     "ml4refactoring-0df60228ff7e291428aaf758",
+     "checks_failed"
+    ]
+   ],
+   "B_only": [
+    [
+     "marv-077d4e28bbc5acb8ebe9ce15",
+     "invalid_java"
+    ],
+    [
+     "marv-2f6e51397d3086e438c05dbc",
+     "invalid_java"
+    ],
+    [
+     "marv-94a8f97e964604d2cc3b043d",
+     "checks_failed"
+    ],
+    [
+     "marv-ad051aa87e0a97ce04be2ef4",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-00b015373980175a44c09f21",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-00ebe203ba5948fe2c1d5336",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-08921a9acd20b6ca40f08b68",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-0bb02270a6de7c2133aae483",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-0e15f1ff63782542debf870e",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-1d6951a18b170e237a05083e",
+     "checks_failed"
+    ]
+   ]
+  },
+  "ft_v3_onto vs ft_refactoring": {
+   "A_only": [
+    [
+     "marv-307bf7a40418c36facdaaaf9",
+     "checks_failed"
+    ],
+    [
+     "marv-84e6f62ae780883d8ca8f8ca",
+     "model_output_failure"
+    ],
+    [
+     "ml4refactoring-01d90675d12bddacf32c8100",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-02ee436b9fb5273174fba1af",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-0f124356cccdcffd7692213c",
+     "checks_failed"
+    ]
+   ],
+   "B_only": [
+    [
+     "marv-473f2c7d5ab7e59d541b239d",
+     "no_op"
+    ],
+    [
+     "marv-511d754342d516a9dfdd3db1",
+     "checks_failed"
+    ],
+    [
+     "marv-8599f5b3a49b3b4ee05193d2",
+     "no_op"
+    ],
+    [
+     "ml4refactoring-00ebe203ba5948fe2c1d5336",
+     "no_op"
+    ],
+    [
+     "ml4refactoring-05e045be7c2e2605aa6eda61",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-180a7785efdda20d55ff96d8",
+     "model_output_failure"
+    ]
+   ]
+  },
+  "ft_onto vs ft_v3_onto": {
+   "A_only": [
+    [
+     "marv-452b79e105bb08d841ca583a",
+     "checks_failed"
+    ],
+    [
+     "marv-511d754342d516a9dfdd3db1",
+     "checks_failed"
+    ],
+    [
+     "marv-8b5f4d7222ae999e6a2aa85d",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-00ebe203ba5948fe2c1d5336",
+     "no_op"
+    ],
+    [
+     "ml4refactoring-08921a9acd20b6ca40f08b68",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-180a7785efdda20d55ff96d8",
+     "model_output_failure"
+    ]
+   ],
+   "B_only": [
+    [
+     "marv-6735f630df8aa9444b70f011",
+     "model_output_failure"
+    ],
+    [
+     "marv-84e6f62ae780883d8ca8f8ca",
+     "model_output_failure"
+    ],
+    [
+     "ml4refactoring-001f5f12017d1832db59cd51",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-02ee436b9fb5273174fba1af",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-0e15f1ff63782542debf870e",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-0f124356cccdcffd7692213c",
+     "checks_failed"
+    ]
+   ]
+  },
+  "skills_onto vs skills": {
+   "A_only": [
+    [
+     "marv-0a91fa8f4d04026121f3c065",
+     "invalid_java"
+    ],
+    [
+     "marv-2f6e51397d3086e438c05dbc",
+     "invalid_java"
+    ],
+    [
+     "marv-452b79e105bb08d841ca583a",
+     "checks_failed"
+    ],
+    [
+     "marv-6f3d7280762e272e4b518317",
+     "checks_failed"
+    ],
+    [
+     "marv-ad051aa87e0a97ce04be2ef4",
+     "invalid_java"
+    ],
+    [
+     "ml4refactoring-005dfd16df3b5cbfedafa622",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-0490cccf09be7ce48981a0d5",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-05e045be7c2e2605aa6eda61",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-0e8595fdd8c0f4307c9f9422",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-10f7cd93af5fbc167d21f951",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-180a7785efdda20d55ff96d8",
+     "checks_failed"
+    ]
+   ],
+   "B_only": [
+    [
+     "ml4refactoring-00b015373980175a44c09f21",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-00ebe203ba5948fe2c1d5336",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-08bccb1cea13603171e25c95",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-0db08400906f099bf85620af",
+     "invalid_java"
+    ],
+    [
+     "ml4refactoring-0df60228ff7e291428aaf758",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-0e15f1ff63782542debf870e",
+     "checks_failed"
+    ]
+   ]
+  },
+  "skills_onto vs onto_project": {
+   "A_only": [
+    [
+     "marv-2f6e51397d3086e438c05dbc",
+     "invalid_java"
+    ],
+    [
+     "marv-94a8f97e964604d2cc3b043d",
+     "checks_failed"
+    ],
+    [
+     "marv-ad051aa87e0a97ce04be2ef4",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-0490cccf09be7ce48981a0d5",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-126801a456ee830f6fdcb031",
+     "invalid_java"
+    ]
+   ],
+   "B_only": [
+    [
+     "marv-511d754342d516a9dfdd3db1",
+     "invalid_java"
+    ],
+    [
+     "marv-688e73680c7bfeb00e5706af",
+     "invalid_java"
+    ],
+    [
+     "marv-8b5f4d7222ae999e6a2aa85d",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-08bccb1cea13603171e25c95",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-0db08400906f099bf85620af",
+     "invalid_java"
+    ],
+    [
+     "ml4refactoring-0df60228ff7e291428aaf758",
+     "checks_failed"
+    ]
+   ]
+  },
+  "rag_single vs qwen_base": {
+   "A_only": [
+    [
+     "marv-84e6f62ae780883d8ca8f8ca",
+     "invalid_java"
+    ],
+    [
+     "ml4refactoring-005dfd16df3b5cbfedafa622",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-02ee436b9fb5273174fba1af",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-126801a456ee830f6fdcb031",
+     "invalid_java"
+    ]
+   ],
+   "B_only": [
+    [
+     "3ac63df5d5660d14212b9dad50ef2da3d26305f3_68_73_58_68_80_85",
+     "no_op"
+    ],
+    [
+     "4d63091bdc21465423ef006c3b1aac552ebca902_72_94_96_100_72_94",
+     "no_op"
+    ],
+    [
+     "d269f164b3e24a92cc33d759d8bcf3eedb37f576_153_163_165_167_153_163",
+     "no_op"
+    ],
+    [
+     "marv-077d4e28bbc5acb8ebe9ce15",
+     "invalid_java"
+    ],
+    [
+     "marv-2872d99f67936a5299035b39",
+     "checks_failed"
+    ],
+    [
+     "marv-452b79e105bb08d841ca583a",
+     "checks_failed"
+    ],
+    [
+     "marv-511d754342d516a9dfdd3db1",
+     "model_output_failure"
+    ],
+    [
+     "marv-552dc590d098dd11018a533f",
+     "no_op"
+    ],
+    [
+     "marv-6f3d7280762e272e4b518317",
+     "checks_failed"
+    ],
+    [
+     "marv-8b5f4d7222ae999e6a2aa85d",
+     "invalid_java"
+    ],
+    [
+     "marv-94a8f97e964604d2cc3b043d",
+     "checks_failed"
+    ],
+    [
+     "marv-a3efb28e0c3b71ffe5370337",
+     "checks_failed"
+    ],
+    [
+     "marv-ad051aa87e0a97ce04be2ef4",
+     "invalid_java"
+    ],
+    [
+     "ml4refactoring-00b015373980175a44c09f21",
+     "no_op"
+    ],
+    [
+     "ml4refactoring-0427aacbbc06b5cc51448268",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-04a094c71fa6453b553a9cff",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-05e045be7c2e2605aa6eda61",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-08921a9acd20b6ca40f08b68",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-09c1497bba00e6262aa767ea",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-0bb02270a6de7c2133aae483",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-0d7e9e99f000a6d845025035",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-0e15f1ff63782542debf870e",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-0e8595fdd8c0f4307c9f9422",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-1006ab14d08d580ef3c28383",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-10f7cd93af5fbc167d21f951",
+     "checks_failed"
+    ],
+    [
+     "ml4refactoring-180a7785efdda20d55ff96d8",
+     "no_op"
+    ],
+    [
+     "ml4refactoring-1d6951a18b170e237a05083e",
+     "checks_failed"
+    ]
+   ]
+  }
+ },
+ "R4": {
+  "no_op_cases": [
+   "12dbeafe93f7d63512db1c07cbe7bd9bef985044_33_41_54_63_36_44",
+   "3ac63df5d5660d14212b9dad50ef2da3d26305f3_68_73_58_68_80_85",
+   "4d63091bdc21465423ef006c3b1aac552ebca902_72_94_96_100_72_94",
+   "c28eff3be60085078fcd6bce5613b266c3907274_96_118__96_123_120_134",
+   "d269f164b3e24a92cc33d759d8bcf3eedb37f576_153_163_165_167_153_163",
+   "marv-26dbe5d1e6c7d2b81fc89f23",
+   "marv-552dc590d098dd11018a533f",
+   "marv-83018b0cf6ae0eebc3982566",
+   "ml4refactoring-00b015373980175a44c09f21",
+   "ml4refactoring-180a7785efdda20d55ff96d8"
+  ],
+  "rinfo": {
+   "12dbeafe93f7d63512db1c07cbe7bd9bef985044_33_41_54_63_36_44": {
+    "n_docs": 3,
+    "retrieval_tokens": 5609,
+    "scores": [
+     0.781293511390686,
+     0.8022398948669434,
+     0.7971261739730835
+    ],
+    "new_lines": 0,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Rename Method",
+     "Rename Method"
+    ]
+   },
+   "3ac63df5d5660d14212b9dad50ef2da3d26305f3_68_73_58_68_80_85": {
+    "n_docs": 3,
+    "retrieval_tokens": 4688,
+    "scores": [
+     0.7856019139289856,
+     0.74953293800354,
+     0.7725573778152466
+    ],
+    "new_lines": 0,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Move Method",
+     "Rename Method"
+    ]
+   },
+   "4d63091bdc21465423ef006c3b1aac552ebca902_72_94_96_100_72_94": {
+    "n_docs": 3,
+    "retrieval_tokens": 7289,
+    "scores": [
+     0.7249386310577393,
+     0.732258677482605,
+     0.742937445640564
+    ],
+    "new_lines": 12,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "unknown",
+     "unknown",
+     "Rename Method"
+    ]
+   },
+   "c28eff3be60085078fcd6bce5613b266c3907274_96_118__96_123_120_134": {
+    "n_docs": 3,
+    "retrieval_tokens": 6661,
+    "scores": [
+     0.7721484899520874,
+     0.7774622440338135,
+     0.7461686730384827
+    ],
+    "new_lines": 0,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Rename Method",
+     "Rename Method"
+    ]
+   },
+   "d269f164b3e24a92cc33d759d8bcf3eedb37f576_153_163_165_167_153_163": {
+    "n_docs": 3,
+    "retrieval_tokens": 6502,
+    "scores": [
+     0.7696108222007751,
+     0.772135853767395,
+     0.7725043892860413
+    ],
+    "new_lines": 0,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Extract Superclass",
+     "Rename Method"
+    ]
+   },
+   "marv-0665f437867ef0ec9efe73c2": {
+    "n_docs": 3,
+    "retrieval_tokens": 9159,
+    "scores": [
+     0.6814046502113342,
+     0.7578941583633423,
+     0.7499459385871887
+    ],
+    "new_lines": 3,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Move Class",
+     "Rename Class",
+     "Rename Method"
+    ]
+   },
+   "marv-077d4e28bbc5acb8ebe9ce15": {
+    "n_docs": 3,
+    "retrieval_tokens": 9447,
+    "scores": [
+     0.745380163192749,
+     0.7459188103675842,
+     0.7564042806625366
+    ],
+    "new_lines": 7,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Rename Variable",
+     "Rename Variable"
+    ]
+   },
+   "marv-0a91fa8f4d04026121f3c065": {
+    "n_docs": 3,
+    "retrieval_tokens": 5119,
+    "scores": [
+     0.7873523235321045,
+     0.7792508602142334,
+     0.781284511089325
+    ],
+    "new_lines": 1,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Variable",
+     "Rename Method",
+     "Rename Variable"
+    ]
+   },
+   "marv-0d848e6aac21d7359d23ad04": {
+    "n_docs": 3,
+    "retrieval_tokens": 11669,
+    "scores": [
+     0.743966817855835,
+     0.745314359664917,
+     0.7463051676750183
+    ],
+    "new_lines": 0,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Class",
+     "unknown",
+     "Rename Variable"
+    ]
+   },
+   "marv-26dbe5d1e6c7d2b81fc89f23": {
+    "n_docs": 3,
+    "retrieval_tokens": 8422,
+    "scores": [
+     0.7282395958900452,
+     0.7323383092880249,
+     0.7382454872131348
+    ],
+    "new_lines": 0,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Extract Method",
+     "Rename Method",
+     "Rename Variable"
+    ]
+   },
+   "marv-2872d99f67936a5299035b39": {
+    "n_docs": 3,
+    "retrieval_tokens": 2289,
+    "scores": [
+     0.7969069480895996,
+     0.7777379155158997,
+     0.7573181390762329
+    ],
+    "new_lines": 5,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Remove Parameter",
+     "Remove Parameter",
+     "Remove Parameter"
+    ]
+   },
+   "marv-2f6e51397d3086e438c05dbc": {
+    "n_docs": 3,
+    "retrieval_tokens": 6850,
+    "scores": [
+     0.7594486474990845,
+     0.7564980983734131,
+     0.7909671664237976
+    ],
+    "new_lines": 14,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Variable",
+     "Rename Variable",
+     "Rename Method"
+    ]
+   },
+   "marv-307bf7a40418c36facdaaaf9": {
+    "n_docs": 3,
+    "retrieval_tokens": 8692,
+    "scores": [
+     0.7484657764434814,
+     0.7468106746673584,
+     0.751079797744751
+    ],
+    "new_lines": 6,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Extract Method",
+     "Extract Method",
+     "Extract Method"
+    ]
+   },
+   "marv-325f379ef391d21b3a030473": {
+    "n_docs": 3,
+    "retrieval_tokens": 11721,
+    "scores": [
+     0.7608333230018616,
+     0.7637010812759399,
+     0.7734134793281555
+    ],
+    "new_lines": 3,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Extract Class",
+     "Inline Method",
+     "unknown"
+    ]
+   },
+   "marv-445f215de8f60ba180893b6a": {
+    "n_docs": 3,
+    "retrieval_tokens": 6869,
+    "scores": [
+     0.7749857902526855,
+     0.7732021808624268,
+     0.7688194513320923
+    ],
+    "new_lines": 12,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Rename Method",
+     "Rename Method"
+    ]
+   },
+   "marv-452b79e105bb08d841ca583a": {
+    "n_docs": 3,
+    "retrieval_tokens": 3007,
+    "scores": [
+     0.7103825807571411,
+     0.7147457003593445,
+     0.7095913887023926
+    ],
+    "new_lines": 7,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Remove Parameter",
+     "Remove Parameter",
+     "Rename Method"
+    ]
+   },
+   "marv-473f2c7d5ab7e59d541b239d": {
+    "n_docs": 3,
+    "retrieval_tokens": 2473,
+    "scores": [
+     0.7229381203651428,
+     0.7442737817764282,
+     0.7184863090515137
+    ],
+    "new_lines": 1,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Remove Parameter",
+     "Remove Parameter",
+     "Rename Variable"
+    ]
+   },
+   "marv-4a0b3d2be28e0667b3d0eddc": {
+    "n_docs": 3,
+    "retrieval_tokens": 9301,
+    "scores": [
+     0.7631961703300476,
+     0.768889307975769,
+     0.7588019967079163
+    ],
+    "new_lines": 11,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Rename Class",
+     "Extract Method"
+    ]
+   },
+   "marv-511d754342d516a9dfdd3db1": {
+    "n_docs": 3,
+    "retrieval_tokens": 10414,
+    "scores": [
+     0.7454270124435425,
+     0.7322313785552979,
+     0.7322872877120972
+    ],
+    "new_lines": 0,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Variable",
+     "Rename Variable",
+     "Rename Class"
+    ]
+   },
+   "marv-552dc590d098dd11018a533f": {
+    "n_docs": 3,
+    "retrieval_tokens": 5585,
+    "scores": [
+     0.7415263652801514,
+     0.7468388080596924,
+     0.7594825029373169
+    ],
+    "new_lines": 0,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "unknown",
+     "Remove Parameter"
+    ]
+   },
+   "marv-56368b10a691b0f9fab7e40a": {
+    "n_docs": 3,
+    "retrieval_tokens": 4646,
+    "scores": [
+     0.7385676503181458,
+     0.7408246994018555,
+     0.7554424405097961
+    ],
+    "new_lines": 2,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Variable",
+     "Rename Method",
+     "Rename Method"
+    ]
+   },
+   "marv-59c5aa8129bf583e318e0332": {
+    "n_docs": 3,
+    "retrieval_tokens": 4906,
+    "scores": [
+     0.7717950940132141,
+     0.7381178736686707,
+     0.7484138011932373
+    ],
+    "new_lines": 2,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Extract Superclass",
+     "Rename Method"
+    ]
+   },
+   "marv-620ab3696774b4e396d98823": {
+    "n_docs": 3,
+    "retrieval_tokens": 3759,
+    "scores": [
+     0.7656205296516418,
+     0.7470972537994385,
+     0.7558104991912842
+    ],
+    "new_lines": 24,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Remove Parameter",
+     "Rename Method",
+     "Extract Method"
+    ]
+   },
+   "marv-6735f630df8aa9444b70f011": {
+    "n_docs": 3,
+    "retrieval_tokens": 12000,
+    "scores": [
+     0.7610635161399841,
+     0.7620644569396973,
+     0.7632529735565186
+    ],
+    "new_lines": 1,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Move Class",
+     "Extract Method",
+     "Inline Method"
+    ]
+   },
+   "marv-688e73680c7bfeb00e5706af": {
+    "n_docs": 3,
+    "retrieval_tokens": 7863,
+    "scores": [
+     0.7464339733123779,
+     0.7383207082748413,
+     0.7488788366317749
+    ],
+    "new_lines": 4,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "unknown",
+     "Rename Method"
+    ]
+   },
+   "marv-6f3d7280762e272e4b518317": {
+    "n_docs": 3,
+    "retrieval_tokens": 9581,
+    "scores": [
+     0.7329087257385254,
+     0.7251829504966736,
+     0.7577605247497559
+    ],
+    "new_lines": 1,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "unknown",
+     "Extract Method"
+    ]
+   },
+   "marv-827f500333c9f901d824a687": {
+    "n_docs": 3,
+    "retrieval_tokens": 7758,
+    "scores": [
+     0.7687040567398071,
+     0.7646385431289673,
+     0.7652758359909058
+    ],
+    "new_lines": 2,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Variable",
+     "Rename Method",
+     "Rename Method"
+    ]
+   },
+   "marv-83018b0cf6ae0eebc3982566": {
+    "n_docs": 3,
+    "retrieval_tokens": 7025,
+    "scores": [
+     0.740485429763794,
+     0.7408396601676941,
+     0.7480295896530151
+    ],
+    "new_lines": 0,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Remove Parameter",
+     "Extract Class",
+     "Extract Interface"
+    ]
+   },
+   "marv-84e6f62ae780883d8ca8f8ca": {
+    "n_docs": 3,
+    "retrieval_tokens": 10823,
+    "scores": [
+     0.7636378407478333,
+     0.7651056051254272,
+     0.757432758808136
+    ],
+    "new_lines": 10,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Inline Method",
+     "Extract Method",
+     "Extract Method"
+    ]
+   },
+   "marv-8599f5b3a49b3b4ee05193d2": {
+    "n_docs": 3,
+    "retrieval_tokens": 6590,
+    "scores": [
+     0.7257383465766907,
+     0.7307490706443787,
+     0.7117568254470825
+    ],
+    "new_lines": 3,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Rename Method",
+     "Rename Class"
+    ]
+   },
+   "marv-8b5f4d7222ae999e6a2aa85d": {
+    "n_docs": 3,
+    "retrieval_tokens": 9687,
+    "scores": [
+     0.7672146558761597,
+     0.75327068567276,
+     0.7600309252738953
+    ],
+    "new_lines": 30,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Extract Method",
+     "Rename Class",
+     "Inline Method"
+    ]
+   },
+   "marv-8fe4386585f1daf04370f567": {
+    "n_docs": 3,
+    "retrieval_tokens": 10455,
+    "scores": [
+     0.7322794795036316,
+     0.7440388202667236,
+     0.735026478767395
+    ],
+    "new_lines": 4,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "unknown",
+     "unknown",
+     "Rename Class"
+    ]
+   },
+   "marv-93e4d78864f553b8943482c4": {
+    "n_docs": 3,
+    "retrieval_tokens": 8549,
+    "scores": [
+     0.7384623885154724,
+     0.734717845916748,
+     0.7296603322029114
+    ],
+    "new_lines": 1,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Extract Method",
+     "Rename Variable",
+     "Rename Variable"
+    ]
+   },
+   "marv-94a8f97e964604d2cc3b043d": {
+    "n_docs": 3,
+    "retrieval_tokens": 5356,
+    "scores": [
+     0.7482277154922485,
+     0.7463910579681396,
+     0.7481857538223267
+    ],
+    "new_lines": 4,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Variable",
+     "Rename Variable",
+     "Extract Class"
+    ]
+   },
+   "marv-9aeaf380720b882494abb080": {
+    "n_docs": 3,
+    "retrieval_tokens": 7428,
+    "scores": [
+     0.763643741607666,
+     0.7351409196853638,
+     0.7307717800140381
+    ],
+    "new_lines": 2,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Remove Parameter",
+     "Rename Method",
+     "Rename Method"
+    ]
+   },
+   "marv-a3efb28e0c3b71ffe5370337": {
+    "n_docs": 3,
+    "retrieval_tokens": 6557,
+    "scores": [
+     0.7469473481178284,
+     0.7426561117172241,
+     0.7410804629325867
+    ],
+    "new_lines": 6,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Variable",
+     "Rename Variable",
+     "Rename Variable"
+    ]
+   },
+   "marv-abf90fac52bd6f6cbda54438": {
+    "n_docs": 3,
+    "retrieval_tokens": 11135,
+    "scores": [
+     0.7193252444267273,
+     0.7182846665382385,
+     0.7349878549575806
+    ],
+    "new_lines": 8,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Extract Class",
+     "Rename Variable",
+     "Extract Method"
+    ]
+   },
+   "marv-ad051aa87e0a97ce04be2ef4": {
+    "n_docs": 3,
+    "retrieval_tokens": 9976,
+    "scores": [
+     0.7653634548187256,
+     0.7599897980690002,
+     0.7804795503616333
+    ],
+    "new_lines": 11,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Class",
+     "Rename Variable",
+     "Rename Method"
+    ]
+   },
+   "marv-b75dbc313592d9af0ad2de28": {
+    "n_docs": 3,
+    "retrieval_tokens": 6197,
+    "scores": [
+     0.7671016454696655,
+     0.7536619901657104,
+     0.7529914379119873
+    ],
+    "new_lines": 1,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Rename Method",
+     "Rename Variable"
+    ]
+   },
+   "marv-c222de29a8b4da108d5ab92d": {
+    "n_docs": 3,
+    "retrieval_tokens": 8828,
+    "scores": [
+     0.7851179242134094,
+     0.7836005687713623,
+     0.7807945609092712
+    ],
+    "new_lines": 1,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Rename Method",
+     "Rename Method"
+    ]
+   },
+   "ml4refactoring-001f5f12017d1832db59cd51": {
+    "n_docs": 3,
+    "retrieval_tokens": 4767,
+    "scores": [
+     0.7007081508636475,
+     0.691473662853241,
+     0.7482401132583618
+    ],
+    "new_lines": 9,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Pull Up Method",
+     "Pull Up Method",
+     "Extract Method"
+    ]
+   },
+   "ml4refactoring-004d47930c7d0adbff07a577": {
+    "n_docs": 3,
+    "retrieval_tokens": 8365,
+    "scores": [
+     0.7800169587135315,
+     0.7745112776756287,
+     0.7698648571968079
+    ],
+    "new_lines": 4,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "unknown",
+     "Extract Method",
+     "unknown"
+    ]
+   },
+   "ml4refactoring-005dfd16df3b5cbfedafa622": {
+    "n_docs": 3,
+    "retrieval_tokens": 11789,
+    "scores": [
+     0.7849441170692444,
+     0.7755652666091919,
+     0.7661057710647583
+    ],
+    "new_lines": 6,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Move Class",
+     "unknown",
+     "Inline Method"
+    ]
+   },
+   "ml4refactoring-00a5876df9abdf547e440e59": {
+    "n_docs": 3,
+    "retrieval_tokens": 7835,
+    "scores": [
+     0.7663348317146301,
+     0.7767882347106934,
+     0.7689534425735474
+    ],
+    "new_lines": 3,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Move Class",
+     "Rename Variable",
+     "Rename Variable"
+    ]
+   },
+   "ml4refactoring-00b015373980175a44c09f21": {
+    "n_docs": 3,
+    "retrieval_tokens": 7942,
+    "scores": [
+     0.7488309741020203,
+     0.7497266530990601,
+     0.7491183876991272
+    ],
+    "new_lines": 0,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Variable",
+     "Rename Variable",
+     "unknown"
+    ]
+   },
+   "ml4refactoring-00ebe203ba5948fe2c1d5336": {
+    "n_docs": 3,
+    "retrieval_tokens": 7375,
+    "scores": [
+     0.8031371831893921,
+     0.7959421873092651,
+     0.8037722110748291
+    ],
+    "new_lines": 7,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Rename Method",
+     "unknown"
+    ]
+   },
+   "ml4refactoring-01258afff1b4295d45f07766": {
+    "n_docs": 3,
+    "retrieval_tokens": 10964,
+    "scores": [
+     0.7758406400680542,
+     0.7893096208572388,
+     0.7734432220458984
+    ],
+    "new_lines": 0,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "unknown",
+     "Move Class",
+     "Rename Class"
+    ]
+   },
+   "ml4refactoring-014bc53f8613af4c248c411a": {
+    "n_docs": 3,
+    "retrieval_tokens": 9482,
+    "scores": [
+     0.7621672749519348,
+     0.7651930451393127,
+     0.768240749835968
+    ],
+    "new_lines": 7,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Extract Superclass",
+     "Extract Method",
+     "Rename Method"
+    ]
+   },
+   "ml4refactoring-018c14f1398fb9a0f159f8a2": {
+    "n_docs": 3,
+    "retrieval_tokens": 5605,
+    "scores": [
+     0.739736795425415,
+     0.7519429922103882,
+     0.7404801845550537
+    ],
+    "new_lines": 6,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Variable",
+     "Remove Parameter",
+     "Rename Method"
+    ]
+   },
+   "ml4refactoring-01c0b9f988bc3e869b93fbdd": {
+    "n_docs": 3,
+    "retrieval_tokens": 3233,
+    "scores": [
+     0.7686765193939209,
+     0.7654401063919067,
+     0.7684934139251709
+    ],
+    "new_lines": 6,
+    "new_lines_from_context": 1,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Class",
+     "Rename Method",
+     "Rename Class"
+    ]
+   },
+   "ml4refactoring-01d90675d12bddacf32c8100": {
+    "n_docs": 3,
+    "retrieval_tokens": 8503,
+    "scores": [
+     0.777637779712677,
+     0.7873538732528687,
+     0.780811071395874
+    ],
+    "new_lines": 4,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Extract Method",
+     "Extract Method",
+     "unknown"
+    ]
+   },
+   "ml4refactoring-0211b82332ecf8e41d476844": {
+    "n_docs": 3,
+    "retrieval_tokens": 4070,
+    "scores": [
+     0.7581380009651184,
+     0.7500442266464233,
+     0.7499557733535767
+    ],
+    "new_lines": 3,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Extract Method",
+     "unknown"
+    ]
+   },
+   "ml4refactoring-025f2e031deddcd89cf0e71d": {
+    "n_docs": 3,
+    "retrieval_tokens": 7545,
+    "scores": [
+     0.8061033487319946,
+     0.7958779335021973,
+     0.8000351190567017
+    ],
+    "new_lines": 23,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Inline Method",
+     "Rename Variable"
+    ]
+   },
+   "ml4refactoring-02ee436b9fb5273174fba1af": {
+    "n_docs": 3,
+    "retrieval_tokens": 6093,
+    "scores": [
+     0.7569773197174072,
+     0.7688876390457153,
+     0.7647519111633301
+    ],
+    "new_lines": 2,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "unknown",
+     "unknown",
+     "unknown"
+    ]
+   },
+   "ml4refactoring-02fda661959fa1a6efea57fe": {
+    "n_docs": 3,
+    "retrieval_tokens": 6775,
+    "scores": [
+     0.76446932554245,
+     0.7620652914047241,
+     0.763391375541687
+    ],
+    "new_lines": 6,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Rename Variable",
+     "Rename Variable"
+    ]
+   },
+   "ml4refactoring-0427aacbbc06b5cc51448268": {
+    "n_docs": 3,
+    "retrieval_tokens": 4977,
+    "scores": [
+     0.7730798125267029,
+     0.7655787467956543,
+     0.7539066672325134
+    ],
+    "new_lines": 4,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Extract Method",
+     "Extract Method",
+     "Extract Method"
+    ]
+   },
+   "ml4refactoring-0490cccf09be7ce48981a0d5": {
+    "n_docs": 3,
+    "retrieval_tokens": 6699,
+    "scores": [
+     0.7094724774360657,
+     0.716023325920105,
+     0.7451121807098389
+    ],
+    "new_lines": 1,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "unknown",
+     "Rename Method",
+     "Inline Method"
+    ]
+   },
+   "ml4refactoring-04a094c71fa6453b553a9cff": {
+    "n_docs": 3,
+    "retrieval_tokens": 6420,
+    "scores": [
+     0.7208183407783508,
+     0.7498005628585815,
+     0.7458793520927429
+    ],
+    "new_lines": 14,
+    "new_lines_from_context": 0,
+    "same_class_docs": 1,
+    "types": [
+     "Rename Method",
+     "Rename Variable",
+     "Move Class"
+    ]
+   },
+   "ml4refactoring-04eea419a5f6c5ae2ac83ff6": {
+    "n_docs": 3,
+    "retrieval_tokens": 4530,
+    "scores": [
+     0.7436091303825378,
+     0.7432348728179932,
+     0.7469244003295898
+    ],
+    "new_lines": 1,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Variable",
+     "Rename Method",
+     "Rename Variable"
+    ]
+   },
+   "ml4refactoring-058748c9cdc88ad4335924ae": {
+    "n_docs": 3,
+    "retrieval_tokens": 12000,
+    "scores": [
+     0.7540513277053833,
+     0.7528406381607056,
+     0.7481995224952698
+    ],
+    "new_lines": 1,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Move Class",
+     "Extract Method"
+    ]
+   },
+   "ml4refactoring-05e045be7c2e2605aa6eda61": {
+    "n_docs": 3,
+    "retrieval_tokens": 8377,
+    "scores": [
+     0.7622469663619995,
+     0.7575796842575073,
+     0.7572088837623596
+    ],
+    "new_lines": 4,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Variable",
+     "unknown",
+     "Move Class"
+    ]
+   },
+   "ml4refactoring-067545641228421e11914129": {
+    "n_docs": 3,
+    "retrieval_tokens": 10691,
+    "scores": [
+     0.7594594955444336,
+     0.7570118308067322,
+     0.7574478983879089
+    ],
+    "new_lines": 2,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Rename Class",
+     "Rename Method"
+    ]
+   },
+   "ml4refactoring-067cc67fddd62445414380a3": {
+    "n_docs": 3,
+    "retrieval_tokens": 11649,
+    "scores": [
+     0.7878319025039673,
+     0.7738452553749084,
+     0.7755786776542664
+    ],
+    "new_lines": 1,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Inline Method",
+     "Rename Variable",
+     "unknown"
+    ]
+   },
+   "ml4refactoring-06a65bbe0086c4bf2fc5db82": {
+    "n_docs": 3,
+    "retrieval_tokens": 5265,
+    "scores": [
+     0.7689964771270752,
+     0.768923282623291,
+     0.7698578238487244
+    ],
+    "new_lines": 8,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Variable",
+     "Rename Class",
+     "Rename Variable"
+    ]
+   },
+   "ml4refactoring-070302d6dbb7c84152266cd3": {
+    "n_docs": 3,
+    "retrieval_tokens": 4709,
+    "scores": [
+     0.757588267326355,
+     0.762007474899292,
+     0.7628087997436523
+    ],
+    "new_lines": 6,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Rename Method",
+     "Remove Parameter"
+    ]
+   },
+   "ml4refactoring-077d88e4bb67b34eb4a6613e": {
+    "n_docs": 3,
+    "retrieval_tokens": 5539,
+    "scores": [
+     0.7509806156158447,
+     0.7704263925552368,
+     0.7555683851242065
+    ],
+    "new_lines": 0,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "unknown",
+     "unknown",
+     "Move Class"
+    ]
+   },
+   "ml4refactoring-084679fd1e239437dd91bd9c": {
+    "n_docs": 3,
+    "retrieval_tokens": 9768,
+    "scores": [
+     0.7947591543197632,
+     0.7889055013656616,
+     0.7986844778060913
+    ],
+    "new_lines": 2,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "unknown",
+     "Rename Method"
+    ]
+   },
+   "ml4refactoring-08921a9acd20b6ca40f08b68": {
+    "n_docs": 3,
+    "retrieval_tokens": 8867,
+    "scores": [
+     0.7766770124435425,
+     0.7837264537811279,
+     0.8010630011558533
+    ],
+    "new_lines": 1,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "unknown",
+     "Rename Variable",
+     "Rename Variable"
+    ]
+   },
+   "ml4refactoring-089f6fcf876d9a71543b0cca": {
+    "n_docs": 3,
+    "retrieval_tokens": 9052,
+    "scores": [
+     0.791204571723938,
+     0.7846446633338928,
+     0.7920166254043579
+    ],
+    "new_lines": 2,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Extract Method",
+     "Inline Method",
+     "Rename Class"
+    ]
+   },
+   "ml4refactoring-08bccb1cea13603171e25c95": {
+    "n_docs": 3,
+    "retrieval_tokens": 7534,
+    "scores": [
+     0.7646484971046448,
+     0.7733006477355957,
+     0.7652162313461304
+    ],
+    "new_lines": 24,
+    "new_lines_from_context": 1,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Rename Variable",
+     "Inline Method"
+    ]
+   },
+   "ml4refactoring-091864eae3a414a417384195": {
+    "n_docs": 3,
+    "retrieval_tokens": 3206,
+    "scores": [
+     0.7729818820953369,
+     0.7746707201004028,
+     0.7632297873497009
+    ],
+    "new_lines": 2,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Rename Class",
+     "Rename Class"
+    ]
+   },
+   "ml4refactoring-09c1497bba00e6262aa767ea": {
+    "n_docs": 3,
+    "retrieval_tokens": 5335,
+    "scores": [
+     0.7224233150482178,
+     0.7244444489479065,
+     0.7325202822685242
+    ],
+    "new_lines": 3,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Rename Class",
+     "Rename Variable"
+    ]
+   },
+   "ml4refactoring-09eb9f622ef81fe884335970": {
+    "n_docs": 3,
+    "retrieval_tokens": 8838,
+    "scores": [
+     0.7711865901947021,
+     0.7847782373428345,
+     0.7702416777610779
+    ],
+    "new_lines": 6,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "unknown",
+     "Rename Method",
+     "Rename Method"
+    ]
+   },
+   "ml4refactoring-0bb02270a6de7c2133aae483": {
+    "n_docs": 3,
+    "retrieval_tokens": 6581,
+    "scores": [
+     0.7491129040718079,
+     0.7449997067451477,
+     0.7533607482910156
+    ],
+    "new_lines": 4,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Variable",
+     "Extract Method",
+     "Rename Variable"
+    ]
+   },
+   "ml4refactoring-0bb224340c076c6efa1cfdc5": {
+    "n_docs": 3,
+    "retrieval_tokens": 4020,
+    "scores": [
+     0.7617232799530029,
+     0.7934934496879578,
+     0.7611874341964722
+    ],
+    "new_lines": 1,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Class",
+     "Rename Class",
+     "Rename Class"
+    ]
+   },
+   "ml4refactoring-0be0dd35336d917cb70cab71": {
+    "n_docs": 3,
+    "retrieval_tokens": 9860,
+    "scores": [
+     0.7729347944259644,
+     0.7544901371002197,
+     0.7541763186454773
+    ],
+    "new_lines": 1,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Inline Method",
+     "Rename Variable",
+     "Rename Class"
+    ]
+   },
+   "ml4refactoring-0cafb3e0653c34c488e45b11": {
+    "n_docs": 3,
+    "retrieval_tokens": 7412,
+    "scores": [
+     0.7476741075515747,
+     0.7458934187889099,
+     0.7480447888374329
+    ],
+    "new_lines": 2,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Variable",
+     "Rename Method",
+     "Extract Class"
+    ]
+   },
+   "ml4refactoring-0d3015cdc8bf8d4f6e0a3acd": {
+    "n_docs": 3,
+    "retrieval_tokens": 5165,
+    "scores": [
+     0.7515507936477661,
+     0.7502247095108032,
+     0.7578493356704712
+    ],
+    "new_lines": 5,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Rename Variable",
+     "Rename Method"
+    ]
+   },
+   "ml4refactoring-0d68bac653c3824873048592": {
+    "n_docs": 3,
+    "retrieval_tokens": 5610,
+    "scores": [
+     0.7464534044265747,
+     0.7402991652488708,
+     0.7432654500007629
+    ],
+    "new_lines": 3,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Rename Variable",
+     "Rename Class"
+    ]
+   },
+   "ml4refactoring-0d7e9e99f000a6d845025035": {
+    "n_docs": 3,
+    "retrieval_tokens": 4873,
+    "scores": [
+     0.7360286116600037,
+     0.7399942278862,
+     0.7400236129760742
+    ],
+    "new_lines": 3,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Extract Superclass",
+     "Rename Variable",
+     "Extract Class"
+    ]
+   },
+   "ml4refactoring-0db08400906f099bf85620af": {
+    "n_docs": 3,
+    "retrieval_tokens": 10469,
+    "scores": [
+     0.7444267868995667,
+     0.7392242550849915,
+     0.7428452968597412
+    ],
+    "new_lines": 6,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Extract Method",
+     "Rename Variable",
+     "unknown"
+    ]
+   },
+   "ml4refactoring-0df60228ff7e291428aaf758": {
+    "n_docs": 3,
+    "retrieval_tokens": 8685,
+    "scores": [
+     0.7775511741638184,
+     0.7803124785423279,
+     0.7759577035903931
+    ],
+    "new_lines": 2,
+    "new_lines_from_context": 1,
+    "same_class_docs": 0,
+    "types": [
+     "unknown",
+     "Extract Method",
+     "unknown"
+    ]
+   },
+   "ml4refactoring-0e15f1ff63782542debf870e": {
+    "n_docs": 3,
+    "retrieval_tokens": 10278,
+    "scores": [
+     0.7595694065093994,
+     0.7717942595481873,
+     0.7605050206184387
+    ],
+    "new_lines": 14,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Variable",
+     "Rename Variable",
+     "unknown"
+    ]
+   },
+   "ml4refactoring-0e8595fdd8c0f4307c9f9422": {
+    "n_docs": 3,
+    "retrieval_tokens": 5082,
+    "scores": [
+     0.8220325112342834,
+     0.8182969093322754,
+     0.8144223093986511
+    ],
+    "new_lines": 4,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Move Class",
+     "Move Class",
+     "Extract Method"
+    ]
+   },
+   "ml4refactoring-0e966131fed95edf73f051e9": {
+    "n_docs": 3,
+    "retrieval_tokens": 6935,
+    "scores": [
+     0.7666129469871521,
+     0.7679898738861084,
+     0.765791118144989
+    ],
+    "new_lines": 1,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Variable",
+     "Extract Class",
+     "Rename Method"
+    ]
+   },
+   "ml4refactoring-0ea3631128ae38d5bba209be": {
+    "n_docs": 3,
+    "retrieval_tokens": 5932,
+    "scores": [
+     0.7412526607513428,
+     0.7347310781478882,
+     0.7304486036300659
+    ],
+    "new_lines": 1,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Variable",
+     "Rename Variable",
+     "Rename Method"
+    ]
+   },
+   "ml4refactoring-0f124356cccdcffd7692213c": {
+    "n_docs": 3,
+    "retrieval_tokens": 8788,
+    "scores": [
+     0.747139573097229,
+     0.751331627368927,
+     0.7514054775238037
+    ],
+    "new_lines": 0,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Move Method",
+     "Inline Method",
+     "Rename Variable"
+    ]
+   },
+   "ml4refactoring-1006ab14d08d580ef3c28383": {
+    "n_docs": 3,
+    "retrieval_tokens": 6775,
+    "scores": [
+     0.7402952909469604,
+     0.7249966859817505,
+     0.727258026599884
+    ],
+    "new_lines": 1,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Move Class",
+     "Extract Method",
+     "Move Class"
+    ]
+   },
+   "ml4refactoring-10582435c009039aa9d6e2b3": {
+    "n_docs": 3,
+    "retrieval_tokens": 6999,
+    "scores": [
+     0.7674676775932312,
+     0.7899482250213623,
+     0.7666141986846924
+    ],
+    "new_lines": 2,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Move Class",
+     "Rename Class",
+     "Rename Method"
+    ]
+   },
+   "ml4refactoring-107053efed21203cbb81caa4": {
+    "n_docs": 3,
+    "retrieval_tokens": 8609,
+    "scores": [
+     0.7897258996963501,
+     0.7732675671577454,
+     0.7730898857116699
+    ],
+    "new_lines": 5,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Extract Method",
+     "Rename Variable",
+     "Rename Variable"
+    ]
+   },
+   "ml4refactoring-10b2d8f4d7c8f1c364b35c45": {
+    "n_docs": 3,
+    "retrieval_tokens": 4223,
+    "scores": [
+     0.8336979150772095,
+     0.8067433834075928,
+     0.7919973134994507
+    ],
+    "new_lines": 5,
+    "new_lines_from_context": 3,
+    "same_class_docs": 1,
+    "types": [
+     "Extract Method",
+     "unknown",
+     "unknown"
+    ]
+   },
+   "ml4refactoring-10b3a2af298010608fcac3af": {
+    "n_docs": 3,
+    "retrieval_tokens": 10307,
+    "scores": [
+     0.7538144588470459,
+     0.7549384832382202,
+     0.7451667785644531
+    ],
+    "new_lines": 3,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Rename Method",
+     "unknown"
+    ]
+   },
+   "ml4refactoring-10e7977d3a2decac0a950a45": {
+    "n_docs": 3,
+    "retrieval_tokens": 12000,
+    "scores": [
+     0.7878216505050659,
+     0.7681393623352051,
+     0.7722761034965515
+    ],
+    "new_lines": 2,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Inline Method",
+     "Move Class",
+     "Rename Variable"
+    ]
+   },
+   "ml4refactoring-10f7cd93af5fbc167d21f951": {
+    "n_docs": 3,
+    "retrieval_tokens": 6924,
+    "scores": [
+     0.7601073980331421,
+     0.7857761979103088,
+     0.759145975112915
+    ],
+    "new_lines": 5,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "unknown",
+     "Rename Variable",
+     "unknown"
+    ]
+   },
+   "ml4refactoring-1197526c59085cc948e3fb57": {
+    "n_docs": 3,
+    "retrieval_tokens": 8687,
+    "scores": [
+     0.7707670331001282,
+     0.7642822265625,
+     0.7713042497634888
+    ],
+    "new_lines": 29,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Method",
+     "Rename Method",
+     "Move Class"
+    ]
+   },
+   "ml4refactoring-126801a456ee830f6fdcb031": {
+    "n_docs": 3,
+    "retrieval_tokens": 8276,
+    "scores": [
+     0.7513570785522461,
+     0.7580969333648682,
+     0.7536072731018066
+    ],
+    "new_lines": 3,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Variable",
+     "Rename Method",
+     "Rename Method"
+    ]
+   },
+   "ml4refactoring-1404b7ca9dd7ca4edb29ef0a": {
+    "n_docs": 3,
+    "retrieval_tokens": 2532,
+    "scores": [
+     0.7322233319282532,
+     0.7296056151390076,
+     0.7219406366348267
+    ],
+    "new_lines": 2,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "unknown",
+     "unknown",
+     "Move Class"
+    ]
+   },
+   "ml4refactoring-180a7785efdda20d55ff96d8": {
+    "n_docs": 3,
+    "retrieval_tokens": 8343,
+    "scores": [
+     0.752158522605896,
+     0.7653228640556335,
+     0.7528443336486816
+    ],
+    "new_lines": 0,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Extract Method",
+     "Rename Method",
+     "unknown"
+    ]
+   },
+   "ml4refactoring-1b8ae3c02a090169f19201f7": {
+    "n_docs": 3,
+    "retrieval_tokens": 9043,
+    "scores": [
+     0.7593977451324463,
+     0.7603656053543091,
+     0.7955629825592041
+    ],
+    "new_lines": 1,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Variable",
+     "unknown",
+     "Extract Method"
+    ]
+   },
+   "ml4refactoring-1d6951a18b170e237a05083e": {
+    "n_docs": 3,
+    "retrieval_tokens": 7065,
+    "scores": [
+     0.7837570905685425,
+     0.7742459774017334,
+     0.7754420042037964
+    ],
+    "new_lines": 1,
+    "new_lines_from_context": 0,
+    "same_class_docs": 0,
+    "types": [
+     "Rename Variable",
+     "Rename Method",
+     "Rename Method"
+    ]
+   }
+  }
+ },
+ "R5": [
+  {
+   "case": "12dbeafe93f7",
+   "arm": "qwen_base",
+   "op": "Extract Method",
+   "status": "checks_failed",
+   "in_tok": 631,
+   "out_tok": 447,
+   "finish": "stop",
+   "truncated": null,
+   "max_new": null,
+   "identical": false,
+   "changed_chars": 112,
+   "ratio": 0.955177743431221
+  },
+  {
+   "case": "12dbeafe93f7",
+   "arm": "ft_refactoring",
+   "op": "Extract Method",
+   "status": "checks_failed",
+   "in_tok": 602,
+   "out_tok": 434,
+   "finish": "eos",
+   "truncated": false,
+   "max_new": 8192,
+   "identical": false,
+   "changed_chars": 104,
+   "ratio": 0.9669781931464174
+  },
+  {
+   "case": "12dbeafe93f7",
+   "arm": "ft_v3_onto",
+   "op": "Extract Method",
+   "status": "checks_failed",
+   "in_tok": 686,
+   "out_tok": 451,
+   "finish": "eos",
+   "truncated": false,
+   "max_new": 8192,
+   "identical": false,
+   "changed_chars": 219,
+   "ratio": 0.9329677026203534
+  },
+  {
+   "case": "12dbeafe93f7",
+   "arm": "ft_onto",
+   "op": "Extract Method",
+   "status": "checks_failed",
+   "in_tok": 686,
+   "out_tok": 433,
+   "finish": "eos",
+   "truncated": false,
+   "max_new": 8192,
+   "identical": false,
+   "changed_chars": 88,
+   "ratio": 0.9724828017510945
+  },
+  {
+   "case": "3ac63df5d566",
+   "arm": "qwen_base",
+   "op": "Extract Method",
+   "status": "checks_failed",
+   "in_tok": 865,
+   "out_tok": 712,
+   "finish": "stop",
+   "truncated": null,
+   "max_new": null,
+   "identical": false,
+   "changed_chars": 260,
+   "ratio": 0.9507487520798669
+  },
+  {
+   "case": "3ac63df5d566",
+   "arm": "ft_refactoring",
+   "op": "Extract Method",
+   "status": "no_op",
+   "in_tok": 836,
+   "out_tok": 694,
+   "finish": "eos",
+   "truncated": false,
+   "max_new": 8192,
+   "identical": false,
+   "changed_chars": 7,
+   "ratio": 0.9988201584358671
+  },
+  {
+   "case": "3ac63df5d566",
+   "arm": "ft_v3_onto",
+   "op": "Extract Method",
+   "status": "no_op",
+   "in_tok": 1032,
+   "out_tok": 694,
+   "finish": "eos",
+   "truncated": false,
+   "max_new": 8192,
+   "identical": false,
+   "changed_chars": 7,
+   "ratio": 0.9988201584358671
+  },
+  {
+   "case": "3ac63df5d566",
+   "arm": "ft_onto",
+   "op": "Extract Method",
+   "status": "no_op",
+   "in_tok": 1032,
+   "out_tok": 694,
+   "finish": "eos",
+   "truncated": false,
+   "max_new": 8192,
+   "identical": false,
+   "changed_chars": 7,
+   "ratio": 0.9988201584358671
+  },
+  {
+   "case": "4d63091bdc21",
+   "arm": "qwen_base",
+   "op": "Extract Method",
+   "status": "passed",
+   "in_tok": 1255,
+   "out_tok": 1121,
+   "finish": "stop",
+   "truncated": null,
+   "max_new": null,
+   "identical": false,
+   "changed_chars": 187,
+   "ratio": 0.9765835761303551
+  },
+  {
+   "case": "4d63091bdc21",
+   "arm": "ft_refactoring",
+   "op": "Extract Method",
+   "status": "no_op",
+   "in_tok": 1226,
+   "out_tok": 1086,
+   "finish": "eos",
+   "truncated": false,
+   "max_new": 8192,
+   "identical": true,
+   "changed_chars": 0,
+   "ratio": 1.0
+  },
+  {
+   "case": "4d63091bdc21",
+   "arm": "ft_v3_onto",
+   "op": "Extract Method",
+   "status": "no_op",
+   "in_tok": 1310,
+   "out_tok": 1086,
+   "finish": "eos",
+   "truncated": false,
+   "max_new": 8192,
+   "identical": true,
+   "changed_chars": 0,
+   "ratio": 1.0
+  },
+  {
+   "case": "4d63091bdc21",
+   "arm": "ft_onto",
+   "op": "Extract Method",
+   "status": "no_op",
+   "in_tok": 1310,
+   "out_tok": 1086,
+   "finish": "eos",
+   "truncated": false,
+   "max_new": 8192,
+   "identical": true,
+   "changed_chars": 0,
+   "ratio": 1.0
+  },
+  {
+   "case": "c28eff3be600",
+   "arm": "qwen_base",
+   "op": "Inline Method",
+   "status": "checks_failed",
+   "in_tok": 1102,
+   "out_tok": 989,
+   "finish": "stop",
+   "truncated": null,
+   "max_new": null,
+   "identical": false,
+   "changed_chars": 6,
+   "ratio": 0.9991995731056563
+  },
+  {
+   "case": "c28eff3be600",
+   "arm": "ft_refactoring",
+   "op": "Inline Method",
+   "status": "no_op",
+   "in_tok": 1073,
+   "out_tok": 989,
+   "finish": "eos",
+   "truncated": false,
+   "max_new": 8192,
+   "identical": false,
+   "changed_chars": 3,
+   "ratio": 0.9996002664890073
+  },
+  {
+   "case": "c28eff3be600",
+   "arm": "ft_v3_onto",
+   "op": "Inline Method",
+   "status": "no_op",
+   "in_tok": 1238,
+   "out_tok": 989,
+   "finish": "eos",
+   "truncated": false,
+   "max_new": 8192,
+   "identical": false,
+   "changed_chars": 3,
+   "ratio": 0.9996002664890073
+  },
+  {
+   "case": "c28eff3be600",
+   "arm": "ft_onto",
+   "op": "Inline Method",
+   "status": "no_op",
+   "in_tok": 1238,
+   "out_tok": 989,
+   "finish": "eos",
+   "truncated": false,
+   "max_new": 8192,
+   "identical": false,
+   "changed_chars": 3,
+   "ratio": 0.9996002664890073
+  },
+  {
+   "case": "d269f164b3e2",
+   "arm": "qwen_base",
+   "op": "Extract Method",
+   "status": "checks_failed",
+   "in_tok": 1337,
+   "out_tok": 1299,
+   "finish": "stop",
+   "truncated": null,
+   "max_new": null,
+   "identical": false,
+   "changed_chars": 138,
+   "ratio": 0.9834938101788171
+  },
+  {
+   "case": "d269f164b3e2",
+   "arm": "ft_refactoring",
+   "op": "Extract Method",
+   "status": "no_op",
+   "in_tok": 1308,
+   "out_tok": 1275,
+   "finish": "eos",
+   "truncated": false,
+   "max_new": 8192,
+   "identical": false,
+   "changed_chars": 4,
+   "ratio": 0.9996030958523516
+  },
+  {
+   "case": "d269f164b3e2",
+   "arm": "ft_v3_onto",
+   "op": "Extract Method",
+   "status": "no_op",
+   "in_tok": 1415,
+   "out_tok": 1275,
+   "finish": "eos",
+   "truncated": false,
+   "max_new": 8192,
+   "identical": false,
+   "changed_chars": 4,
+   "ratio": 0.9996030958523516
+  },
+  {
+   "case": "d269f164b3e2",
+   "arm": "ft_onto",
+   "op": "Extract Method",
+   "status": "checks_failed",
+   "in_tok": 1415,
+   "out_tok": 1256,
+   "finish": "eos",
+   "truncated": false,
+   "max_new": 8192,
+   "identical": false,
+   "changed_chars": 137,
+   "ratio": 0.986081906478422
+  }
+ ],
+ "R_stats": {
+  "wilson": {
+   "qwen_base": {
+    "k": 60,
+    "n": 100,
+    "lower": 0.5020025860174634,
+    "upper": 0.6905987142287373
+   },
+   "onto_project": {
+    "k": 55,
+    "n": 100,
+    "lower": 0.45244602921907245,
+    "upper": 0.6438546209040279
+   },
+   "skills": {
+    "k": 49,
+    "n": 100,
+    "lower": 0.3942199885796587,
+    "upper": 0.5865198813957212
+   },
+   "skills_onto": {
+    "k": 54,
+    "n": 100,
+    "lower": 0.44264860248278026,
+    "upper": 0.6343919176157001
+   },
+   "rag_single": {
+    "k": 37,
+    "n": 100,
+    "lower": 0.2818236047080924,
+    "upper": 0.46779470497184666
+   },
+   "ft_refactoring": {
+    "k": 68,
+    "n": 100,
+    "lower": 0.583373813107172,
+    "upper": 0.7633085273359895
+   },
+   "ft_v3_onto": {
+    "k": 67,
+    "n": 100,
+    "lower": 0.5730534371634074,
+    "upper": 0.754368773255134
+   },
+   "ft_onto": {
+    "k": 67,
+    "n": 100,
+    "lower": 0.5730534371634074,
+    "upper": 0.754368773255134
+   }
+  },
+  "pairs": [
+   {
+    "A": "onto_project",
+    "B": "qwen_base",
+    "a_only": 5,
+    "b_only": 10,
+    "delta": -0.05,
+    "p": 0.30175781249999994,
+    "boot_lo": -0.13,
+    "boot_hi": 0.02,
+    "discordant_rate": 0.15,
+    "mde_005": 0.11,
+    "mde_holm_001": 0.13,
+    "p_holm": 1
+   },
+   {
+    "A": "ft_v3_onto",
+    "B": "ft_refactoring",
+    "a_only": 5,
+    "b_only": 6,
+    "delta": -0.01,
+    "p": 1.0,
+    "boot_lo": -0.07,
+    "boot_hi": 0.06,
+    "discordant_rate": 0.11,
+    "mde_005": 0.1,
+    "mde_holm_001": 0.11,
+    "p_holm": 1
+   },
+   {
+    "A": "ft_onto",
+    "B": "ft_v3_onto",
+    "a_only": 6,
+    "b_only": 6,
+    "delta": 0.0,
+    "p": 1.0,
+    "boot_lo": -0.07,
+    "boot_hi": 0.07,
+    "discordant_rate": 0.12,
+    "mde_005": 0.1,
+    "mde_holm_001": 0.12,
+    "p_holm": 1
+   },
+   {
+    "A": "skills_onto",
+    "B": "skills",
+    "a_only": 11,
+    "b_only": 6,
+    "delta": 0.05,
+    "p": 0.332305908203125,
+    "boot_lo": -0.03,
+    "boot_hi": 0.13,
+    "discordant_rate": 0.17,
+    "mde_005": 0.12,
+    "mde_holm_001": 0.14,
+    "p_holm": 1
+   },
+   {
+    "A": "skills_onto",
+    "B": "onto_project",
+    "a_only": 5,
+    "b_only": 6,
+    "delta": -0.01,
+    "p": 1.0,
+    "boot_lo": -0.07,
+    "boot_hi": 0.05,
+    "discordant_rate": 0.11,
+    "mde_005": 0.1,
+    "mde_holm_001": 0.11,
+    "p_holm": 1
+   }
+  ],
+  "descriptive": [
+   {
+    "A": "rag_single",
+    "B": "qwen_base",
+    "a_only": 4,
+    "b_only": 27,
+    "delta": -0.23,
+    "p": 3.39532271027565e-05,
+    "boot_lo": -0.33,
+    "boot_hi": -0.13
+   },
+   {
+    "A": "ft_refactoring",
+    "B": "qwen_base",
+    "a_only": 21,
+    "b_only": 13,
+    "delta": 0.08,
+    "p": 0.22948101302608848,
+    "boot_lo": -0.03,
+    "boot_hi": 0.19
+   },
+   {
+    "A": "ft_v3_onto",
+    "B": "onto_project",
+    "a_only": 29,
+    "b_only": 17,
+    "delta": 0.12,
+    "p": 0.10380535550410741,
+    "boot_lo": -0.01,
+    "boot_hi": 0.25
+   },
+   {
+    "A": "ft_onto",
+    "B": "onto_project",
+    "a_only": 25,
+    "b_only": 13,
+    "delta": 0.12,
+    "p": 0.07295138851623051,
+    "boot_lo": 0.0,
+    "boot_hi": 0.24
+   },
+   {
+    "A": "ft_onto",
+    "B": "qwen_base",
+    "a_only": 21,
+    "b_only": 14,
+    "delta": 0.07,
+    "p": 0.31050465907901537,
+    "boot_lo": -0.04,
+    "boot_hi": 0.19
+   }
+  ]
+ }
+}
