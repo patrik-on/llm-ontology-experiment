@@ -3,6 +3,7 @@
 [![CI](https://github.com/patrik-on/llm-ontology-experiment/actions/workflows/ci.yml/badge.svg)](https://github.com/patrik-on/llm-ontology-experiment/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24446129.svg)](https://doi.org/10.5281/zenodo.24446129)
 
 Diplomová práca: Qwen2.5-Coder-7B na dvoch Java úlohách, generovaní JUnit testov
 (Methods2Test) a refactoringu (SWE-Refactor + MaRV + ML4Ref). Každá úloha porovnáva
@@ -50,7 +51,7 @@ Dá sa ísť troma úrovňami. Každá ďalšia potrebuje viac dát, času a GPU
 | Úroveň | Čo overí | Potrebuje |
 |---|---|---|
 | A. Kód | testy, plány behov | iba Python |
-| B. Reporty z existujúcich behov | všetky čísla v `docs/results/` | run adresáre (odovzdávajú sa zvlášť) |
+| B. Reporty z existujúcich behov | všetky čísla v `docs/results/` | run adresáre zo [Zenodo](https://doi.org/10.5281/zenodo.24446129) |
 | C. Celý experiment | dáta → index → tréning → oba evaly | GPU so 16 GB VRAM, ~120 GB disku, datasety, asi 2 dni výpočtu |
 
 ### Prostredie, na ktorom experiment bežal
@@ -91,8 +92,12 @@ Testy `local_data` a `rag` sa bez lokálnych dát alebo `chromadb` preskočia s 
 
 ### B. Reporty a analýza z existujúcich behov
 
-Skopíruj odovzdané run adresáre do `artifacts/evaluation/runs/`
-(`testing-matrix-20261121`, `testing-matrix-20261122-rag2`, `refactoring-matrix-20261121`).
+Stiahni archívy behov zo Zenodo ([10.5281/zenodo.24446129](https://doi.org/10.5281/zenodo.24446129)),
+over ich (`sha256sum -c SHA256SUMS`) a rozbaľ (`tar --zstd -xf <archív>`) tak, aby vznikli
+`artifacts/evaluation/runs/testing-matrix-20261121`, `…/testing-matrix-20261122-rag2`
+a `…/refactoring-matrix-20261121`. Postup je aj v `ZENODO_README.md` v zázname.
+Symlinky v archívoch sú relatívne. `freeze.json` a `continuation.json` obsahujú absolútne
+cesty pôvodného stroja, preto `--report-only` overenie potrebuje rovnaké rozloženie.
 
 **Analýza** číta iba uložené výsledky a beží na aktuálnom main:
 
@@ -275,5 +280,6 @@ Pre agentov a nástroje je aktuálny zoznam aktívnych verzií v [AGENTS.md](AGE
 ## Citácia a licencia
 
 Kód je pod licenciou [MIT](LICENSE). Ak ho použiješ, cituj ho podľa [CITATION.cff](CITATION.cff)
-(GitHub ponúka tlačidlo „Cite this repository“). Datasety majú vlastné licencie:
+(GitHub ponúka tlačidlo „Cite this repository“). Adaptéry a run adresáre sú na Zenodo pod DOI
+[10.5281/zenodo.24446129](https://doi.org/10.5281/zenodo.24446129). Datasety majú vlastné licencie:
 Methods2Test (MIT), SWE-Refactor (CC-BY-4.0) a MaRV a ML4Refactoring podľa ich záznamov na Zenodo.
