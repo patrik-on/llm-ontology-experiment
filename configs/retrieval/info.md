@@ -8,5 +8,5 @@
   unit testy pipeline; nie je to sémantický model pre experimenty.
 
 Staršie V1/V2 a Jina konfigurácie boli odstránené (sú v Git histórii, opis v
-`docs/retrieval/archive/`). Evaluation index smie obsahovať iba train split;
+`docs/archive/retrieval/`). Evaluation index smie obsahovať iba train split;
 Chroma indexy sú lokálne pod ignorovaným `data/chroma/`.
