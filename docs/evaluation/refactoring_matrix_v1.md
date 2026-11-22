@@ -124,7 +124,8 @@ is not counted as a pass; a different declared candidate is prepared instead.
 .venv_wsl/bin/python scripts/benchmarks/run_refactoring_matrix.py \
   --run-id NEW_CONTEXT_POOL_PREPARATION --prepare-pool
 
-# AFTER full-cohort release only:
+# AFTER full-cohort release only (current release: pool run mixed-context-pool-v5-20261121;
+# current frozen run: refactoring-matrix-20261121, all 100 cases):
 .venv_wsl/bin/python scripts/benchmarks/run_refactoring_matrix.py \
   --run-id context-n20 --cases 20 --prepare-only
 .venv_wsl/bin/python scripts/benchmarks/run_refactoring_matrix.py \

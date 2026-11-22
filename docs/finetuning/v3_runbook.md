@@ -90,7 +90,6 @@ python scripts/finetuning/check_finetuning_ready.py --config configs/finetuning/
 python scripts/finetuning/train_finetuning.py --config configs/finetuning/training_b2_testing_wsl.yaml --max_steps 2   # smoke
 python scripts/finetuning/train_finetuning.py --config configs/finetuning/training_b2_testing_wsl.yaml
 python scripts/finetuning/train_finetuning.py --config configs/finetuning/training_b2_refactoring_wsl.yaml
-python scripts/finetuning/train_finetuning.py --config configs/finetuning/training_b1_shared_wsl.yaml
 # ft_onto (rovnaké hyperparametre, dáta v3_onto)
 python scripts/finetuning/train_finetuning.py --config configs/finetuning/training_b2_testing_onto_wsl.yaml
 python scripts/finetuning/train_finetuning.py --config configs/finetuning/training_b2_refactoring_onto_wsl.yaml
@@ -112,4 +111,3 @@ Obe matice už používajú v3 adaptéry a ontologické ramená:
    zdroje sú v3 aj v3_onto súbory. Freeze overí, že `training_summary.json` adaptéra
    nesie rovnaký názov experimentu a tieto zdroje.
 3. Behy potrebujú nové `--run-id` (freeze hashuje zdrojové súbory aj adaptéry).
-4. Voliteľne ešte rameno `ft_shared` (b1_shared_v3) a `qwen_base_hf` (bod D18 auditu).

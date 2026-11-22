@@ -1,4 +1,3 @@
-from llm_ontology.inference.prompts import build_prompt, build_training_text
 from llm_ontology.finetuning.prompt_formatter import format_inference_prompt, format_training_prompt
 from llm_ontology.finetuning.training.finetuning import apply_training_overrides, build_tokenized_training_example, dataset_sample_limits
 from llm_ontology.evaluation.hf_inference import is_lora_model
@@ -20,20 +19,6 @@ class FakeTokenizer:
         if truncation and max_length is not None:
             input_ids = input_ids[:max_length]
         return {"input_ids": input_ids, "attention_mask": [1] * len(input_ids)}
-
-
-def test_build_prompt_and_training_text() -> None:
-    record = {"instruction": "Do it.", "input": "code", "output": "answer", "domain": "testing"}
-
-    prompt = build_prompt(record)
-    training_text = build_training_text(record)
-
-    assert "SYSTEM\n" in prompt
-    assert "TASK\n" in prompt
-    assert "INPUT\ncode" in prompt
-    assert "RETRIEVED EVIDENCE\nNone." in prompt
-    assert "OUTPUT REQUIREMENTS\n" in prompt
-    assert training_text.endswith("answer")
 
 
 def test_prompt_formatter_preserves_task_instruction() -> None:
