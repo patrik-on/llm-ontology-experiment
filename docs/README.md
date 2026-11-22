@@ -3,7 +3,7 @@
 | Priečinok | Obsah |
 |---|---|
 | [evaluation/](evaluation/README.md) | protokoly oboch matíc: [testing](evaluation/testing_matrix_v1.md), [refactoring](evaluation/refactoring_matrix_v1.md) |
-| [results/](results/) | reporty finálnych behov a hĺbková analýza |
+| [results/](results/) | reporty finálnych behov, [hĺbková analýza](results/deep_analysis.md), [adaptéry vo váhovom priestore](results/adapter_weight_similarity.md) |
 | [finetuning/](finetuning/v3_runbook.md) | tréning v3 adaptérov, WSL setup, odkazy na stiahnutie |
 | [retrieval/](retrieval/rag_v3.md) | RAG v3 a embeddingy cez Ollamu |
 | [datasets/](datasets/data_audit_report.md) | audit datasetov, ukážky záznamov, záznam o stiahnutí SWE-Refactor |
