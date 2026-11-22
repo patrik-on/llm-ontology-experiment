@@ -13,12 +13,13 @@ Každá analýza má vlastný priečinok `<dátum>_<téma>/` s krátkym popisom 
 | Dátum | Priečinok | Čo obsahuje |
 |---|---|---|
 | 2026-11-21 | [preco_ontologia_nepomohla](2026-11-21_preco_ontologia_nepomohla/README.md) | predbežné hypotézy, prečo ontológia ani skill nepriniesli zlepšenie |
+| 2026-11-22 | [vysledky_evalu](2026-11-22_vysledky_evalu/README.md) | finálne reporty oboch matíc (testing, refactoring) |
 | 2026-11-22 | [hlbkova_analyza_evalu](2026-11-22_hlbkova_analyza_evalu/README.md) | typy chýb, nesúhlasné páry, podskupiny, RAG, štatistická sila |
 | 2026-11-22 | [ontologia_podla_typu_pripadu](2026-11-22_ontologia_podla_typu_pripadu/README.md) | či ontológia pomohla pri nejakom type prípadu alebo refaktoringu |
 | 2026-11-22 | [najcastejsie_chyby](2026-11-22_najcastejsie_chyby/README.md) | najčastejšie chyby základného modelu a FT ramien |
 | 2026-11-22 | [adaptery_vo_vahovom_priestore](2026-11-22_adaptery_vo_vahovom_priestore/README.md) | podobnosť LoRA adaptérov s ontológiou a bez nej vo váhach |
 
-Reporty samotných behov zostávajú v [docs/results/](../docs/results/).
+Iné miesto v repe pre analýzy a reporty finálnych behov nie je.
 
 ### Ďalšie podklady
 

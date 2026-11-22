@@ -14,7 +14,7 @@ Each uses the same eight arms (baseline, ontology block, skill, skill + block,
 Single-RAG, v3 adapter, v3 adapter + block, adapter trained with the block). The
 full run is 100 cases × 8 arms, one response each, no repair/retry.
 Final runs: `testing-matrix-20261122-rag2` and `refactoring-matrix-20261121`; reports in
-[docs/results](../results/), replication steps in the root README. Do not report
+[thesis_materials](../../thesis_materials/README.md), replication steps in the root README. Do not report
 infrastructure QA as model performance.
 
 Methods2Test measures generated-test validity, execution, focal invocation and
