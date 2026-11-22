@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "Ak použijete tento kód alebo výsledky, citujte ho takto."
+title: "LLM Ontology Experiment: Qwen2.5-Coder-7B on Java test generation and refactoring"
+type: software
+authors:
+  - family-names: "Ončák"
+    given-names: "Patrik"
+repository-code: "https://github.com/patrik-on/llm-ontology-experiment"
+license: MIT
+date-released: "2026-11-22"
+keywords:
+  - large language models
+  - ontology
+  - retrieval-augmented generation
+  - LoRA fine-tuning
+  - unit test generation
+  - refactoring
+  - Java

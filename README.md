@@ -1,5 +1,9 @@
 # LLM Ontology Experiment
 
+[![CI](https://github.com/patrik-on/llm-ontology-experiment/actions/workflows/ci.yml/badge.svg)](https://github.com/patrik-on/llm-ontology-experiment/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](pyproject.toml)
+
 Diplomová práca: Qwen2.5-Coder-7B na dvoch Java úlohách, generovaní JUnit testov
 (Methods2Test) a refactoringu (SWE-Refactor + MaRV + ML4Ref). Každá úloha porovnáva
 osem ramien na tých istých 100 prípadoch, jeden pokus na bunku a bez opráv výstupu.
@@ -258,7 +262,13 @@ python scripts/analysis/deep_analysis.py \
 | `scripts/datasets/`, `scripts/finetuning/`, `scripts/retrieval/` | dáta, tréning, index |
 | `scripts/analysis/` | hĺbková analýza výsledkov |
 | `configs/` | modely, matice, retrieval, tréning, pinnuté `SKILL.md` |
-| `docs/` | [eval](docs/evaluation/README.md), [tréning](docs/finetuning/v3_runbook.md), [retrieval](docs/retrieval/rag_v3.md), [výsledky](docs/results/) |
+| `docs/` | [index dokumentácie](docs/README.md): eval, výsledky, tréning, retrieval; datované záznamy v `docs/archive/` |
 | `thesis_materials/` | podklady na písanie práce |
 
 Pre agentov a nástroje je aktuálny zoznam aktívnych verzií v [AGENTS.md](AGENTS.md).
+
+## Citácia a licencia
+
+Kód je pod licenciou [MIT](LICENSE). Ak ho použiješ, cituj ho podľa [CITATION.cff](CITATION.cff)
+(GitHub ponúka tlačidlo „Cite this repository“). Datasety majú vlastné licencie:
+Methods2Test (MIT), SWE-Refactor (CC-BY-4.0) a MaRV a ML4Refactoring podľa ich záznamov na Zenodo.
