@@ -1,6 +1,6 @@
 # Úplné raw príklady používaných datasetov
 
-Tento súbor ukazuje jeden **celý, neskrátený zdrojový záznam** z každého hlavného externého datasetu projektu: Methods2Test, ML4Refactoring a MaRV. Handcrafted smoke dataset je celý rozpísaný v `docs/datasets/handcrafted_smoke_all_cases.md`.
+Tento súbor ukazuje jeden **celý, neskrátený zdrojový záznam** z každého hlavného externého datasetu projektu: Methods2Test, ML4Refactoring a MaRV. Handcrafted smoke dataset je celý rozpísaný v `thesis_materials/handcrafted_skills/smoke_cases/handcrafted_smoke_all_cases.md`.
 
 Pri JSON ukážkach bolo kvôli čitateľnosti zmenené iba odsadenie. Hodnoty, polia a obsah sú úplné; nikde nie je použité skracovanie `...`. Pri ML4Refactoring sú oba Java súbory načítané priamo zo zdrojového project ZIPu.
 

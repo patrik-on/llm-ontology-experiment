@@ -213,7 +213,7 @@ exploratívne modelové merania a prípadné širšie potvrdenie.
 
 - [Testing runbook](../../docs/evaluation/testing_matrix_v1.md),
   [refactoring runbook](../../docs/evaluation/refactoring_matrix_v1.md),
-  [overenie implementácie](../../docs/evaluation/validation_2026-11-13.md).
+  [overenie implementácie](../../docs/archive/evaluation/validation_2026-11-13.md).
 - [Konfigurácia testing](../../configs/benchmarks/testing_matrix_v1.json),
   [konfigurácia refactoring](../../configs/benchmarks/refactoring_matrix_v1.json).
 - [Mapa implementácie](../../docs/architecture/project_map.md),
