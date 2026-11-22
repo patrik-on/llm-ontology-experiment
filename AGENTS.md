@@ -33,7 +33,7 @@ A version suffix in a name is an identity, not an alternative. Use these:
 
 ## Do not read unless asked (historical, large or local-only)
 
-- `docs/evaluation/archive/`, `docs/retrieval/archive/`, `thesis_materials/`
+- `docs/archive/`, `thesis_materials/`
   (writing material and historical reports, not code to change)
 - `thesis_materials/handcrafted_skills/archive_manifest.json` (4 MB)
 - `data/`, `artifacts/`, `benchmarks/` (data and outputs, mostly Git-ignored)

@@ -19,7 +19,7 @@ are not a reason to reject the requested refactoring. SWE retains project tests.
 
 This supersedes the v3 isolated-change admission policy. Its earlier 35-task
 result measured that overly conservative gate, not the availability under v4.
-The [v3 receipt](archive/refactoring_mixed_v3_2026-11-13.md) remains historical evidence.
+The [v3 receipt](refactoring_mixed_v3_2026-11-13.md) remains historical evidence.
 
 ## Measured source availability
 

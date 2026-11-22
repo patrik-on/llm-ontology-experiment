@@ -36,5 +36,5 @@ benchmark workflows. Outputs are owned by the corresponding matrix under
 - `env`: read-only runtime status check (`python -m llm_ontology.env check`).
 
 Training checkpoints, datasets and RAG indexes are preserved independently of
-evaluation lifecycle. Dataset-only handcrafted fixtures can remain as explanatory
-source material, but there is no active smoke evaluator for them.
+evaluation lifecycle. The handcrafted smoke cases are archived in
+`thesis_materials/handcrafted_skills/smoke_cases/`; there is no active smoke evaluator.

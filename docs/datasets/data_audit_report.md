@@ -744,10 +744,10 @@ Nie úplne: je vhodný na vývoj a exploratívne behy, ale pred finálnym report
 - `artifacts/split_audits/` — group a fingerprint audity,
 - `artifacts/retrieval/indexes/` — produkčné index reporty,
 - `data/chroma/ollama_bge_m3_v3/manifests/` — lokálne V3 collection manifesty,
-- `data/smoke/` a `docs/datasets/handcrafted_smoke.md` — vlastný smoke dataset,
+- `thesis_materials/handcrafted_skills/smoke_cases/` (dáta a opis) — vlastný smoke dataset,
 - `docs/datasets/raw_record_examples.md` — úplný raw príklad z Methods2Test,
   ML4Refactoring a MaRV,
-- `docs/datasets/handcrafted_smoke_all_cases.md` — všetkých 24 smoke záznamov
+- `thesis_materials/handcrafted_skills/smoke_cases/handcrafted_smoke_all_cases.md` — všetkých 24 smoke záznamov
   vrátane kompletných Java fixtures a behavior testov,
 - `configs/finetuning/` — mapovanie datasetov na B1/B2 modely,
 - `configs/evaluation/` a `configs/benchmarks/` — interné a externé evaluačné vstupy.
