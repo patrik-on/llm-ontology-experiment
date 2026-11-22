@@ -49,7 +49,8 @@ dataset → deterministický výber + QA hodnotiteľa → zmrazený prompt pre k
         → artifacts/evaluation/runs/<run-id>/reports/
 ```
 
-Ramená: `qwen_base`, `ft_*`, `rag_single`, `rag_multi`, `skills`. Detaily sú v
+Ramená: `qwen_base`, `onto_project`, `skills`, `skills_onto`, `rag_single`, `ft_*`,
+`ft_v3_onto`, `ft_onto`. Detaily sú v
 [eval dokumentácii](../evaluation/README.md).
 
 ## Retrieval safety

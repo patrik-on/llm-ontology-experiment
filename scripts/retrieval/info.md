@@ -1,4 +1,4 @@
-# Retrieval scripts
+# scripts/retrieval
 
-`rag.py` is a compatibility entry point for the phase-1 index/query CLI. The
-canonical module invocation is `python -m llm_ontology.cli.rag`.
+`build_production_indexes.py` stavia Chroma v3 indexy (`configs/retrieval/ollama_bge_m3_v3.yaml`,
+`docs/retrieval/rag_v3.md`). Matice indexy iba čítajú a overujú ich manifesty.
