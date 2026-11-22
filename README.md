@@ -39,8 +39,8 @@ osem ramien na tých istých 100 prípadoch, jeden pokus na bunku a bez opráv v
 FT ramená bežia na inom backende (HF NF4) než ostatné (Ollama Q4), preto je ich
 porovnanie so základom iba opisné. Podrobnosti:
 
-- [Testing report](docs/results/testing_summary.md) (`testing-matrix-20261122-rag2`)
-- [Refactoring report](docs/results/refactoring_summary.md) (`refactoring-matrix-20261121`)
+- [Testing report](thesis_materials/2026-11-22_vysledky_evalu/testing_summary.md) (`testing-matrix-20261122-rag2`)
+- [Refactoring report](thesis_materials/2026-11-22_vysledky_evalu/refactoring_summary.md) (`refactoring-matrix-20261121`)
 - Analýzy a porovnania do práce (s dátumom, každá vo vlastnom priečinku) sú v
   [thesis_materials/](thesis_materials/README.md), napríklad [hĺbková analýza](thesis_materials/2026-11-22_hlbkova_analyza_evalu/deep_analysis.md)
   a [adaptéry vo váhovom priestore](thesis_materials/2026-11-22_adaptery_vo_vahovom_priestore/README.md)
@@ -52,7 +52,7 @@ Dá sa ísť troma úrovňami. Každá ďalšia potrebuje viac dát, času a GPU
 | Úroveň | Čo overí | Potrebuje |
 |---|---|---|
 | A. Kód | testy, plány behov | iba Python |
-| B. Reporty z existujúcich behov | všetky čísla v `docs/results/` | run adresáre zo [Zenodo](https://doi.org/10.5281/zenodo.24446129) |
+| B. Reporty z existujúcich behov | všetky čísla v reportoch a analýzach v `thesis_materials/` | run adresáre zo [Zenodo](https://doi.org/10.5281/zenodo.24446129) |
 | C. Celý experiment | dáta → index → tréning → oba evaly | GPU so 16 GB VRAM, ~120 GB disku, datasety, asi 2 dni výpočtu |
 
 ### Prostredie, na ktorom experiment bežal
