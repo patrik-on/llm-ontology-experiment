@@ -444,23 +444,37 @@ def continue_arm(root, source_root, arm):
     # Only cells that never charged a call are generated again.
     skipped = [i for i in ids if not (source_root / "cases" / i / "predictions" / arm
                                       / "dispatch.json").exists()]
-    copied = {}
-    for path in sorted(source_root.rglob("*")):
-        rel = path.relative_to(source_root)
-        if (not path.is_file() or rel.parts[0] in {"reports", "source_snapshot"}
-                or rel.name.startswith(".") or rel.as_posix() in {"freeze.json", arm + "-stop.json"}):
-            continue
-        if (len(rel.parts) > 4 and rel.parts[0] == "cases" and rel.parts[2:4] == ("predictions", arm)
-                and rel.parts[1] in skipped):
-            continue
-        target = root / rel
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(path, target)
-        copied[rel.as_posix()] = batch.file_sha256(target)
+    # Case directories are symlinks to candidates/: walk without following links,
+    # recreate each link (rebased into the new run) and copy only real files.
+    dropped = [(source_root / "cases" / i / "predictions" / arm).resolve() for i in skipped]
+    copied, links = {}, {}
+    for top, dirs, names in os.walk(source_root):
+        top = Path(top)
+        if top == source_root:
+            dirs[:] = [d for d in dirs if d not in {"reports", "source_snapshot"}]
+        for name in sorted(dirs + names):
+            path = top / name
+            rel = path.relative_to(source_root)
+            if (name.startswith(".") or rel.as_posix() in {"freeze.json", arm + "-stop.json"}
+                    or any(path.resolve().is_relative_to(cell) for cell in dropped)):
+                continue
+            target = root / rel
+            if path.is_symlink():
+                link = Path(os.readlink(path))
+                if link.is_absolute() and link.resolve().is_relative_to(source_root):
+                    link = root / link.resolve().relative_to(source_root)
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.symlink_to(link, target_is_directory=path.is_dir())
+                links[rel.as_posix()] = str(link)
+            elif path.is_file():
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(path, target)
+                copied[rel.as_posix()] = batch.file_sha256(target)
+        dirs[:] = [d for d in dirs if not (top / d).is_symlink()]
     write(root / "continuation.json", {"source_run": source_root.name, "arm": arm,
         "source_freeze_sha256": batch.file_sha256(source_root / "freeze.json"),
         "reason": read(source_root / (arm + "-stop.json")),
-        "regenerated_cells": skipped, "copied_files": copied, "created_at": batch.now()}, exclusive=True)
+        "regenerated_cells": skipped, "copied_files": copied, "links": links, "created_at": batch.now()}, exclusive=True)
     files = {}
     for path, digest in frozen["files"].items():
         path = Path(path)
