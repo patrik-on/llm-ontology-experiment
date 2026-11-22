@@ -1,105 +1,243 @@
 # LLM Ontology Experiment
 
-Lokálne porovnanie ôsmich ramien pri dvoch Java úlohách:
+Diplomová práca: Qwen2.5-Coder-7B na dvoch Java úlohách, generovaní JUnit testov
+(Methods2Test) a refactoringu (SWE-Refactor + MaRV + ML4Ref). Každá úloha porovnáva
+osem ramien na tých istých 100 prípadoch, jeden pokus na bunku a bez opráv výstupu.
 
-- **Methods2Test:** generovanie JUnit testov pre extrahované metódy.
-- **Refactoring:** spoločný SWE + MaRV + ML4Ref pool; SWE navyše overuje pôvodný projekt.
+| Rameno | Čo dostane model |
+|---|---|
+| `qwen_base` | iba zadanie (Ollama) |
+| `onto_project` | zadanie + blok projektovej ontológie z dodaného kódu |
+| `skills` | zadanie + procesný návod `SKILL.md` |
+| `skills_onto` | `skills` + blok ontológie |
+| `rag_single` | zadanie + 3 príklady vyhľadané v Chroma indexe (bge-m3) |
+| `ft_testing` / `ft_refactoring` | LoRA adaptér v3 (HF, NF4) |
+| `ft_v3_onto` | adaptér v3 + blok ontológie |
+| `ft_onto` | adaptér trénovaný s blokom ontológie + blok |
 
-Obe matice porovnávajú **baseline, baseline + blok projektovej ontológie, skill,
-skill + blok, Single-RAG, v3 adaptér, v3 adaptér + blok a adaptér trénovaný s blokom**
-(`qwen_base`, `onto_project`, `skills`, `skills_onto`, `rag_single`, `ft_*`, `ft_v3_onto`,
-`ft_onto`). Testing má default **100 prípadov** × 8 ramien (800 volaní); menší beh cez `--cases N`.
-Refactoring má pripravených **100 úloh: 5 SWE + 35 MaRV + 60 ML4Ref**; podporuje
-menší výber N aj všetkých 100, vždy bez opravných pokusov. MaRV/ML4Ref používajú
-rozumný okolitý kontext a skórujú konkrétny zadaný refactoring; ďalšie zmeny sa
-neskórujú. SWE má navyše pôvodné buildy/testy. Rozdiely HF/PEFT a Ollama
-backendov sa zaznamenávajú; nejde o izolovanú abláciu FT adaptéra.
+## Výsledky
 
-## Jediné dva eval runnery
+Úspešné prípady zo 100 (testing: class pass, refactoring: structural success):
 
-Príkazy sa spúšťajú z koreňa repozitára vo WSL cez `.venv_wsl/bin/python`.
-
-| Úloha | Runner | Protokol a postup |
+| Rameno | Testing | Refactoring |
 |---|---|---|
-| Testing | `scripts/benchmarks/run_testing_matrix.py` | [Methods2Test matica](docs/evaluation/testing_matrix_v1.md) |
-| Refactoring | `scripts/benchmarks/run_refactoring_matrix.py` | [Zmiešaná refactoring matica](docs/evaluation/refactoring_matrix_v1.md) |
+| qwen_base | 22 | 60 |
+| onto_project | 22 | 55 |
+| skills | 21 | 49 |
+| skills_onto | 23 | 54 |
+| rag_single | 14 | 37 |
+| ft_testing / ft_refactoring | 53 | 68 |
+| ft_v3_onto | 48 | 67 |
+| ft_onto | 51 | 67 |
 
-Bez modelových volaní a bez zápisov:
+Žiadny z piatich primárnych párov nie je významný (Holm p = 1,0 v oboch úlohách).
+FT ramená bežia na inom backende (HF NF4) než ostatné (Ollama Q4), preto je ich
+porovnanie so základom iba opisné. Podrobnosti:
 
-```bash
-.venv_wsl/bin/python scripts/benchmarks/run_testing_matrix.py --run-id testing-plan --dry-run
-.venv_wsl/bin/python scripts/benchmarks/run_refactoring_matrix.py --run-id refactoring-plan --dry-run
-```
+- [Testing report](docs/results/testing_summary.md) (`testing-matrix-20261122-rag2`)
+- [Refactoring report](docs/results/refactoring_summary.md) (`refactoring-matrix-20261121`)
+- [Hĺbková analýza](docs/results/deep_analysis.md), [príklady](docs/results/deep_analysis_examples.md),
+  [čísla v JSON](docs/results/deep_analysis.json)
 
-Príprava a zmrazenie vstupov bez generovania odpovedí:
+## Replikácia
 
-```bash
-.venv_wsl/bin/python scripts/benchmarks/run_testing_matrix.py --run-id NEW_TESTING_RUN --freeze-only
-.venv_wsl/bin/python scripts/benchmarks/run_refactoring_matrix.py --run-id NEW_POOL_PREPARATION --prepare-pool
-# Pool je už pripravený; nový beh môže použiť --cases N alebo --cases all --prepare-only.
-```
+Dá sa ísť troma úrovňami. Každá ďalšia potrebuje viac dát, času a GPU.
 
-Bez príznaku režimu runner spustí aj generovanie a hodnotenie. `--report-only`
-načíta existujúci beh. Refactoring podporuje aj `--evaluate-only`.
-Pred spustením treba lokálne modely/adaptéry, existujúci RAG index a Java nástroje;
-matice netrénujú, neprebudovávajú index a neopravujú modelové odpovede.
+| Úroveň | Čo overí | Potrebuje |
+|---|---|---|
+| A. Kód | testy, plány behov | iba Python |
+| B. Reporty z existujúcich behov | všetky čísla v `docs/results/` | run adresáre (odovzdávajú sa zvlášť) |
+| C. Celý experiment | dáta → index → tréning → oba evaly | GPU so 16 GB VRAM, ~120 GB disku, datasety, asi 2 dni výpočtu |
 
-## Výstupy
+### Prostredie, na ktorom experiment bežal
 
-Jediný eval namespace je `artifacts/evaluation/runs/<run-id>/`.
-Existujúce prípravné dôkazy zostali zachované:
+| Časť | Verzia |
+|---|---|
+| OS | Windows + WSL2 Ubuntu 24.04.3 LTS |
+| GPU | NVIDIA GeForce RTX 3080 Laptop, 16 GB VRAM, driver 596.36 |
+| Python | 3.13.11; torch 2.15.0+cu132, transformers 4.57.6, peft 0.21.3, bitsandbytes 0.50.2, accelerate 1.16.0, datasets 5.0.1, chromadb 1.5.9, rdflib 7.6.0, scipy 1.18.1 |
+| Ollama | 0.15.2; `qwen2.5-coder:7b` Q4_K_M, digest `dae161e27b0e…4364`; `bge-m3` F16, digest `7907646426…6bab` |
+| HF model | Qwen2.5-Coder-7B-Instruct (15 GB), tréning a FT ramená v NF4 |
+| Java | Temurin 11.0.33 (testing), OpenJDK 17.0.21 (RefactoringMiner, Maven 3.9.16), Temurin 8u512 (SWE buildy) |
+| Disk | ML4Ref 77 GB, Methods2Test 1,2 GB, Chroma index 330 MB, SWE git mirrory 0,5 GB, model 15 GB + 5,8 GB Ollama |
 
-- `testing-matrix-preparation-check-20261113`: jeden overený prípad, päť variantov.
-- `mixed-context-pool-v4-20261113`: úplná QA 100 úloh.
-- `refactoring-context-v4-ready-20261114`: pripravený výber všetkých 100 cez aktuálny runner.
+Čas na tomto stroji: tréning štyroch adaptérov spolu ≈ 28 h (testing ≈ 4 h každý,
+refactoring 8,5 až 11,7 h), testing eval ≈ 3 h, refactoring eval ≈ 14 h.
+Celé digesty Ollama modelov sú v `ollama_identity.json` každého behu. Presný commit
+Methods2Test a revízia HF modelu zaznamenané nie sú; behy namiesto toho pinujú hashe
+použitých súborov (`freeze.json`, `hf_identity/`).
 
-Tieto prípravy majú **0 generovaní**. Príprava/hodnotiteľské QA nie sú skóre modelov.
-Pool a jeho overenie sú opísané v [v4 prehľade](docs/evaluation/refactoring_context_v4_2026-11-13.md).
-Súbory v `preparation`, `candidates`,
-`preflight` a `reports` patria príslušnej matici; interné helpery nie sú ďalšie
-spustiteľné eval protokoly. Staré piloty, samostatné full/smoke evaly, staré
-konfigurácie, reporty a výstupy boli odstránené z aktívneho projektu.
+Všetky príkazy sa spúšťajú vo WSL z koreňa repozitára. Repozitár môže byť na
+`/mnt/c`, ale checkpointy, behy a Java buildy patria na natívny WSL disk
+(`~/experiments`, `~/benchmark-work`), inak ich spomaľuje OneDrive a NTFS.
 
-## Zvyšok projektu
-
-Tréning, surové/spracované datasety, modely/adaptéry, a RAG indexy
-zostávajú oddelené od evaluácie. Datasetové audity a nástroje ako RefactoringMiner
-či JaCoCo sú podklady/závislosti aktuálnych matíc, nie dodatočné eval runnery.
-
-- [Mapa projektu](docs/architecture/project_map.md)
-- [Tréning](docs/finetuning/v3_runbook.md)
-- [Aktuálny retrieval](docs/retrieval/rag_v3.md)
-- [Eval dokumentácia](docs/evaluation/README.md)
-- [Podklady na písanie práce](thesis_materials/README.md) — metodické reporty,
-  archivované handcrafted výsledky a dôkazy; nie ďalší aktívny eval runner.
-- [Prečo sú aktuálne evaluácie takto navrhnuté](thesis_materials/reports/evaluation_design_2026-11-13.md)
-
-## Inštalácia a lokálne cesty
+### A. Kód (bez GPU a dát)
 
 ```bash
 python -m venv .venv_wsl && source .venv_wsl/bin/activate
-pip install -r requirements.txt          # = pip install -e ".[dev,rag]"
-pip install -e ".[training]"             # iba pre reálny fine-tuning
+pip install -e ".[dev,rag,ontology]"
+python -m pytest -q -rs
+ruff check src scripts tests
+python scripts/benchmarks/run_testing_matrix.py --run-id testing-plan --dry-run
+python scripts/benchmarks/run_refactoring_matrix.py --run-id refactoring-plan --dry-run
 ```
 
-Konfigurácie neobsahujú absolútne cesty konkrétneho počítača. Používajú
-premenné `${LLM_ONTOLOGY_WORK_ROOT}` (default `~/benchmark-work`: JDK, JUnit/JaCoCo
-jary, git mirrory), `${LLM_ONTOLOGY_MODELS_ROOT}` (default `/mnt/c/models`) a
-`${LLM_ONTOLOGY_DATASETS_ROOT}` (default `/mnt/c/datasets`). Na inom stroji ich
-stačí exportovať, pozri [.env.example](.env.example).
+Testy `local_data` a `rag` sa bez lokálnych dát alebo `chromadb` preskočia s dôvodom.
+`--dry-run` nič nezapisuje a nevolá model.
 
-Rameno `skills` používa pinnuté kópie `SKILL.md` v [configs/skills/](configs/skills/info.md)
-(z `si-context-eval@57ce660`), takže susedný checkout už nie je potrebný.
+### B. Reporty a analýza z existujúcich behov
 
-## Kontroly implementácie
+Skopíruj odovzdané run adresáre do `artifacts/evaluation/runs/`
+(`testing-matrix-20261121`, `testing-matrix-20261122-rag2`, `refactoring-matrix-20261121`).
+Report sa prepočíta z uložených odpovedí bez volania modelu:
 
 ```bash
-.venv_wsl/bin/python -m pytest -q -rs
-.venv_wsl/bin/ruff check src scripts tests
+python scripts/benchmarks/run_testing_matrix.py --run-id testing-matrix-20261122-rag2 --report-only
+python scripts/benchmarks/run_refactoring_matrix.py --run-id refactoring-matrix-20261121 --report-only
+pip install -e ".[analysis]"
+python scripts/analysis/deep_analysis.py     # zapíše artifacts/analysis/deep-20261122/
 ```
 
-Testy označené `local_data` potrebujú Gitom ignorované lokálne vstupy
-(SWE-Refactor dataset a overlap audit v `artifacts/swe_overlap_audit_20261113/`),
-testy `rag` potrebujú `chromadb`. Ak chýbajú, preskočia sa s dôvodom, takže čistý
-klon a CI (`.github/workflows/ci.yml`) bežia zelene. Integračné kontroly
-nevytvárajú experimentálne skóre modelov.
+Každý beh má `freeze.json` s hashmi vstupov, zdrojového kódu, modelov, adaptérov,
+indexu a Javy a uložené skutočné prompty (`cases/<id>/frozen_prompts/`). Report
+overí, že sa zmrazené vstupy nezmenili. `testing-matrix-20261122-rag2` je
+pokračovanie `testing-matrix-20261121`, ktoré dokončilo zastavené rameno
+`rag_single` na tých istých prípadoch (`continuation.json`).
+
+### C. Celý experiment
+
+**1. Inštalácia a cesty**
+
+```bash
+pip install -e ".[dev,rag,ontology,training,analysis]"
+# premenné z .env.example exportuj v ~/.bashrc (projekt ich sám nenačíta)
+python -m llm_ontology.env check
+```
+
+Konfigurácie nemajú absolútne cesty. Používajú `${LLM_ONTOLOGY_WORK_ROOT}`
+(JDK, jary, git mirrory, buildy), `${LLM_ONTOLOGY_MODELS_ROOT}` (HF modely) a
+`${LLM_ONTOLOGY_DATASETS_ROOT}` (veľké surové datasety), pozri [.env.example](.env.example).
+
+**2. Modely**
+
+```bash
+huggingface-cli download Qwen/Qwen2.5-Coder-7B-Instruct \
+  --local-dir "$LLM_ONTOLOGY_MODELS_ROOT/huggingface/Qwen2.5-Coder-7B-Instruct"
+ollama pull qwen2.5-coder:7b
+ollama pull bge-m3
+```
+
+Freeze overuje digest Ollama modelu. Iný digest znamená iný experiment a nový run ID.
+
+**3. Java nástroje** (do `$LLM_ONTOLOGY_WORK_ROOT`)
+
+- `deps/jdk-11.0.33+10` (Temurin 11, testing harness) a `deps/refactoring-jdk8` (Temurin 8, SWE buildy).
+- Systémový JDK 17 a Maven 3.9 na spustenie RefactoringMinera a SWE buildov (bežia offline, `mvn -o`).
+- `downloads/`: `junit-platform-console-standalone-1.11.4.jar`, `assertj-core-3.27.3.jar`,
+  `hamcrest-2.2.jar`; JaCoCo 0.8.13 agent a CLI podľa [jacoco_v1.json](configs/evaluation/jacoco_v1.json).
+- RefactoringMiner 3.0.10: `cd tools/refactoring-miner && mvn -q package`.
+
+**4. Datasety**
+
+| Dataset | Zdroj | Kam |
+|---|---|---|
+| Methods2Test | <https://github.com/microsoft/methods2test> (MIT; `corpus/json`, `dataset/train.tar.bz2`, `dataset/eval.tar.bz2`) | `data/raw/methods2test/` |
+| MaRV | <https://zenodo.org/records/14450098> | `data/raw/marv/dataset/MaRV.json` |
+| ML4Refactoring | <https://zenodo.org/records/3547639> (`all.zip`) | `$LLM_ONTOLOGY_DATASETS_ROOT/ml4refactoring/all/dataset` |
+| SWE-Refactor | <https://zenodo.org/records/17196850> (DOI 10.5281/zenodo.17196850) | `benchmarks/swe-refactor/SWE-Refactor/` |
+
+Postup a hashe SWE-Refactor sú v [zázname o stiahnutí](docs/datasets/swe_refactor_zenodo_acquisition_2026-11-12.md).
+
+**5. Spracované dáta v1** (zdroj RAG korpusu, kontrola úniku a výberu kohorty)
+
+```bash
+python scripts/datasets/prepare_methods2test.py
+python scripts/datasets/prepare_ml4refactoring.py
+python scripts/datasets/prepare_marv.py
+python scripts/datasets/prepare_final_datasets.py
+```
+
+**6. RAG index** (iba embeddingy bge-m3, žiadne generovanie)
+
+```bash
+python scripts/retrieval/build_production_indexes.py --config configs/retrieval/ollama_bge_m3_v3.yaml
+```
+
+Opis vyhľadávania: [rag_v3.md](docs/retrieval/rag_v3.md).
+
+**7. Tréningové dáta v3 a štyri adaptéry**
+
+```bash
+python scripts/datasets/prepare_v3_eval_aligned.py testing
+python scripts/datasets/prepare_v3_eval_aligned.py refactoring
+for c in b2_testing b2_refactoring b2_testing_onto b2_refactoring_onto; do
+  python scripts/finetuning/check_finetuning_ready.py --config configs/finetuning/training_${c}_wsl.yaml
+  python scripts/finetuning/train_finetuning.py --config configs/finetuning/training_${c}_wsl.yaml
+done
+```
+
+Builder vyrobí `data/processed/v3/` a `data/processed/v3_onto/` so spoločným manifestom.
+Adaptéry sa uložia do `~/experiments/llm-ontology-v3/<názov>/checkpoints/final_adapter`.
+Podrobnosti, prerušenie a pokračovanie: [v3_runbook.md](docs/finetuning/v3_runbook.md).
+
+**8. Refactoring kohorta**
+
+Vydaná kohorta 100 úloh je v repe
+([manifest](data/validation/refactoring_mixed_v1/manifest.json)). Na novom stroji ju
+znova over a vydaj (sťahuje súbory, buildí SWE projekty, žiadne volania modelu):
+
+```bash
+python scripts/benchmarks/run_refactoring_matrix.py --run-id <nové-id-poolu> --prepare-pool
+python scripts/ontology/check_cohort.py      # kontrola blokov ontológie pre celú kohortu
+```
+
+**9. Evaly** (každý beh potrebuje nový run ID)
+
+```bash
+# skúška s 1 prípadom (8 volaní)
+python scripts/benchmarks/run_testing_matrix.py --run-id testing-smoke --cases 1
+# plný beh: 100 × 8
+python scripts/benchmarks/run_testing_matrix.py --run-id testing-<dátum>
+python scripts/benchmarks/run_refactoring_matrix.py --run-id refactoring-<dátum> --cases all
+```
+
+Runner nič neinštaluje ani netrénuje. Pred generovaním zmrazí všetky prompty a
+identity. Prerušená zaplatená bunka sa nikdy neopakuje. Ak rameno zastaví chyba
+pred volaním modelu, dá sa dokončiť na tých istých prípadoch:
+`--run-id <nové-id> --continue-from <zdrojové-id> --arm <arm>`
+([postup](docs/evaluation/testing_matrix_v1.md)).
+
+**10. Analýza**
+
+```bash
+python scripts/analysis/deep_analysis.py \
+  --testing-run artifacts/evaluation/runs/<testing-id> \
+  --refactoring-run artifacts/evaluation/runs/<refactoring-id> \
+  --out artifacts/analysis/<názov>
+```
+
+Úvodné zhrnutie v `results.md` sa berie zo súboru `--summary` (pre tento beh
+`scripts/analysis/deep_analysis_summary_20261122.md`); ostatné čísla počíta skript.
+
+## Pravidlá experimentu
+
+- Zmrazený beh, bajty promptu a `configs/skills/*/SKILL.md` sa nemenia. Zmena experimentu = nový run ID.
+- Jeden pokus na bunku, žiadne opravy ani opakovania; chyby ostávajú v menovateli.
+- Primárne páry a Holmova korekcia sú vopred dané v JSON konfigurácii matíc.
+- Ontológia vzniká iba z kódu dodaného modelu, gold odpoveď do nej nesmie preniknúť.
+
+## Mapa repozitára
+
+| Kde | Čo |
+|---|---|
+| `scripts/benchmarks/` | jediné dva eval runnery |
+| `src/llm_ontology/benchmarks/` | orchestrácia matíc, hodnotenie, štatistika |
+| `src/llm_ontology/ontology/` | blok projektovej ontológie (RDF z dodaného kódu) |
+| `src/llm_ontology/inference/prompting/` | prompt profily |
+| `scripts/datasets/`, `scripts/finetuning/`, `scripts/retrieval/` | dáta, tréning, index |
+| `scripts/analysis/` | hĺbková analýza výsledkov |
+| `configs/` | modely, matice, retrieval, tréning, pinnuté `SKILL.md` |
+| `docs/` | [eval](docs/evaluation/README.md), [tréning](docs/finetuning/v3_runbook.md), [retrieval](docs/retrieval/rag_v3.md), [výsledky](docs/results/) |
+| `thesis_materials/` | podklady na písanie práce |
+
+Pre agentov a nástroje je aktuálny zoznam aktívnych verzií v [AGENTS.md](AGENTS.md).
