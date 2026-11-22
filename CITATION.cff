@@ -5,6 +5,10 @@ type: software
 authors:
   - family-names: "Ončák"
     given-names: "Patrik"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.24446129"
+    description: "Adaptéry a run adresáre (Zenodo)"
 repository-code: "https://github.com/patrik-on/llm-ontology-experiment"
 license: MIT
 date-released: "2026-11-22"
