@@ -19,8 +19,8 @@ and adapter_config differences.
 Usage (repository root, WSL):
   .venv_wsl/bin/python scripts/analysis/adapter_weight_similarity.py \\
     --adapter b2_testing=~/experiments/llm-ontology-v3/b2_testing/checkpoints/final_adapter \\
-    --adapter b2_testing_onto=... --out-json docs/results/adapter_weight_similarity.json \\
-    --out-md docs/results/adapter_weight_similarity.md
+    --adapter b2_testing_onto=... --out-json thesis_materials/2026-11-22_adaptery_vo_vahovom_priestore/adapter_weight_similarity.json \\
+    --out-md thesis_materials/2026-11-22_adaptery_vo_vahovom_priestore/adapter_weight_similarity.md
 """
 import argparse
 import hashlib

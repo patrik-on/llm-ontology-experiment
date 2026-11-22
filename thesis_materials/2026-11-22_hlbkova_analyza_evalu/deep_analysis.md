@@ -413,8 +413,8 @@ MDE = najmenší skutočný rozdiel v p.b., ktorý by test pri pozorovanej miere
 ## Adaptéry vo váhovom priestore
 
 Porovnanie štyroch LoRA adaptérov priamo vo váhach (bez modelu a GPU) je v
-[adapter_weight_similarity.md](adapter_weight_similarity.md) (čísla v
-[JSON](adapter_weight_similarity.json), skript `scripts/analysis/adapter_weight_similarity.py`).
+[adapter_weight_similarity.md](../2026-11-22_adaptery_vo_vahovom_priestore/adapter_weight_similarity.md) (čísla v
+[JSON](../2026-11-22_adaptery_vo_vahovom_priestore/adapter_weight_similarity.json), skript `scripts/analysis/adapter_weight_similarity.py`).
 Onto adaptér je blízko svojho ne-onto partnera (kosínus ΔW 0,34 pri testingu, 0,29 pri
 refactoringu), kým medzi úlohami je kosínus len 0,015–0,016. Ontológia v tréningových promptoch
 teda adaptér posunie oveľa menej než zmena úlohy, no nevznikne takmer rovnaký adaptér.
