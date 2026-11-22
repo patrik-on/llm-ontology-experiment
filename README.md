@@ -135,6 +135,7 @@ dokončilo zastavené rameno `rag_single` na tých istých prípadoch (`continua
 
 ```bash
 pip install -e ".[dev,rag,ontology,training,analysis]"
+# presné verzie pôvodného behu: requirements-lock.txt (pip freeze z .venv_wsl)
 # premenné z .env.example exportuj v ~/.bashrc (projekt ich sám nenačíta)
 python -m llm_ontology.env check
 ```
@@ -203,6 +204,9 @@ done
 
 Builder vyrobí `data/processed/v3/` a `data/processed/v3_onto/` so spoločným manifestom.
 Adaptéry sa uložia do `~/experiments/llm-ontology-v3/<názov>/checkpoints/final_adapter`.
+Kontrolné súčty pôvodných adaptérov a ich tréningové časy sú v
+[artifacts/finetuning/adapters/](artifacts/finetuning/adapters/info.md)
+(`sha256sum -c` v adresári `final_adapter/`).
 Podrobnosti, prerušenie a pokračovanie: [v3_runbook.md](docs/finetuning/v3_runbook.md).
 
 **8. Refactoring kohorta**
@@ -264,6 +268,7 @@ python scripts/analysis/deep_analysis.py \
 | `configs/` | modely, matice, retrieval, tréning, pinnuté `SKILL.md` |
 | `docs/` | [index dokumentácie](docs/README.md): eval, výsledky, tréning, retrieval; datované záznamy v `docs/archive/` |
 | `thesis_materials/` | podklady na písanie práce |
+| `requirements-lock.txt`, `CITATION.cff` | presné verzie balíkov, citácia |
 
 Pre agentov a nástroje je aktuálny zoznam aktívnych verzií v [AGENTS.md](AGENTS.md).
 
