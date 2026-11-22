@@ -27,7 +27,7 @@ Cases are convenience-selected and at most ten come from one Methods2Test
 project, so p-values are conditional on the selected cases.
 
 All eval outputs belong under `artifacts/evaluation/runs/<run-id>/`. The final runs
-above contain model answers; their reports are copied to [docs/results](../results/), and
+above contain model answers; their reports are copied to [thesis_materials](../../thesis_materials/README.md), and
 the commit each run reports on is listed in the root README. Data/model/index/tool caches and preparation evidence are required
 infrastructure, not extra protocols. Older pilot/full/smoke evaluators, entry
 points, configs and results have been removed, rather than hidden behind wrappers.
