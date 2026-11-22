@@ -14,7 +14,7 @@ Refactoring has a released 100-task cohort (5 SWE + 35 MaRV + 60 ML4Ref), with
 contextual target-only structural scoring and separate SWE project checks.
 N/all and source/type filters use that same fixed cohort. The cohort was re-released
 on 2026-11-21 (pool run `mixed-context-pool-v5-20261121`, same 100 case IDs as the
-[v4 preparation](refactoring_context_v4_2026-11-13.md)) after code and JDK pins changed.
+[v4 preparation](../archive/evaluation/refactoring_context_v4_2026-11-13.md)) after code and JDK pins changed.
 Final runs: testing `testing-matrix-20261122-rag2` (a continuation of
 `testing-matrix-20261121` that completed its fail-stopped `rag_single` arm on the same
 100 cases; see `continuation.json` in the run) and `refactoring-matrix-20261121`.
@@ -26,13 +26,13 @@ the five primary pairs (`primary_pairs` in each matrix JSON) (`src/llm_ontology/
 Cases are convenience-selected and at most ten come from one Methods2Test
 project, so p-values are conditional on the selected cases.
 
-All eval outputs belong under `artifacts/evaluation/runs/<run-id>/`. Only the
-current testing preparation and refactoring preparation evidence remain. They contain no
-model answers. Data/model/index/tool caches and preparation evidence are required
+All eval outputs belong under `artifacts/evaluation/runs/<run-id>/`. The final runs
+above contain model answers; their reports are copied to [docs/results](../results/), and
+the commit each run reports on is listed in the root README. Data/model/index/tool caches and preparation evidence are required
 infrastructure, not extra protocols. Older pilot/full/smoke evaluators, entry
 points, configs and results have been removed, rather than hidden behind wrappers.
 
-Current implementation and preparation checks: [validation summary](validation_2026-11-13.md).
+Earlier implementation and preparation checks (2026-11-13): [validation summary](../archive/evaluation/validation_2026-11-13.md).
 
 For research motivation, design choices, metrics and interpretation, read the
 [evaluation design report](../../thesis_materials/reports/evaluation_design_2026-11-13.md).

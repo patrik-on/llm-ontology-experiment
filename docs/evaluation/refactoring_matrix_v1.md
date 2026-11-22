@@ -52,8 +52,8 @@ Before release, all generation is blocked, including smaller/filtered runs.
 Default after release: 100 cases x 8 arms = at most 800 generation calls.
 Preparation itself makes ZERO model-generation calls.
 
-Current receipt: [v4 context preparation](refactoring_context_v4_2026-11-13.md).
-The [v3 receipt](archive/refactoring_mixed_v3_2026-11-13.md) records an earlier policy and
+Current receipt: [v4 context preparation](../archive/evaluation/refactoring_context_v4_2026-11-13.md).
+The [v3 receipt](../archive/evaluation/refactoring_mixed_v3_2026-11-13.md) records an earlier policy and
 is NOT the final availability count under this corrected protocol.
 
 ## Context construction and concrete targets

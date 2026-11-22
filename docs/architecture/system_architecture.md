@@ -80,7 +80,7 @@ data -> ingestion -> vectorstore -> retrieval -> approaches -> inference
 - `evaluation/` ukladá reprodukovateľné experimentálne záznamy.
 
 Aktuálny retrieval (task-aware query, reranking, index) je v
-[RAG v3](../retrieval/rag_v3.md). Staršie fázy sú v `docs/retrieval/archive/`.
+[RAG v3](../retrieval/rag_v3.md). Staršie fázy sú v `docs/archive/retrieval/`.
 
 ## Compatibility
 

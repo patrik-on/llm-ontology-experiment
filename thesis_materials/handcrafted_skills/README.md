@@ -2,7 +2,7 @@
 
 Archivované 13. 11. 2026 z vedľajšieho repozitára `si-context-eval`.
 Ide o experiment na ručne vytvorených Java projektoch, **nie** o starší
-`data/smoke/` dataset v tomto repozitári a nie o dnešný Methods2Test/SWE protokol.
+dataset v [smoke_cases/](smoke_cases/) a nie o dnešný Methods2Test/SWE protokol.
 
 ## Čo je uložené
 
