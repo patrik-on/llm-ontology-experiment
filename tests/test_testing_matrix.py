@@ -277,3 +277,127 @@ def test_changed_adapter_blocks_the_arm_before_any_dispatch(prepared, monkeypatc
         prepared.generate("ft_testing")
     assert not prepared.dispatches()
     assert (prepared.root / "ft_testing-stop.json").exists()
+
+
+def test_rag_single_replays_the_frozen_request_without_retrieving(prepared, monkeypatch):
+    """Retrieval runs once at freeze; generation sends the frozen request unchanged."""
+    payload = {"model": matrix.batch.direct.MODELS["qwen_base"][0], "prompt": None, "stream": False,
+               "options": matrix.batch.OPTIONS,
+               "format": matrix.batch.TestingBodiesAnswer.model_json_schema()}
+    for ident in prepared.ids:
+        frozen = prepared.root / "cases" / ident / "frozen_prompts" / "rag_single"
+        matrix.write(frozen / "request.json", {**payload, "prompt": (frozen / "prompt.txt").read_text()})
+    monkeypatch.setattr(matrix.batch, "runtime", lambda: SimpleNamespace(
+        generation_timeout_seconds=5, generation_model_digest="d"))
+    monkeypatch.setattr(matrix.batch, "generate_rag", lambda *a, **kw: pytest.fail("retrieved again"))
+    monkeypatch.setattr(matrix.batch, "assemble", lambda *a: "class GeneratedBodyTests {}")
+    sent = []
+
+    class Response:
+        def __init__(self, body):
+            self.body = json.dumps(body).encode()
+
+        def read(self):
+            return self.body
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            return False
+
+    def fake_urlopen(request, **kwargs):
+        if request.full_url.endswith("/api/tags"):
+            return Response({"models": [{"name": payload["model"], "digest": "d"}]})
+        sent.append(json.loads(request.data))
+        return Response({"response": '{"testCase1":"assertTrue(true);","testCase2":"assertTrue(true);"}',
+                         "done": True, "done_reason": "stop"})
+
+    monkeypatch.setattr(matrix.batch, "urlopen", fake_urlopen)
+    prepared.generate("rag_single")
+    assert [s["prompt"] for s in sent] == ["frozen one/rag_single", "frozen two/rag_single"]
+    assert all(s["keep_alive"] == 0 and s["options"] == matrix.batch.OPTIONS for s in sent)
+    assert all(matrix.read(prepared.out(i, "rag_single") / "completion.json")["status"] == "assembled"
+               for i in prepared.ids)
+
+
+def test_rag_single_rejects_a_frozen_request_that_disagrees_with_the_frozen_prompt(prepared, monkeypatch):
+    frozen = prepared.root / "cases" / "one" / "frozen_prompts" / "rag_single"
+    matrix.write(frozen / "request.json", {"prompt": "something else"})
+    monkeypatch.setattr(matrix.batch, "runtime", lambda: SimpleNamespace(
+        generation_timeout_seconds=5, generation_model_digest="d"))
+    prepared.generate("rag_single")
+    assert not prepared.dispatches()
+    assert matrix.read(prepared.root / "rag_single-stop.json")["status"] == "pre_dispatch_failure"
+
+
+def _stopped_source(prepared, monkeypatch):
+    """A frozen source run whose rag_single arm fail-stopped before dispatch on case two."""
+    root = prepared.root
+    # As in a real cohort, case directories are absolute links to prepared candidates.
+    for ident in prepared.ids:
+        candidate = root / "candidates" / ident
+        candidate.parent.mkdir(exist_ok=True)
+        (root / "cases" / ident).rename(candidate)
+        (root / "cases" / ident).symlink_to(candidate.absolute(), target_is_directory=True)
+    java = root.parent / "java"
+    java.write_text("java")
+    files = {str((root / "cases" / i / "frozen_prompts" / a / "prompt.txt").resolve()): None
+             for i in prepared.ids for a in matrix.ARMS}
+    files = {p: matrix.batch.file_sha256(Path(p)) for p in files}
+    matrix.write(root / "hf_file_pins.json", {})
+    matrix.write(root / "freeze.json", {"protocol": matrix.PROTOCOL, "files": files,
+        "sources": {}, "java": {str(java): matrix.batch.file_sha256(java)}, "maximum": prepared.maximum})
+    monkeypatch.setattr(matrix.batch, "_generate_direct", fake_direct)
+    monkeypatch.setattr(matrix.batch, "assemble", lambda *a: "class GeneratedBodyTests {}")
+    prepared.generate("qwen_base")
+    one = prepared.out("one", "rag_single")
+    one.mkdir(parents=True)
+    matrix.write(one / "dispatch.json", {"id": "one"})
+    matrix.write(one / "completion.json", {"status": "assembled"})
+    two = prepared.out("two", "rag_single")
+    two.mkdir(parents=True)
+    matrix.write(two / "failure.json", {"error": "Actual prompt differs from frozen prompt"})
+    matrix.write(two / "completion.json", {"status": "pre_dispatch_failure"})
+    matrix.write(root / "rag_single-stop.json", {"id": "two", "status": "pre_dispatch_failure"})
+    entry = matrix.REPO / "pyproject.toml"
+    monkeypatch.setattr(matrix.batch, "build_dependency_identity",
+                        lambda c: {str(entry): matrix.batch.file_sha256(entry)})
+    return root
+
+
+def test_continuation_regenerates_only_uncharged_cells_of_the_stopped_arm(prepared, monkeypatch):
+    source = _stopped_source(prepared, monkeypatch)
+    target = source.parent / "continued"
+    assert matrix.continue_arm(target, source, "rag_single") == ["two"]
+    continuation = matrix.read(target / "continuation.json")
+    assert continuation["arm"] == "rag_single" and continuation["reason"]["id"] == "two"
+    assert not (target / "rag_single-stop.json").exists()
+    assert not (target / "cases/two/predictions/rag_single").exists()
+    assert (target / "cases/one").is_symlink()
+    assert (target / "cases/one").resolve() == (target / "candidates/one").resolve()
+    assert continuation["links"]["cases/one"] == str(target / "candidates/one")
+    assert (target / "cases/one/predictions/rag_single/completion.json").exists()
+    assert (target / "cases/two/predictions/qwen_base/generated.java").exists()
+    continued = matrix.Matrix(target)
+    continued.verify()
+    sent = []
+    monkeypatch.setattr(matrix.batch, "replay_frozen_request", lambda c, frozen, ledger: (
+        sent.append(frozen.parent.parent.name), ledger.charge({"prompt": (frozen / "prompt.txt").read_text()}),
+        (ledger.out / "raw.txt").write_text('{"testCase1":"assertTrue(true);","testCase2":"assertTrue(true);"}'),
+        {})[-1])
+    continued.generate("rag_single")
+    assert sent == ["two"]
+    assert matrix.read(continued.out("two", "rag_single") / "completion.json")["status"] == "assembled"
+    with pytest.raises(ValueError, match="already exists"):
+        matrix.continue_arm(target, source, "rag_single")
+    with pytest.raises(ValueError, match="fail-stopped"):
+        matrix.continue_arm(source.parent / "other", source, "qwen_base")
+
+
+def test_continuation_refuses_an_interrupted_charged_cell(prepared, monkeypatch):
+    source = _stopped_source(prepared, monkeypatch)
+    (prepared.out("one", "rag_single") / "completion.json").unlink()
+    with pytest.raises(ValueError, match="Interrupted"):
+        matrix.continue_arm(source.parent / "continued", source, "rag_single")
+    assert not (source.parent / "continued").exists()
