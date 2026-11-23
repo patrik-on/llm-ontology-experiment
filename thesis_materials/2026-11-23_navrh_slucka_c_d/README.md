@@ -39,10 +39,40 @@ spätnej väzby (pokusy 2 a 3).
 |---|---|---|---|
 | `c_base` | Qwen2.5-Coder-7B, Ollama Q4_K_M, structured JSON (ako `qwen_base`) | prompt `qwen_base` bez zmeny | + predošlá odpoveď + správa nástroja |
 | `d_base` | to isté | prompt `qwen_base` + nový ontologický blok | + predošlá odpoveď + správa nástroja + porušenia SHACL |
+
 V texte ďalej je C = `c_base` a D = `d_base`. Nič sa netrénuje a FT model sa v tomto experimente
 nepoužíva (časť 3). C a D bežia na **presne tých istých 100 prípadoch** ako 8 doterajších ramien,
 s tým istým modelom a dekódovaním, takže sa dajú párovo porovnať aj s nimi (časť 11.3). Doterajší
 eval s 8 ramenami sa znova nespúšťa, jeho výsledky sú referencia.
+
+### 0.1 Prečo tento postup a čo od neho čakať
+
+**Prečo dáva zmysel:**
+
+- Priamo nadväzuje na zistenie z prvého experimentu: ontológia nepomohla, lebo opakovala kód
+  z promptu. D skúša opak, teda ontológiu s faktmi mimo promptu, ktorá navyše slúži na kontrolu
+  výstupu. Odpovedá to na otázku zo zadania, *ako* ontológie využiť, nielen opakuje negatívny výsledok.
+- Porovnanie D vs C je čisté. Slučka, nástroje, model, prípady aj rozpočet pokusov sú rovnaké a
+  líši sa iba ontológia.
+- Výsledky sa dajú spojiť s doterajšími: na tých istých 100 prípadoch vznikne jedna tabuľka
+  s 10 ramenami na úlohu.
+- Je to lacné: okolo 814 volaní a 7–8 h behu (časť 12).
+
+**Tri obmedzenia, ktoré treba v práci výslovne uviesť:**
+
+1. D mení naraz dve veci, blok aj SHACL spätnú väzbu. Úspech po 1. pokuse (S@1) meria samotný
+   blok, miera opravy porušení meria SHACL. Úplné oddelenie by vyžadovalo ďalšie ramená.
+2. C a D majú až 3 volania modelu, single-shot ramená jedno. Pri porovnaní s doterajšími ramenami
+   sa preto vždy uvádza aj počet volaní a čas. Úplne férové je iba porovnanie D vs C.
+3. Pravidlá sú odvodené z chýb na tých istých prípadoch. Zmierňuje to zmrazenie pravidiel pred
+   hlavným behom a citlivostná analýza na 80 prípadoch mimo pilota (časť 11.5).
+
+**Realistické očakávanie:** pri 100 prípadoch je minimálny odhaliteľný rozdiel zhruba 11–15 p.b.
+(časť 11.4), menší efekt vyjde ako „nepreukázaný“. Pri testingu môže spätná väzba typu
+`expected: <3> but was: <5>` pomôcť C aj D natoľko, že rozdiel medzi nimi bude malý. Najväčšiu šancu
+na rozdiel má refactoring, kde typické chyby kompilátor nenahlási a nájde ich až SHACL: zmena
+modifikátora triedy namiesto požadovanej operácie a Parameterize Variable, ktorú base zvládol
+iba 1/10. Preto sa refactoring spúšťa ako prvý (časť 12.3).
 
 ---
 
@@ -608,6 +638,26 @@ nameranými. Generovanie: Ollama ≈ 8 s (testing, ~300 výstupných tokenov) a 
 Beh sa dá rozdeliť po úlohách a ramenách a je
 prerušiteľný rovnako ako matice (`dispatch.json` / `completion.json`).
 
+### 12.3 Plán behov
+
+Každý riadok je jedno spustenie runnera s vlastným run ID. Refactoring ide prvý, lebo tam je
+najväčšia šanca na rozdiel D vs C a je lacnejší na overenie slučky. Testing sa spustí, až keď
+refactoring prejde kontrolami.
+
+| Poradie | Beh | Prípady | Ramená | Strop volaní | Odhad volaní | Čas | Podmienka |
+|---|---|---:|---|---:|---:|---:|---|
+| 0 | offline príprava: extrakcia ontológie, verejný checker, kalibrácia pravidiel, audit leaku | 100 + 100 | – | 0 | 0 | 1–2 h | – |
+| 1 | pilot refactoring | 20 | C, D | 120 | ~68 | ~40 min | P2–P4 prešli |
+| 2 | pilot testing | 20 | C, D | 120 | ~95 | ~35 min (s JaCoCo) | P2–P4 prešli |
+| 3 | hlavný beh refactoring | 100 | C, D | 600 | ~340 | ~3,2 h | pilot prešiel P1–P9, pravidlá zmrazené |
+| 4 | hlavný beh testing | 100 | C, D | 600 | ~474 | ~3 h (s JaCoCo) | to isté |
+| | **spolu (bez pilota)** | | | **1 200** | **~814** | **~7–8 h** | |
+
+Navrhované run ID: `repair-loop-refactoring-pilot-<dátum>`, `repair-loop-testing-pilot-<dátum>`,
+`repair-loop-refactoring-<dátum>`, `repair-loop-testing-<dátum>`. Každý odkazuje cez `source_run`
+na finálny beh matice (`refactoring-matrix-20261121`, `testing-matrix-20261122-rag2`), z ktorého
+preberá prípady.
+
 ---
 
 ## 13. Pilot na 20 prípadoch
@@ -702,8 +752,8 @@ jeden model (bez FT), viac volaní modelu v C a D než v single-shot ramenách, 
 | 3 | verejný checker a kalibrácia pravidiel na uložených výstupoch (P2, P3) | nie | 1 deň |
 | 4 | `repair_loop.py`, `repair_feedback.py`, runner, config, mock testy | nie (mock) | 3 dni |
 | 5 | audit leaku (L1–L4) | nie | 1 deň |
-| 6 | pilot 20 + 20 prípadov | áno, ≈ 165 volaní | ≈ 1,5–2 h behu |
-| 7 | zmrazenie, hlavný beh | áno, ≈ 814 volaní | ≈ 7–8 h behu |
+| 6 | pilot: najprv refactoring, potom testing (20 + 20 prípadov) | áno, ≈ 165 volaní | ≈ 1,5 h behu |
+| 7 | zmrazenie, hlavný beh: najprv refactoring, potom testing | áno, ≈ 814 volaní | ≈ 7–8 h behu |
 | 8 | report (`--report-only`), analýza, export do `thesis_materials/<dátum>_vysledky_slucky/` | nie | 1–2 dni |
 
 Kroky 1–5 nepotrebujú GPU a dajú sa overiť testami v čistom klone. Kroky 3 a 5 sú zároveň pilotné
