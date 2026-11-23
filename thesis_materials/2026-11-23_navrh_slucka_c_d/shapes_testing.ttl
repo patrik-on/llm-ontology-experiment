@@ -1,0 +1,107 @@
+# SHACL obmedzenia pre úlohu testing (rameno D). Návrh, zatiaľ nikde nezmrazený.
+# Dátový graf = projektová ontológia (classpath faktov) ∪ fakty z vygenerovaných tiel testov.
+# Správy (sh:message) sú po anglicky, lebo idú do promptu modelu.
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix lo:   <https://w3id.org/llm-ontology/project#> .
+@prefix los:  <https://w3id.org/llm-ontology/shapes#> .
+
+los: a owl:Ontology ;
+  sh:declare [ sh:prefix "lo" ; sh:namespace "https://w3id.org/llm-ontology/project#"^^xsd:anyURI ] .
+
+# T1 – volanie metódy alebo konštruktora musí zodpovedať existujúcej a prístupnej signatúre
+#      (meno + arita, varargs, dedenie cez lo:directSuperType*, nie private).
+los:T1_CallMatchesSignature a sh:NodeShape ;
+  sh:targetClass lo:TestCall ;
+  sh:sparql [
+    a sh:SPARQLConstraint ;
+    sh:prefixes los: ;
+    sh:severity sh:Violation ;
+    sh:message "T1 call {?display} (test body {?body}, line {?line}) matches no accessible declaration with {?k} argument(s). Declared: {?declared}" ;
+    sh:select """
+      SELECT $this ?display ?body ?line ?k ?declared WHERE {
+        $this lo:receiverType ?t ; lo:calleeName ?n ; lo:argCount ?k ;
+              lo:display ?display ; lo:inBody ?body ; lo:line ?line .
+        FILTER NOT EXISTS {
+          ?t lo:directSuperType* ?s .
+          ?e lo:declaredIn ?s ; lo:name ?n ; lo:arity ?a ; lo:visibility ?v .
+          OPTIONAL { ?e lo:isVarargs ?va }
+          FILTER (?v != "private")
+          FILTER (?a = ?k || (COALESCE(?va, false) && ?k >= ?a - 1))
+        }
+        OPTIONAL {
+          SELECT ?t ?n (GROUP_CONCAT(DISTINCT ?sig; separator=" | ") AS ?sigs) WHERE {
+            ?c lo:receiverType ?t ; lo:calleeName ?n .
+            ?t lo:directSuperType* ?s2 .
+            ?e2 lo:declaredIn ?s2 ; lo:name ?n ; lo:signature ?sig .
+          } GROUP BY ?t ?n
+        }
+        BIND (COALESCE(?sigs, "none") AS ?declared)
+      }""" ;
+  ] .
+
+# T2 – v tele testu sa nesmie použiť nedeklarovaný názov. Ak je to pole testovanej triedy,
+#      správa to z ontológie doplní (a uvedie jeho viditeľnosť).
+los:T2_NameIsDeclared a sh:NodeShape ;
+  sh:targetClass lo:UndeclaredName ;
+  sh:sparql [
+    a sh:SPARQLConstraint ;
+    sh:prefixes los: ;
+    sh:severity sh:Violation ;
+    sh:message "T2 name '{?n}' (test body {?body}, line {?line}) is not declared in this test body. {?hint}" ;
+    sh:select """
+      SELECT $this ?n ?body ?line ?hint WHERE {
+        $this lo:name ?n ; lo:inBody ?body ; lo:line ?line .
+        OPTIONAL {
+          ?f a lo:Field ; lo:name ?n ; lo:declaredIn ?owner ; lo:visibility ?v ; lo:typeName ?ft .
+          ?owner lo:isFocal true ; lo:simpleName ?on .
+        }
+        BIND (IF(BOUND(?f),
+                 CONCAT("It is a ", ?v, " field of ", ?on, " (type ", ?ft, "); a test cannot use it as a local name."),
+                 "Declare it before use or use only names from the supplied class and imports.") AS ?hint)
+      }""" ;
+  ] .
+
+# T3 – ak testovaná metóda mení svoj parameter (add/put/remove/clear/set ...), argument na tej
+#      pozícii nesmie byť nemeniteľná alebo pevne veľká kolekcia (List.of, Arrays.asList ...).
+los:T3_MutatedParameterNeedsMutableArgument a sh:NodeShape ;
+  sh:targetClass lo:Argument ;
+  sh:sparql [
+    a sh:SPARQLConstraint ;
+    sh:prefixes los: ;
+    sh:severity sh:Violation ;
+    sh:message "T3 argument {?pos} of {?display} (test body {?body}, line {?line}) comes from {?factory}, which is {?mut}; {?method} mutates parameter '{?pname}' with {?op}(). Pass a mutable collection, e.g. new {?impl}<>(...)." ;
+    sh:select """
+      SELECT $this ?pos ?display ?body ?line ?factory ?mut ?method ?pname ?op ?impl WHERE {
+        $this lo:argumentOf ?call ; lo:position ?pos ; lo:producedBy ?fac .
+        ?fac lo:factoryName ?factory ; lo:resultMutability ?m ; lo:mutableAlternative ?impl .
+        FILTER (?m IN (lo:Immutable, lo:FixedSize))
+        BIND (IF(?m = lo:Immutable, "immutable", "fixed-size") AS ?mut)
+        ?call lo:resolvesTo ?e ; lo:display ?display ; lo:inBody ?body ; lo:line ?line .
+        ?e lo:name ?method ; lo:mutatesParameter ?p .
+        ?p lo:position ?pos ; lo:name ?pname ; lo:mutatedBy ?op .
+        FILTER (?m = lo:Immutable || ?op IN ("add", "addAll", "remove", "removeIf", "clear", "retainAll", "removeAll"))
+      }""" ;
+  ] .
+
+# T4 – každý typ v tele testu musí byť viditeľný: importovaný v scaffolde, z java.lang,
+#      z balíka testovanej triedy alebo napísaný plne kvalifikovane a prítomný na classpath.
+los:T4_TypeIsVisibleOnClasspath a sh:NodeShape ;
+  sh:targetClass lo:TypeUse ;
+  sh:sparql [
+    a sh:SPARQLConstraint ;
+    sh:prefixes los: ;
+    sh:severity sh:Violation ;
+    sh:message "T4 type '{?w}' (test body {?body}, line {?line}) is not visible here. {?hint}" ;
+    sh:select """
+      SELECT $this ?w ?body ?line ?hint WHERE {
+        $this lo:written ?w ; lo:simpleName ?sn ; lo:inBody ?body ; lo:line ?line .
+        FILTER NOT EXISTS { $this lo:resolvesTo ?anyType }
+        OPTIONAL { SELECT ?sn (GROUP_CONCAT(DISTINCT ?fqn; separator=" or ") AS ?cands) WHERE {
+                     ?ty a lo:Type ; lo:simpleName ?sn ; lo:fqn ?fqn } GROUP BY ?sn }
+        BIND (IF(BOUND(?cands) && STRLEN(?cands) > 0,
+                 CONCAT("Imports cannot be added; write it fully qualified: ", ?cands, "."),
+                 "No such type is on the test classpath (JDK, JUnit Jupiter and the supplied class only).") AS ?hint)
+      }""" ;
+  ] .

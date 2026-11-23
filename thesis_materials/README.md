@@ -18,6 +18,7 @@ Každá analýza má vlastný priečinok `<dátum>_<téma>/` s krátkym popisom 
 | 2026-11-22 | [ontologia_podla_typu_pripadu](2026-11-22_ontologia_podla_typu_pripadu/README.md) | či ontológia pomohla pri nejakom type prípadu alebo refaktoringu |
 | 2026-11-22 | [najcastejsie_chyby](2026-11-22_najcastejsie_chyby/README.md) | najčastejšie chyby základného modelu a FT ramien |
 | 2026-11-22 | [adaptery_vo_vahovom_priestore](2026-11-22_adaptery_vo_vahovom_priestore/README.md) | podobnosť LoRA adaptérov s ontológiou a bez nej vo váhach |
+| 2026-11-23 | [navrh_slucka_c_d](2026-11-23_navrh_slucka_c_d/README.md) | návrh experimentu iba s dvoma ramenami: opravná slučka bez ontológie (C) a s ontológiou a SHACL (D); zatiaľ nespustený |
 
 Iné miesto v repe pre analýzy a reporty finálnych behov nie je.
 
