@@ -1,0 +1,13 @@
+# Správne riešenie pre shapes_refactoring.ttl (Parameterize Variable limit): očakávané 0 porušení a 0× „nevieme posúdiť“.
+@prefix lo: <https://w3id.org/llm-ontology/project#> .
+lo:b_C a lo:Decl ; lo:side "before" ; lo:checkScope true ; lo:display "class Calc" ; lo:line 3 ; lo:modifiers "public" ; lo:hasCounterpart lo:a_C .
+lo:a_C a lo:Decl ; lo:side "after" ; lo:display "class Calc" ; lo:modifiers "public" .
+lo:b_f a lo:Decl ; lo:side "before" ; lo:checkScope true ; lo:display "method int other()" ; lo:line 20 ; lo:modifiers "private" ; lo:hasCounterpart lo:a_f .
+lo:a_f a lo:Decl ; lo:side "after" ; lo:display "method int other()" ; lo:modifiers "private" .
+lo:b_m a lo:Decl, lo:Method ; lo:side "before" ; lo:display "method void run()" ; lo:hasCounterpart lo:a_m ; lo:hasUse lo:b_u1 .
+lo:b_u1 lo:name "limit" ; lo:resolvesKind "local" ; lo:line 9 ; lo:hasCounterpart lo:a_u1 .
+lo:a_m a lo:Decl, lo:Method ; lo:side "after" ; lo:declaredIn lo:a_C ; lo:name "run" ; lo:display "method void run(int)" ; lo:hasParameter lo:a_p1 ; lo:hasUse lo:a_u1 .
+lo:a_p1 lo:name "limit" .
+lo:a_u1 lo:name "limit" ; lo:resolvesKind "parameter" ; lo:line 8 .
+lo:req1 a lo:RefactoringRequest, lo:ParameterizeVariableRequest ; lo:oldName "limit" ; lo:newName "limit" ; lo:newType "int" ;
+  lo:targetMethodBefore lo:b_m ; lo:targetMethodAfter lo:a_m .

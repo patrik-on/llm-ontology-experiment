@@ -1,0 +1,18 @@
+# Správne riešenie pre shapes_testing.ttl: očakávané 0 porušení a 0× „nevieme posúdiť“.
+@prefix lo: <https://w3id.org/llm-ontology/project#> .
+lo:t_Foo a lo:Type, lo:ClassType ; lo:fqn "com.x.Foo" ; lo:simpleName "Foo" ; lo:isFocal true ; lo:directSuperType lo:t_Object .
+lo:t_Object a lo:Type ; lo:fqn "java.lang.Object" ; lo:simpleName "Object" .
+lo:t_ArrayList a lo:Type ; lo:fqn "java.util.ArrayList" ; lo:simpleName "ArrayList" .
+lo:c_Foo a lo:Constructor ; lo:declaredIn lo:t_Foo ; lo:name "<init>" ; lo:arity 0 ; lo:visibility "public" ; lo:isImplicit true ; lo:signature "Foo()" .
+lo:m_merge a lo:Method ; lo:declaredIn lo:t_Foo ; lo:name "merge" ; lo:arity 1 ; lo:visibility "public" ; lo:signature "int merge(java.util.List<String> items)" ; lo:mutatesParameter lo:p_items .
+lo:p_items a lo:Parameter ; lo:position 0 ; lo:name "items" ; lo:mutatedBy "add" ; lo:mutationOnSuccessPath true .
+lo:fac_new a lo:CollectionFactory ; lo:factoryName "new java.util.ArrayList" ; lo:resultMutability lo:Mutable ; lo:mutableAlternative "java.util.ArrayList" .
+lo:fac_listOf a lo:CollectionFactory ; lo:factoryName "List.of" ; lo:resultMutability lo:Immutable ; lo:mutableAlternative "java.util.ArrayList" .
+# test 1: úspešné pridanie do meniteľného zoznamu
+lo:call1 a lo:TestCall ; lo:receiverType lo:t_Foo ; lo:calleeName "<init>" ; lo:argCount 0 ; lo:display "new Foo()" ; lo:inBody 1 ; lo:line 1 .
+lo:call2 a lo:TestCall ; lo:receiverType lo:t_Foo ; lo:calleeName "merge" ; lo:argCount 1 ; lo:display "foo.merge(list)" ; lo:inBody 1 ; lo:line 3 ; lo:resolvesTo lo:m_merge .
+lo:arg2 a lo:Argument ; lo:argumentOf lo:call2 ; lo:position 0 ; lo:producedBy lo:fac_new .
+lo:ty1 a lo:TypeUse ; lo:written "java.util.ArrayList" ; lo:simpleName "ArrayList" ; lo:inBody 1 ; lo:line 2 ; lo:resolvesTo lo:t_ArrayList .
+# test 2: zámerne čaká výnimku pri nemeniteľnom zozname
+lo:call3 a lo:TestCall ; lo:receiverType lo:t_Foo ; lo:calleeName "merge" ; lo:argCount 1 ; lo:display "assertThrows(..., () -> foo.merge(List.of(\"a\")))" ; lo:inBody 2 ; lo:line 2 ; lo:resolvesTo lo:m_merge .
+lo:arg3 a lo:Argument ; lo:argumentOf lo:call3 ; lo:position 0 ; lo:producedBy lo:fac_listOf ; lo:inExpectedException true .
