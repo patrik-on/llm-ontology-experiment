@@ -1,0 +1,156 @@
+# SHACL obmedzenia pre úlohu refactoring (rameno D). Návrh, zatiaľ nikde nezmrazený.
+# Dátový graf = projektová ontológia ∪ fakty zo vstupu (side "before") ∪ fakty z výstupu modelu
+# (side "after") ∪ uzol požiadavky (iba z verejného textu požiadavky, nikdy z gold výstupu).
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix lo:   <https://w3id.org/llm-ontology/project#> .
+@prefix los:  <https://w3id.org/llm-ontology/shapes#> .
+
+los: a owl:Ontology ;
+  sh:declare [ sh:prefix "lo" ; sh:namespace "https://w3id.org/llm-ontology/project#"^^xsd:anyURI ] .
+
+# R1 – mimo požadovanej zmeny sa nič nestratí a nezmenia sa modifikátory
+#      (meraná chyba: "Change Class Access Modifier" namiesto požadovanej operácie).
+los:R1_ScopePreserved a sh:NodeShape ;
+  sh:targetClass lo:Decl ;
+  sh:sparql [
+    a sh:SPARQLConstraint ; sh:prefixes los: ; sh:severity sh:Violation ;
+    sh:message "R1 {?display} (input line {?line}) is outside the requested change but is missing in your output. Return every other member unchanged." ;
+    sh:select """
+      SELECT $this ?display ?line WHERE {
+        $this lo:side "before" ; lo:checkScope true ; lo:display ?display ; lo:line ?line .
+        FILTER NOT EXISTS { $this lo:hasCounterpart ?a }
+      }""" ;
+  ] ;
+  sh:sparql [
+    a sh:SPARQLConstraint ; sh:prefixes los: ; sh:severity sh:Violation ;
+    sh:message "R1 modifiers of {?display} changed from '{?m1}' to '{?m2}'. The requested operation does not change modifiers; restore them." ;
+    sh:select """
+      SELECT $this ?display ?m1 ?m2 WHERE {
+        $this lo:side "before" ; lo:checkScope true ; lo:display ?display ;
+              lo:modifiers ?m1 ; lo:hasCounterpart ?a .
+        ?a lo:modifiers ?m2 .
+        FILTER (?m1 != ?m2)
+      }""" ;
+  ] .
+
+los:R1_TargetMethodPresent a sh:NodeShape ;
+  sh:targetClass lo:RefactoringRequest ;
+  sh:property [
+    sh:path lo:targetMethodAfter ; sh:minCount 1 ; sh:severity sh:Violation ;
+    sh:message "R1 the target method of the requested operation was not found in your output (it must keep its name unless the request renames it)." ;
+  ] .
+
+# R2 – Parameterize Variable: lokálna premenná zmizne, metóda dostane parameter
+#      a jej použitia odkazujú na nový parameter (meraná chyba: iba Rename Variable, 1/10 pri base).
+los:R2_ParameterizeVariable a sh:NodeShape ;
+  sh:targetClass lo:ParameterizeVariableRequest ;
+  sh:sparql [
+    a sh:SPARQLConstraint ; sh:prefixes los: ; sh:severity sh:Violation ;
+    sh:message "R2 Parameterize Variable: {?m} must declare a new parameter '{?new}' of type {?type}; your output has parameters ({?params})." ;
+    sh:select """
+      SELECT $this ?m ?new ?type ?params WHERE {
+        $this lo:newName ?new ; lo:newType ?type ; lo:targetMethodAfter ?ma .
+        ?ma lo:display ?m .
+        FILTER NOT EXISTS { ?ma lo:hasParameter ?p . ?p lo:name ?new }
+        OPTIONAL { SELECT ?ma (GROUP_CONCAT(?pn; separator=", ") AS ?ps) WHERE {
+                     ?ma lo:hasParameter ?p2 . ?p2 lo:name ?pn } GROUP BY ?ma }
+        BIND (COALESCE(?ps, "none") AS ?params)
+      }""" ;
+  ] ;
+  sh:sparql [
+    a sh:SPARQLConstraint ; sh:prefixes los: ; sh:severity sh:Violation ;
+    sh:message "R2 Parameterize Variable: local variable '{?old}' is still declared in {?m} (output line {?line}); remove the declaration, the value now comes from the parameter." ;
+    sh:select """
+      SELECT $this ?old ?m ?line WHERE {
+        $this lo:oldName ?old ; lo:targetMethodAfter ?ma .
+        ?ma lo:display ?m ; lo:declaresLocal ?l .
+        ?l lo:name ?old ; lo:line ?line .
+      }""" ;
+  ] ;
+  sh:sparql [
+    a sh:SPARQLConstraint ; sh:prefixes los: ; sh:severity sh:Violation ;
+    sh:message "R2 Parameterize Variable: use of '{?new}' at output line {?line} resolves to a {?kind}, not to the new parameter." ;
+    sh:select """
+      SELECT $this ?new ?line ?kind WHERE {
+        $this lo:newName ?new ; lo:targetMethodAfter ?ma .
+        ?ma lo:hasUse ?u . ?u lo:name ?new ; lo:resolvesKind ?kind ; lo:line ?line .
+        FILTER (?kind != "parameter")
+      }""" ;
+  ] .
+
+# R3 – Extract Method: nová metóda existuje v tom istom type, zdrojová metóda ju volá
+#      a extrahované príkazy sa presunuli, neskopírovali (meraná chyba: Extract Method 3/9 MaRV pri base).
+los:R3_ExtractMethod a sh:NodeShape ;
+  sh:targetClass lo:ExtractMethodRequest ;
+  sh:sparql [
+    a sh:SPARQLConstraint ; sh:prefixes los: ; sh:severity sh:Violation ;
+    sh:message "R3 Extract Method: no new method '{?new}' was added to {?type}." ;
+    sh:select """
+      SELECT $this ?new ?type WHERE {
+        $this lo:newName ?new ; lo:targetTypeAfter ?t . ?t lo:display ?type .
+        FILTER NOT EXISTS {
+          ?nm a lo:Method ; lo:side "after" ; lo:declaredIn ?t ; lo:name ?new .
+          FILTER NOT EXISTS { ?anyBefore lo:hasCounterpart ?nm }
+        }
+      }""" ;
+  ] ;
+  sh:sparql [
+    a sh:SPARQLConstraint ; sh:prefixes los: ; sh:severity sh:Violation ;
+    sh:message "R3 Extract Method: {?m} does not call the extracted method '{?new}'." ;
+    sh:select """
+      SELECT $this ?m ?new WHERE {
+        $this lo:newName ?new ; lo:targetMethodAfter ?ma . ?ma lo:display ?m .
+        FILTER NOT EXISTS { ?ma lo:invokes ?new }
+      }""" ;
+  ] ;
+  sh:sparql [
+    a sh:SPARQLConstraint ; sh:prefixes los: ; sh:severity sh:Violation ;
+    sh:message "R3 Extract Method: {?m} still has {?n2} statements (input: {?n1}); move the extracted statements into '{?new}', do not copy them." ;
+    sh:select """
+      SELECT $this ?m ?new ?n1 ?n2 WHERE {
+        $this lo:newName ?new ; lo:targetMethodBefore ?mb ; lo:targetMethodAfter ?ma .
+        ?mb lo:statementCount ?n1 . ?ma lo:statementCount ?n2 ; lo:display ?m .
+        FILTER (?n2 >= ?n1)
+      }""" ;
+  ] .
+
+# R4 – operácie nad premennou (Inline Variable, Extract Variable, Replace Variable With Attribute):
+#      deklarácia a použitia premennej sa zmenia presne podľa požiadavky.
+los:R4_VariableLifecycle a sh:NodeShape ;
+  sh:targetClass lo:InlineVariableRequest, lo:ExtractVariableRequest, lo:ReplaceVariableWithAttributeRequest ;
+  sh:sparql [
+    a sh:SPARQLConstraint ; sh:prefixes los: ; sh:severity sh:Violation ;
+    sh:message "R4 {?op}: local variable '{?old}' is still declared in {?m} (output line {?line})." ;
+    sh:select """
+      SELECT $this ?op ?old ?m ?line WHERE {
+        $this a ?cls ; lo:operationLabel ?op ; lo:oldName ?old ; lo:targetMethodAfter ?ma .
+        FILTER (?cls IN (lo:InlineVariableRequest, lo:ReplaceVariableWithAttributeRequest))
+        ?ma lo:display ?m ; lo:declaresLocal ?l . ?l lo:name ?old ; lo:line ?line .
+      }""" ;
+  ] ;
+  sh:sparql [
+    a sh:SPARQLConstraint ; sh:prefixes los: ; sh:severity sh:Violation ;
+    sh:message "R4 Extract Variable: {?m} has no local variable '{?new}' initialised with exactly: {?expr}" ;
+    sh:select """
+      SELECT $this ?m ?new ?expr WHERE {
+        $this a lo:ExtractVariableRequest ; lo:newName ?new ; lo:expression ?expr ; lo:targetMethodAfter ?ma .
+        ?ma lo:display ?m .
+        FILTER NOT EXISTS { ?ma lo:declaresLocal ?l . ?l lo:name ?new ; lo:initializer ?expr }
+      }""" ;
+  ] ;
+  sh:sparql [
+    a sh:SPARQLConstraint ; sh:prefixes los: ; sh:severity sh:Violation ;
+    sh:message "R4 Replace Variable With Attribute: {?type} has no field '{?new}', or {?m} does not use it." ;
+    sh:select """
+      SELECT $this ?type ?m ?new WHERE {
+        $this a lo:ReplaceVariableWithAttributeRequest ; lo:newName ?new ;
+              lo:targetTypeAfter ?t ; lo:targetMethodAfter ?ma .
+        ?t lo:display ?type . ?ma lo:display ?m .
+        FILTER NOT EXISTS {
+          ?f a lo:Field ; lo:side "after" ; lo:declaredIn ?t ; lo:name ?new .
+          ?ma lo:hasUse ?u . ?u lo:name ?new ; lo:resolvesKind "field" .
+        }
+      }""" ;
+  ] .

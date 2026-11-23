@@ -1,0 +1,18 @@
+# Ručne zostavené dáta na overenie shapes_refactoring.ttl: 13 porušení naprieč R1–R4.
+@prefix lo: <https://w3id.org/llm-ontology/project#> .
+# before / after declarations
+lo:b_C a lo:Decl ; lo:side "before" ; lo:checkScope true ; lo:display "class Calc" ; lo:line 3 ; lo:modifiers "public" ; lo:hasCounterpart lo:a_C .
+lo:a_C a lo:Decl ; lo:side "after" ; lo:display "class Calc" ; lo:modifiers "(none)" .
+lo:b_f a lo:Decl ; lo:side "before" ; lo:checkScope true ; lo:display "method int other()" ; lo:line 20 ; lo:modifiers "private" .
+lo:b_m a lo:Decl, lo:Method ; lo:side "before" ; lo:display "method void run()" ; lo:statementCount 5 ; lo:hasCounterpart lo:a_m .
+lo:a_m a lo:Decl, lo:Method ; lo:side "after" ; lo:declaredIn lo:a_C ; lo:name "run" ; lo:display "method void run(int)" ; lo:statementCount 5 ;
+  lo:hasParameter lo:a_p1 ; lo:declaresLocal lo:a_l1 ; lo:hasUse lo:a_u1 ; lo:invokes "log" .
+lo:a_p1 lo:name "limit2" .
+lo:a_l1 lo:name "limit" ; lo:line 8 ; lo:initializer "10" .
+lo:a_u1 lo:name "limit" ; lo:resolvesKind "local" ; lo:line 9 .
+lo:req1 a lo:RefactoringRequest, lo:ParameterizeVariableRequest ; lo:oldName "limit" ; lo:newName "limit" ; lo:newType "int" ; lo:targetMethodAfter lo:a_m .
+lo:req2 a lo:RefactoringRequest, lo:ExtractMethodRequest ; lo:newName "compute" ; lo:targetTypeAfter lo:a_C ; lo:targetMethodBefore lo:b_m ; lo:targetMethodAfter lo:a_m .
+lo:req3 a lo:RefactoringRequest, lo:InlineVariableRequest ; lo:operationLabel "Inline Variable" ; lo:oldName "limit" ; lo:targetMethodAfter lo:a_m .
+lo:req4 a lo:RefactoringRequest, lo:ExtractVariableRequest ; lo:operationLabel "Extract Variable" ; lo:newName "total" ; lo:expression "a + b" ; lo:targetMethodAfter lo:a_m .
+lo:req5 a lo:RefactoringRequest, lo:ReplaceVariableWithAttributeRequest ; lo:operationLabel "Replace Variable With Attribute" ; lo:oldName "limit" ; lo:newName "limit" ; lo:targetTypeAfter lo:a_C ; lo:targetMethodAfter lo:a_m .
+lo:req6 a lo:RefactoringRequest, lo:InlineVariableRequest ; lo:operationLabel "Inline Variable" ; lo:oldName "x" .
