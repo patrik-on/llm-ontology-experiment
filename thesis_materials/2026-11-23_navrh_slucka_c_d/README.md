@@ -39,11 +39,10 @@ spätnej väzby (pokusy 2 a 3).
 |---|---|---|---|
 | `c_base` | Qwen2.5-Coder-7B, Ollama Q4_K_M, structured JSON (ako `qwen_base`) | prompt `qwen_base` bez zmeny | + predošlá odpoveď + správa nástroja |
 | `d_base` | to isté | prompt `qwen_base` + nový ontologický blok | + predošlá odpoveď + správa nástroja + porušenia SHACL |
-| `c_ft` | HF NF4 + adaptér `b2_testing_v3` / `b2_refactoring_v3` (ako `ft_testing` / `ft_refactoring`) | prompt FT ramena bez zmeny | ako `c_base` |
-| `d_ft` | to isté | prompt FT ramena + nový blok | ako `d_base` |
-
-Nič sa netrénuje. Rameno `qwen_base` je povinné minimum, FT rameno je odporúčané (dôvody v časti 3).
-Doterajšie single-shot výsledky ostávajú referenciou, celý eval s 8 ramenami sa znova nespúšťa.
+V texte ďalej je C = `c_base` a D = `d_base`. Nič sa netrénuje a FT model sa v tomto experimente
+nepoužíva (časť 3). C a D bežia na **presne tých istých 100 prípadoch** ako 8 doterajších ramien,
+s tým istým modelom a dekódovaním, takže sa dajú párovo porovnať aj s nimi (časť 11.3). Doterajší
+eval s 8 ramenami sa znova nespúšťa, jeho výsledky sú referencia.
 
 ---
 
@@ -56,7 +55,7 @@ Predregistrované hypotézy (smer je určený vopred, testuje sa obojstranne):
 
 | ID | Hypotéza | Metrika | Test |
 |---|---|---|---|
-| H1 | D má vyššiu konečnú úspešnosť než C | úspech po ≤ 3 pokusoch (S@3) | exaktný McNemar, Holm cez 4 primárne páry |
+| H1 | D má vyššiu konečnú úspešnosť než C | úspech po ≤ 3 pokusoch (S@3) | exaktný McNemar, Holm cez 2 primárne páry (testing, refactoring) |
 | H2 | D potrebuje menej volaní modelu | počet volaní na prípad (1–3) | Wilcoxon signed-rank (párový) |
 | H3 | po spätnej väzbe D zostane menej porušení pravidiel | bunky s ≥ 1 porušením v poslednom pokuse | McNemar, opisne aj po pravidlách |
 | H4 | samotný nový blok (bez spätnej väzby) zmení úspešnosť pokusu 1 | S@1 | McNemar, sekundárne |
@@ -87,18 +86,13 @@ Pravidlo z `AGENTS.md` „jeden pokus na bunku, žiadne opravy“ platí pre obe
 
 ## 3. Ramená modelu
 
-- **`qwen_base` (povinné).** Najväčší priestor na zlepšenie: v testingu 22/100, z toho 47 zlyhaní na
+- **`qwen_base` (jediný model).** Najväčší priestor na zlepšenie: v testingu 22/100, z toho 47 zlyhaní na
   assertion a 18 nevyvážených tiel; v refactoringu 60/100, pričom 26 je `checks_failed`
   a 13 neplatná Java.
-- **FT (odporúčané).** Použije sa existujúci adaptér `b2_*_v3`, ten istý ako v ramenách
-  `ft_testing` / `ft_refactoring`, bez pretrénovania. Odpovedá na otázku, či ontológia pomáha aj
-  modelu, ktorý už má naučený tvar výstupu. Riziko: adaptér bol trénovaný na jednokrokových
-  promptoch, takže opravný prompt s predošlou odpoveďou a spätnou väzbou je preň mimo distribúcie.
-  `ft_v3_onto` pri neznámom bloku stratil 5 p.b. Ak pilot ukáže, že FT na opravný prompt nereaguje
-  (napr. vráti identickú odpoveď vo viac než 50 % opráv), FT ramená sa v hlavnom behu vynechajú a
-  v práci sa to uvedie ako výsledok pilotu.
-- `b2_*_onto` (`ft_onto`) sa nepoužije: bol trénovaný na starom bloku v1, nový blok má iný formát.
-- Porovnania base vs FT idú cez rôzne backendy, preto ostávajú len opisné, rovnako ako doteraz.
+- **FT sa nepoužije.** Experiment má iba dve ramená, C a D, obe na čistom Qwene cez Ollamu. Tak sú
+  na rovnakom backende ako `qwen_base`, `onto_project`, `skills`, `skills_onto` a `rag_single` a dajú
+  sa s nimi párovo porovnať. S FT ramenami (HF NF4) je porovnanie iba opisné, rovnako ako doteraz.
+  Variant slučky s adaptérom `b2_*_v3` by bol možné rozšírenie, ale nie je súčasťou tohto návrhu.
 
 ---
 
@@ -108,7 +102,7 @@ Pravidlo z `AGENTS.md` „jeden pokus na bunku, žiadne opravy“ platí pre obe
 
 ```
 pokus k = 1
-prompt_1 = zmrazený prompt ramena (C: rovnaký ako qwen_base/ft_*, D: + blok v2)
+prompt_1 = zmrazený prompt ramena (C: rovnaký ako qwen_base, D: + blok v2)
 opakuj:
     odpoveď_k = generuj(prompt_k)                       # 1 volanie modelu, ledger počíta rozpočet
     kontrola_k = nástroj(odpoveď_k)                     # časť 4.2, bez gold výstupu a skrytých testov
@@ -130,7 +124,7 @@ Rozhodnutia:
   sa vrátia ako chyba a spotrebujú pokus. Infra chyba (Ollama, timeout JVM, pád RefactoringMinera)
   slučku zastaví a bunka ostane `unresolved`, rovnako ako v maticiach.
 - **Pokus 1 sa generuje znova, nie preberá.** Pri temperature 0 a rovnakom digeste by mal byť
-  bajtovo zhodný s výstupom `qwen_base` / `ft_*` z finálneho behu. Zhodu meria pilot (časť 13).
+  bajtovo zhodný s výstupom `qwen_base` z finálneho behu. Zhodu meria pilot (časť 13).
   Prevzatím by sa ušetrilo 100 volaní na rameno, ale stratila by sa kontrola determinizmu.
 
 ### 4.2 Kontrola nástrojom počas slučky
@@ -191,10 +185,9 @@ XML) **nejdú do spätnej väzby**, sú len konečným skóre.
 
 | Potreba | Existujúca funkcia |
 |---|---|
-| prompt pokusu 1 (testing) | `testing_matrix.Matrix.case` a `Matrix.prompt` pre rameno `qwen_base` / `ft_testing`, D cez `ontology.with_ontology` |
+| prompt pokusu 1 (testing) | `testing_matrix.Matrix.case` a `Matrix.prompt` pre rameno `qwen_base`, D cez `ontology.with_ontology` |
 | prompt pokusu 1 (refactoring) | `refactoring_matrix.arm_instruction` a `render` (`block=` pre D) |
 | volanie Ollama so schémou | `matrix_support._generate_direct`, `OllamaProvider.generate_result(prompt, json_schema=...)` |
-| volanie FT | `evaluation_generation.generate_ft`, resp. `hf_inference.generate_prediction` s `on_prompt` ledgerom |
 | parsovanie a zostavenie | `inference.structured_output.parse_testing_bodies`, `matrix_support.assemble`, `refactoring_execution.parse_answer` |
 | kontrola zdroja | `methods2test_execution.review` |
 | kompilácia a beh | `java_execution.evaluate_revision`, `run_process` (timeouty, process groups) |
@@ -513,7 +506,7 @@ Do promptu ani do spätnej väzby nesmie ísť gold výstup ani skryté referen�
 | L4 | skryté testy v slučke | v slučke sa spúšťa iba test modelu; referenčný test a regresné testy SWE sú len v konečnom skóre | test na úrovni kódu: `repair_loop` neimportuje ani nevolá cesty k referenciám; ledger loguje každý spustený príkaz |
 | L5 | stop kritérium refactoringu z gold udalosti | verejný checker z `request` a cieľových riadkov namiesto `target_event` | na uložených 800 výstupoch rovnaký verdikt ako `structural_success` (100 %), gold `after.java` prejde 100/100; inak sa beh nespustí |
 | L6 | prompt a scorer sa rozídu | pokus 1 je zmrazený, každý ďalší prompt sa uloží celý a s hashom | `verify()` ako v maticiach |
-| L7 | prekrytie s tréningom FT | rovnaké EVAL prípady ako vo finálnych behoch, už prešli overlap screenom | prevzaté z `selection.json`, hash |
+| L7 | prekrytie s tréningovými dátami | rovnaké EVAL prípady ako vo finálnych behoch, už prešli overlap screenom | prevzaté z `selection.json`, hash |
 
 Poznámka k testingu: správa `expected: <3> but was: <5>` model navedie na skutočnú hodnotu
 z produkčného kódu. Nie je to leak gold výstupu (referenčný test sa nepoužije), ale robí to z úlohy
@@ -529,10 +522,9 @@ ostáva férové. Meria sa to sekundárnou metrikou „prevzatá hodnota z feedb
 - **S@3:** konečný úspech po najviac 3 pokusoch, existujúcim scorerom na poslednom pokuse
   (testing `class_pass`, refactoring `structural_success`). Neúspech aj `unresolved` ostávajú
   v menovateli.
-- **Primárne páry (4):** `d_base` vs `c_base` a `d_ft` vs `c_ft`, zvlášť pre testing a refactoring.
-  Exaktný McNemar (`paired_tests.mcnemar_exact`), Holm cez 4 páry (`paired_tests.holm`), α = 0,05.
-  Reportuje sa Both / A only / B only / Neither, Δ v p.b. a paired bootstrap 95 % CI (10 000, seed 42).
-- Ak FT ramená vypadnú po pilote, Holm ide cez 2 páry.
+- **Primárne páry (2):** D vs C zvlášť pre testing a refactoring. Exaktný McNemar
+  (`paired_tests.mcnemar_exact`), Holm cez 2 páry (`paired_tests.holm`), α = 0,05. Reportuje sa
+  Both / A only / B only / Neither, Δ v p.b. a paired bootstrap 95 % CI (10 000, seed 42).
 
 ### 11.2 Sekundárne metriky (predregistrované, bez nároku na konfirmačný záver)
 
@@ -547,17 +539,34 @@ ostáva férové. Meria sa to sekundárnou metrikou „prevzatá hodnota z feedb
 | prechody statusov | napr. `COMPILE_ERROR → TEST_FAILURE → PASSED` | Sankey alebo matica prechodov |
 | prevzatá hodnota (testing) | assertion v pokuse k+1 obsahuje literal z `but was` v pokuse k | podiel úspechov, ktoré tak vznikli, C aj D |
 | line credit (testing) | existujúce pokrytie focal metódy | Wilcoxon, sekundárne |
-| efekt slučky | `c_base` S@3 vs `qwen_base` single-shot, `d_base` vs `onto_project` | McNemar, rovnaký backend, mimo Holmovej rodiny |
+| efekt slučky | C S@3 vs `qwen_base` single-shot, D vs `onto_project` | McNemar, rovnaký backend, mimo Holmovej rodiny (časť 11.3) |
 | nároky | volania, vstupné a výstupné tokeny, čas generovania, čas nástrojov, čas SHACL, čas extrakcie, veľkosť grafu | priemer a medián na bunku, súčty na rameno |
 
-### 11.3 Sila testu
+### 11.3 Porovnanie s 8 doterajšími ramenami
+
+Keďže C a D bežia na tých istých 100 prípadoch, výsledná tabuľka môže mať 10 riadkov na úlohu:
+8 doterajších single-shot ramien a C, D. Každé rameno má rovnaký menovateľ a rovnaký scorer.
+
+| Porovnanie | Typ | Čo ukazuje |
+|---|---|---|
+| D vs C | primárne, McNemar + Holm | prínos ontológie a SHACL v rovnakej slučke |
+| C vs `qwen_base` | sekundárne, párové (rovnaký model, prompt aj backend) | čo pridá samotná slučka s nástrojom |
+| D vs `onto_project` | sekundárne, párové | stará ontológia raz vs nová ontológia v slučke |
+| C, D vs `skills`, `skills_onto`, `rag_single` | sekundárne, párové (rovnaký backend) | slučka oproti iným spôsobom dodania znalostí |
+| C, D vs `ft_testing` / `ft_refactoring`, `ft_v3_onto`, `ft_onto` | iba opisné | iný backend (HF NF4), rovnako ako doterajšie porovnania s FT |
+
+Pri sekundárnych porovnaniach treba v práci uviesť, že C a D majú až 3 volania modelu, kým
+single-shot ramená iba jedno. Porovnanie je preto „za cenu viac volaní“ a uvádza sa spolu
+s počtom volaní a časom.
+
+### 11.4 Sila testu
 
 Doterajšie primárne páry mali 9–17 % nesúhlasných párov a MDE ±9 až ±14 p.b. (80 % sila, α = 0,05).
-Pri Holmovi cez 4 páry je najprísnejšia hladina 0,0125, takže MDE vychádza okolo 12–16 p.b. Slučka
+Pri Holmovi cez 2 páry je najprísnejšia hladina 0,025, takže MDE vychádza okolo 11–15 p.b. Slučka
 pravdepodobne zvýši podiel nesúhlasných párov. Pilot ho odhadne a MDE sa prepočíta pred hlavným
 behom. Výsledok pod MDE sa formuluje ako „bez preukázateľného efektu“, nie ako „žiadny efekt“.
 
-### 11.4 Citlivosť na pilot
+### 11.5 Citlivosť na pilot
 
 Pilotných 20 prípadov sa môže podieľať na ladení formátu správ. Primárna analýza ide na 100
 prípadoch, citlivostná na 80 prípadoch mimo pilota. Ak sa smer efektu líši, uvedie sa to.
@@ -568,39 +577,35 @@ prípadoch, citlivostná na 80 prípadoch mimo pilota. Ak sa smer efektu líši,
 
 ### 12.1 Volania
 
-Strop: 100 prípadov × 4 ramená × 3 pokusy = 1 200 volaní na úlohu, teda **2 400 spolu**.
+Strop: 100 prípadov × 2 ramená (C, D) × 3 pokusy = 600 volaní na úlohu, teda **1 200 spolu**.
 Očakávanie vychádza zo single-shot úspešnosti p₁ a predpokladu, že každá oprava vyrieši zhruba
 štvrtinu zvyšných neúspechov. Volania na bunku = 1 + (1 − p₁) + (1 − p₂):
 
 | Úloha | Rameno | p₁ (single-shot) | odhad volaní na bunku | volania (C + D) |
 |---|---|---:|---:|---:|
 | testing | base | 0,22 | 2,37 | 474 |
-| testing | ft | 0,53 | 1,82 | 364 |
 | refactoring | base | 0,60 | 1,70 | 340 |
-| refactoring | ft | 0,68 | 1,56 | 312 |
-| **spolu** | | | | **≈ 1 490** (strop 2 400) |
+| **spolu** | | | | **≈ 814** (strop 1 200) |
 
-Pilot (20 prípadov): ≈ 300 volaní, strop 480.
+Pilot (20 prípadov na úlohu): ≈ 165 volaní, strop 240.
 
 ### 12.2 Čas
 
 Uložené behy majú časy v `completion.json` (`generation_pipeline_seconds`, `seconds`), ale tie sú
 iba v lokálnych artefaktoch, nie v gite. Nasledujúce čísla sú **predpoklady**, pilot ich nahradí
 nameranými. Generovanie: Ollama ≈ 8 s (testing, ~300 výstupných tokenov) a ≈ 25 s (refactoring,
-~1 000 tokenov); HF NF4 približne 3× pomalšie. Nástroj v slučke: javac + JUnit ≈ 5 s, RefactoringMiner
+~1 000 tokenov). Nástroj v slučke: javac + JUnit ≈ 5 s, RefactoringMiner
 ≈ 8 s, SHACL ≈ 1 s. Konečné skóre testingu (2 × JaCoCo) ≈ 20 s na bunku.
 
 | Úloha × rameno | volania | s na volanie (gen. + nástroj) | hodiny |
 |---|---:|---:|---:|
 | testing base | 474 | 14 | 1,8 |
-| testing ft | 364 | 31 | 3,1 |
 | refactoring base | 340 | 34 | 3,2 |
-| refactoring ft | 312 | 84 | 7,3 |
-| konečné skóre testingu | 400 buniek | 20 | 2,2 |
+| konečné skóre testingu | 200 buniek | 20 | 1,1 |
 | extrakcia ontológie (≈ 100 repozitárov, git archive + tree-sitter) | | | 1–2 |
-| **spolu** | | | **≈ 19 h** |
+| **spolu** | | | **≈ 7–8 h** |
 
-Beh sa dá rozdeliť po ramenách (FT ramená v jednom procese, aby sa model načítal raz) a je
+Beh sa dá rozdeliť po úlohách a ramenách a je
 prerušiteľný rovnako ako matice (`dispatch.json` / `completion.json`).
 
 ---
@@ -616,12 +621,12 @@ refactoring: 2 na každý typ operácie, z toho 1 SWE). V rámci vrstvy sa zorad
 
 | # | Kontrola | Kritérium |
 |---|---|---|
-| P1 | determinizmus pokusu 1 | ≥ 95 % výstupov C pokusu 1 bajtovo zhodných s `qwen_base` / `ft_*` finálneho behu; inak zdokumentovať a pokračovať s novými |
+| P1 | determinizmus pokusu 1 | ≥ 95 % výstupov C pokusu 1 bajtovo zhodných s `qwen_base` finálneho behu; inak zdokumentovať a pokračovať s novými |
 | P2 | verejný checker (L5) | 100 % zhoda na 800 uložených výstupoch a 100/100 gold |
 | P3 | kalibrácia pravidiel (8.3) | každé pravidlo ≤ 5 % falošných poplachov |
 | P4 | audit leaku (L1–L4) | 0 nálezov |
 | P5 | dĺžka promptu | pokus 3 ≤ 8 000 tokenov a žiadne `output_truncated` |
-| P6 | FT a opravný prompt | identická odpoveď v ≤ 50 % opráv, inak FT ramená vypadnú |
+| P6 | reakcia na opravný prompt | model vráti identickú odpoveď v ≤ 50 % opráv, inak upraviť šablónu spätnej väzby |
 | P7 | infra | 0 `infrastructure_failure`, timeouty JVM a RefactoringMinera v limitoch |
 | P8 | čas | nameraný čas na bunku → prepočet časti 12 |
 | P9 | sila | odhad podielu nesúhlasných párov → prepočet MDE (11.3) |
@@ -638,12 +643,11 @@ dostane nové run ID a pilotné výsledky sa k nemu nepripočítavajú.
 | D mení naraz blok aj spätnú väzbu | nedá sa úplne oddeliť, čo pomohlo | S@1 meria samotný blok; miera opravy porušení meria SHACL správy; prípadné ramená „iba blok“ a „iba SHACL“ sú rozšírenie, nie súčasť návrhu |
 | pravidlá navrhnuté na tých istých prípadoch | nadhodnotený efekt | všeobecné pravidlá, kalibrácia iba na falošné poplachy, zmrazenie pred hlavným behom, citlivosť na 80 prípadoch |
 | strop pri testingu: feedback s `but was` vyrieši veľa assertion chýb aj v C | malý rozdiel D vs C | predregistrované; reportuje sa metrika prevzatej hodnoty a S@1 |
-| FT adaptér nepozná opravný prompt | FT ramená bez reakcie | pilotné kritérium P6 |
 | SHACL falošné poplachy (napr. nevyriešený typ prijímača, generiká, statické importy) | model „opravuje“ správny kód | tvary sa vyhodnocujú iba na rozlíšených faktoch (napr. `lo:receiverType` musí existovať), kalibrácia P3 |
 | Ollama nie je bajtovo deterministická | pokus 1 sa líši od referencie | P1, reportovať; porovnanie D vs C ostáva párové v rámci nového behu |
 | repo pre refactoring nedostupné | menej projektových faktov | fallback `unit_only`, reportované pokrytie |
 | slučka spustí viac Java kódu modelu | bezpečnosť | ten istý `review` a `run_process` ako matice, nie je to OS sandbox (rovnaké priznanie) |
-| dlhší čas behu | ≈ 20 h | prerušiteľnosť, FT v jednom procese, pilot najprv |
+| dlhší čas behu | ≈ 7–8 h | prerušiteľnosť, pilot najprv |
 | SWE n = 5 | žiadne závery | iba opisne, ako doteraz |
 
 ---
@@ -685,7 +689,7 @@ a SHACL (2017), implementácia pySHACL.
 
 **Obmedzenia do práce:** wrapper namiesto pôvodného projektu pri testingu, štrukturálne (nie
 behaviorálne) hodnotenie refaktoringu mimo SWE, pravidlá navrhnuté na rovnakom súbore prípadov,
-jeden model, rôzne backendy pre base a FT, D mení dve veci naraz.
+jeden model (bez FT), viac volaní modelu v C a D než v single-shot ramenách, D mení dve veci naraz.
 
 ---
 
@@ -698,8 +702,8 @@ jeden model, rôzne backendy pre base a FT, D mení dve veci naraz.
 | 3 | verejný checker a kalibrácia pravidiel na uložených výstupoch (P2, P3) | nie | 1 deň |
 | 4 | `repair_loop.py`, `repair_feedback.py`, runner, config, mock testy | nie (mock) | 3 dni |
 | 5 | audit leaku (L1–L4) | nie | 1 deň |
-| 6 | pilot 20 + 20 prípadov | áno, ≈ 300 volaní | ≈ 4 h behu |
-| 7 | zmrazenie, hlavný beh | áno, ≈ 1 500 volaní | ≈ 20 h behu |
+| 6 | pilot 20 + 20 prípadov | áno, ≈ 165 volaní | ≈ 1,5–2 h behu |
+| 7 | zmrazenie, hlavný beh | áno, ≈ 814 volaní | ≈ 7–8 h behu |
 | 8 | report (`--report-only`), analýza, export do `thesis_materials/<dátum>_vysledky_slucky/` | nie | 1–2 dni |
 
 Kroky 1–5 nepotrebujú GPU a dajú sa overiť testami v čistom klone. Kroky 3 a 5 sú zároveň pilotné
