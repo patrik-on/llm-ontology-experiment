@@ -42,8 +42,12 @@ los:R1_TargetMethodPresent a sh:NodeShape ;
     sh:message "R1 the target method of the requested operation was not found in your output (it must keep its name unless the request renames it)." ;
   ] .
 
-# R2 – Parameterize Variable: lokálna premenná zmizne, metóda dostane parameter
-#      a jej použitia odkazujú na nový parameter (meraná chyba: iba Rename Variable, 1/10 pri base).
+# R2 – Chyba: model pridá parameter, ale výpočet ďalej používa pôvodnú lokálnu premennú.
+#      Vzťah: na ktorú deklaráciu odkazuje konkrétne použitie premennej pred úpravou a po nej
+#      (lo:hasUse, lo:resolvesKind, párovanie lo:hasCounterpart). Podmienka: zodpovedajúce použitie
+#      po úprave odkazuje na nový parameter. Rozlíši tak pridanie parametra do podpisu od jeho
+#      skutočného použitia. Ak sa použitie nepodarí spárovať, výsledok je „nevieme posúdiť“ (sh:Info).
+#      Meraná chyba: Parameterize Variable 1/10 pri base, „iba Rename Variable“ ×21.
 los:R2_ParameterizeVariable a sh:NodeShape ;
   sh:targetClass lo:ParameterizeVariableRequest ;
   sh:sparql [
@@ -71,12 +75,29 @@ los:R2_ParameterizeVariable a sh:NodeShape ;
   ] ;
   sh:sparql [
     a sh:SPARQLConstraint ; sh:prefixes los: ; sh:severity sh:Violation ;
-    sh:message "R2 Parameterize Variable: use of '{?new}' at output line {?line} resolves to a {?kind}, not to the new parameter." ;
+    sh:message "R2 Parameterize Variable: '{?old}' used at input line {?lb} corresponds to output line {?line}, which still refers to the {?kind} '{?uname}' instead of the new parameter '{?new}'." ;
     sh:select """
-      SELECT $this ?new ?line ?kind WHERE {
-        $this lo:newName ?new ; lo:targetMethodAfter ?ma .
-        ?ma lo:hasUse ?u . ?u lo:name ?new ; lo:resolvesKind ?kind ; lo:line ?line .
-        FILTER (?kind != "parameter")
+      SELECT $this ?old ?lb ?line ?kind ?uname ?new WHERE {
+        $this lo:oldName ?old ; lo:newName ?new ; lo:targetMethodBefore ?mb .
+        ?mb lo:hasUse ?ub . ?ub lo:name ?old ; lo:resolvesKind "local" ; lo:line ?lb ; lo:hasCounterpart ?ua .
+        ?ua lo:line ?line ; lo:resolvesKind ?kind ; lo:name ?uname .
+        FILTER (?kind != "parameter" || ?uname != ?new)
+      }""" ;
+  ] .
+
+# „Nevieme posúdiť“: samostatný tvar so závažnosťou sh:Info (v SHACL sa závažnosť určuje na tvare).
+# Výsledky sa zaznamenajú, ale do spätnej väzby modelu nejdú.
+los:R2_Undecided a sh:NodeShape ;
+  sh:targetClass lo:ParameterizeVariableRequest ;
+  sh:severity sh:Info ;
+  sh:sparql [
+    a sh:SPARQLConstraint ; sh:prefixes los: ;
+    sh:message "R2 UNDECIDED: the use of '{?old}' at input line {?lb} has no matching place in the output, so it cannot be checked." ;
+    sh:select """
+      SELECT $this ?old ?lb WHERE {
+        $this lo:oldName ?old ; lo:targetMethodBefore ?mb .
+        ?mb lo:hasUse ?ub . ?ub lo:name ?old ; lo:resolvesKind "local" ; lo:line ?lb .
+        FILTER NOT EXISTS { ?ub lo:hasCounterpart ?any }
       }""" ;
   ] .
 

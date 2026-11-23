@@ -1,4 +1,5 @@
-# Ručne zostavené dáta na overenie shapes_testing.ttl: 8 porušení (T1×3, T2×2, T3, T4×2); toString() a typ Foo prejdú.
+# Chybné riešenie pre shapes_testing.ttl: očakávané 8 porušení (T1×3, T2×2, T3, T4×2) a 2× „nevieme posúdiť“ (T3).
+# toString() (zdedená z Object), typ Foo a List.of v assertThrows nič neporušia.
 @prefix lo: <https://w3id.org/llm-ontology/project#> .
 @prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
 lo:t_Foo a lo:Type, lo:ClassType ; lo:fqn "com.x.Foo" ; lo:simpleName "Foo" ; lo:isFocal true ; lo:origin "project" ; lo:directSuperType lo:t_Object .
@@ -7,7 +8,7 @@ lo:t_ArrayList a lo:Type ; lo:fqn "java.util.ArrayList" ; lo:simpleName "ArrayLi
 lo:m_toString a lo:Method ; lo:declaredIn lo:t_Object ; lo:name "toString" ; lo:arity 0 ; lo:visibility "public" ; lo:signature "String toString()" .
 lo:c_Foo a lo:Constructor ; lo:declaredIn lo:t_Foo ; lo:name "<init>" ; lo:arity 0 ; lo:visibility "public" ; lo:isImplicit true ; lo:signature "Foo()" .
 lo:m_merge a lo:Method ; lo:declaredIn lo:t_Foo ; lo:name "merge" ; lo:arity 1 ; lo:visibility "public" ; lo:signature "int merge(java.util.List<String> items)" ; lo:mutatesParameter lo:p_items .
-lo:p_items a lo:Parameter ; lo:position 0 ; lo:name "items" ; lo:typeName "java.util.List<String>" ; lo:mutatedBy "add" .
+lo:p_items a lo:Parameter ; lo:position 0 ; lo:name "items" ; lo:typeName "java.util.List<String>" ; lo:mutatedBy "add" ; lo:mutationOnSuccessPath true .
 lo:m_helper a lo:Method ; lo:declaredIn lo:t_Foo ; lo:name "helper" ; lo:arity 0 ; lo:visibility "private" ; lo:signature "private void helper()" .
 lo:f_count a lo:Field ; lo:name "count" ; lo:declaredIn lo:t_Foo ; lo:visibility "private" ; lo:typeName "int" .
 lo:fac_listOf a lo:CollectionFactory ; lo:factoryName "List.of" ; lo:resultMutability lo:Immutable ; lo:mutableAlternative "java.util.ArrayList" .
@@ -23,3 +24,15 @@ lo:u2 a lo:UndeclaredName ; lo:name "expected" ; lo:inBody 2 ; lo:line 6 .
 lo:ty1 a lo:TypeUse ; lo:written "ArrayList" ; lo:simpleName "ArrayList" ; lo:inBody 1 ; lo:line 4 .
 lo:ty2 a lo:TypeUse ; lo:written "Lists" ; lo:simpleName "Lists" ; lo:inBody 2 ; lo:line 1 .
 lo:ty3 a lo:TypeUse ; lo:written "Foo" ; lo:simpleName "Foo" ; lo:inBody 1 ; lo:line 1 ; lo:resolvesTo lo:t_Foo .
+# metóda, ktorá pridáva iba v jednej vetve -> nevieme posúdiť
+lo:m_maybe a lo:Method ; lo:declaredIn lo:t_Foo ; lo:name "maybeAdd" ; lo:arity 1 ; lo:visibility "public" ; lo:signature "void maybeAdd(java.util.List<String> xs)" ; lo:mutatesParameter lo:p_xs .
+lo:p_xs a lo:Parameter ; lo:position 0 ; lo:name "xs" ; lo:mutatedBy "add" ; lo:mutationOnSuccessPath false .
+lo:call6 a lo:TestCall ; lo:receiverType lo:t_Foo ; lo:calleeName "maybeAdd" ; lo:argCount 1 ; lo:display "foo.maybeAdd(List.of())" ; lo:inBody 2 ; lo:line 7 ; lo:resolvesTo lo:m_maybe .
+lo:arg6 a lo:Argument ; lo:argumentOf lo:call6 ; lo:position 0 ; lo:producedBy lo:fac_listOf .
+# argument s neznámym pôvodom -> nevieme posúdiť
+lo:fac_unknown a lo:CollectionFactory ; lo:factoryName "unknown" ; lo:resultMutability lo:UnknownMutability .
+lo:call7 a lo:TestCall ; lo:receiverType lo:t_Foo ; lo:calleeName "merge" ; lo:argCount 1 ; lo:display "foo.merge(helperList())" ; lo:inBody 2 ; lo:line 8 ; lo:resolvesTo lo:m_merge .
+lo:arg7 a lo:Argument ; lo:argumentOf lo:call7 ; lo:position 0 ; lo:producedBy lo:fac_unknown .
+# test zámerne čaká UnsupportedOperationException -> správne použitie, nič nehlási
+lo:call8 a lo:TestCall ; lo:receiverType lo:t_Foo ; lo:calleeName "merge" ; lo:argCount 1 ; lo:display "assertThrows(..., () -> foo.merge(List.of(\"a\")))" ; lo:inBody 2 ; lo:line 9 ; lo:resolvesTo lo:m_merge .
+lo:arg8 a lo:Argument ; lo:argumentOf lo:call8 ; lo:position 0 ; lo:producedBy lo:fac_listOf ; lo:inExpectedException true .
