@@ -1,0 +1,25 @@
+# Ručne zostavené dáta na overenie shapes_testing.ttl: 8 porušení (T1×3, T2×2, T3, T4×2); toString() a typ Foo prejdú.
+@prefix lo: <https://w3id.org/llm-ontology/project#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+lo:t_Foo a lo:Type, lo:ClassType ; lo:fqn "com.x.Foo" ; lo:simpleName "Foo" ; lo:isFocal true ; lo:origin "project" ; lo:directSuperType lo:t_Object .
+lo:t_Object a lo:Type ; lo:fqn "java.lang.Object" ; lo:simpleName "Object" ; lo:origin "jdk" .
+lo:t_ArrayList a lo:Type ; lo:fqn "java.util.ArrayList" ; lo:simpleName "ArrayList" ; lo:origin "jdk" .
+lo:m_toString a lo:Method ; lo:declaredIn lo:t_Object ; lo:name "toString" ; lo:arity 0 ; lo:visibility "public" ; lo:signature "String toString()" .
+lo:c_Foo a lo:Constructor ; lo:declaredIn lo:t_Foo ; lo:name "<init>" ; lo:arity 0 ; lo:visibility "public" ; lo:isImplicit true ; lo:signature "Foo()" .
+lo:m_merge a lo:Method ; lo:declaredIn lo:t_Foo ; lo:name "merge" ; lo:arity 1 ; lo:visibility "public" ; lo:signature "int merge(java.util.List<String> items)" ; lo:mutatesParameter lo:p_items .
+lo:p_items a lo:Parameter ; lo:position 0 ; lo:name "items" ; lo:typeName "java.util.List<String>" ; lo:mutatedBy "add" .
+lo:m_helper a lo:Method ; lo:declaredIn lo:t_Foo ; lo:name "helper" ; lo:arity 0 ; lo:visibility "private" ; lo:signature "private void helper()" .
+lo:f_count a lo:Field ; lo:name "count" ; lo:declaredIn lo:t_Foo ; lo:visibility "private" ; lo:typeName "int" .
+lo:fac_listOf a lo:CollectionFactory ; lo:factoryName "List.of" ; lo:resultMutability lo:Immutable ; lo:mutableAlternative "java.util.ArrayList" .
+# generated
+lo:call1 a lo:TestCall ; lo:receiverType lo:t_Foo ; lo:calleeName "<init>" ; lo:argCount 1 ; lo:display "new Foo(5)" ; lo:inBody 1 ; lo:line 1 .
+lo:call2 a lo:TestCall ; lo:receiverType lo:t_Foo ; lo:calleeName "merge" ; lo:argCount 1 ; lo:display "foo.merge(List.of(\"a\"))" ; lo:inBody 1 ; lo:line 2 ; lo:resolvesTo lo:m_merge .
+lo:call3 a lo:TestCall ; lo:receiverType lo:t_Foo ; lo:calleeName "helper" ; lo:argCount 0 ; lo:display "foo.helper()" ; lo:inBody 2 ; lo:line 3 .
+lo:call4 a lo:TestCall ; lo:receiverType lo:t_Foo ; lo:calleeName "toString" ; lo:argCount 0 ; lo:display "foo.toString()" ; lo:inBody 2 ; lo:line 4 .
+lo:call5 a lo:TestCall ; lo:receiverType lo:t_Foo ; lo:calleeName "frobnicate" ; lo:argCount 0 ; lo:display "foo.frobnicate()" ; lo:inBody 2 ; lo:line 5 .
+lo:arg1 a lo:Argument ; lo:argumentOf lo:call2 ; lo:position 0 ; lo:producedBy lo:fac_listOf .
+lo:u1 a lo:UndeclaredName ; lo:name "count" ; lo:inBody 1 ; lo:line 3 .
+lo:u2 a lo:UndeclaredName ; lo:name "expected" ; lo:inBody 2 ; lo:line 6 .
+lo:ty1 a lo:TypeUse ; lo:written "ArrayList" ; lo:simpleName "ArrayList" ; lo:inBody 1 ; lo:line 4 .
+lo:ty2 a lo:TypeUse ; lo:written "Lists" ; lo:simpleName "Lists" ; lo:inBody 2 ; lo:line 1 .
+lo:ty3 a lo:TypeUse ; lo:written "Foo" ; lo:simpleName "Foo" ; lo:inBody 1 ; lo:line 1 ; lo:resolvesTo lo:t_Foo .
