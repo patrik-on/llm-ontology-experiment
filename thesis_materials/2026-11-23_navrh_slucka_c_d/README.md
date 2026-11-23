@@ -18,9 +18,10 @@ Súbory v tomto priečinku:
 
 ## 0. Zhrnutie
 
-Doterajšia ontológia (`onto_project`) nepomohla, lebo bola prepisom kódu, ktorý model už videl v
-prompte. Vznikala z jedného dodaného súboru (tree-sitter → rdflib, 9 tried TBoxu), do promptu išla ako
-krátky blok a nič s ňou ďalej nekontrolovalo výstup. Nový experiment mení dve veci naraz a obe
+Pri pôvodnom ontologickom bloku (`onto_project`) sme nepozorovali zlepšenie úspešnosti. Jedným
+z možných vysvetlení je, že opakoval informácie už dostupné v prompte: vznikal z jedného dodaného
+súboru (tree-sitter → rdflib, 9 tried TBoxu), do promptu išiel ako krátky blok a nič s ním ďalej
+nekontrolovalo výstup. Nový experiment mení dve veci naraz a obe
 porovnáva proti férovej kontrole:
 
 1. **Slučka s nástrojmi** (rameno C): model vygeneruje odpoveď, nástroj ju overí (javac + JUnit pri
@@ -55,15 +56,16 @@ eval s 8 ramenami sa znova nespúšťa, jeho výsledky sú referencia.
 
 **Prečo dáva zmysel:**
 
-- Priamo nadväzuje na zistenie z prvého experimentu: ontológia nepomohla, lebo opakovala kód
-  z promptu. D skúša opak, teda ontológiu s faktmi mimo promptu, ktorá navyše slúži na kontrolu
+- Priamo nadväzuje na pozorovanie z prvého experimentu: pri pôvodnom bloku sme nepozorovali
+  zlepšenie a jedným z možných vysvetlení je, že opakoval informácie z promptu. D skúša variant,
+  ktorý toto vysvetlenie preverí: ontológiu s faktmi mimo promptu, ktorá navyše slúži na kontrolu
   výstupu. Odpovedá to na otázku zo zadania, *ako* ontológie využiť, nielen opakuje negatívny výsledok.
 - Porovnanie D vs C je čisté. Slučka, nástroje, model, prípady aj rozpočet pokusov sú rovnaké a
   líši sa iba ontológia.
 - Výsledky sa dajú spojiť s doterajšími: na tých istých 100 prípadoch vznikne jedna tabuľka
   s 10 ramenami na úlohu.
-- Je to lacné: okolo 814 volaní a 7–8 h behu na vývojovej množine, spolu s vetvenou opravou a
-  testovacou množinou z nových projektov okolo 1 290 volaní a 11 h (časť 12.3).
+- Je to lacné: okolo 814 volaní a 9 h behu na vývojovej množine, spolu s vetvenou opravou a
+  testovacou množinou 100 + 100 prípadov z nových projektov okolo 1 690 volaní a 16 h (časť 12.3).
 
 **Tri obmedzenia, ktoré treba v práci výslovne uviesť:**
 
@@ -75,7 +77,7 @@ eval s 8 ramenami sa znova nespúšťa, jeho výsledky sú referencia.
    množina**. Najsilnejšie overenie prenositeľnosti je skúška zmrazených pravidiel na nových
    projektoch (časť 2.1).
 
-**Realistické očakávanie:** pri 100 prípadoch je minimálny odhaliteľný rozdiel zhruba 11–15 p.b.
+**Realistické očakávanie:** pri 100 prípadoch je minimálny odhaliteľný rozdiel zhruba 12–19 p.b. podľa podielu nesúhlasných párov
 (časť 11.4), menší efekt vyjde ako „nepreukázaný“. Pri testingu môže spätná väzba typu
 `expected: <3> but was: <5>` pomôcť C aj D natoľko, že rozdiel medzi nimi bude malý. Najväčšiu šancu
 na rozdiel má refactoring, kde typické chyby kompilátor nenahlási a nájde ich až SHACL: zmena
@@ -120,7 +122,7 @@ Nové behy musia byť porovnateľné s finálnymi behmi. Preto sa nemení nič z
 | Model | Ollama `qwen2.5-coder:7b` s rovnakým digestom (`generation_model_digest`), HF model a adaptéry s rovnakými SHA-256 (`arm_hf_identity`) |
 | Dekódovanie | temperature 0, top_p 0.9, seed 42, `max_new_tokens` 4096, kontext 32768 (testing); refactoring podľa `refactoring_matrix_v1.json` |
 | Výstupný kontrakt | testing: dve telá do pevného scaffoldu (`testing-bodies-one-shot-v2`), refactoring: JSON `FileAnswer` |
-| Konečné hodnotenie | testing: `methods2test_execution.run` (review, 2 opakovania, JaCoCo) iba na poslednom pokuse; refactoring: `refactoring_structural.evaluate`, pri SWE `refactoring_execution.evaluate` |
+| Konečné hodnotenie | testing: `methods2test_execution.run` (review, 2 opakovania, JaCoCo); refactoring: `refactoring_structural.evaluate`, pri SWE `refactoring_execution.evaluate`. Ten istý hodnotiteľ sa po skončení behu použije na odpoveď po 1., 2. aj 3. pokuse a na obe vetvy A/B (časť 4.1). |
 | Štatistika | `benchmarks/paired_tests.py` (`mcnemar_exact`, `wilcoxon_signed_rank`, `holm`), paired bootstrap ako v `deep_analysis.py` |
 
 ### 2.1 Vývojová a testovacia množina
@@ -129,12 +131,13 @@ Nové behy musia byť porovnateľné s finálnymi behmi. Preto sa nemení nič z
   pravidiel, preto na nich výsledky slúžia na ladenie a porovnanie s 8 doterajšími ramenami, nie
   ako dôkaz prenositeľnosti. Ani vynechanie 20 pilotných prípadov z toho nespraví nezávislú vzorku.
 - **Testovacia množina (nové projekty):** po zmrazení pravidiel, bloku a formátu spätnej väzby sa
-  C a D spustia na nových prípadoch z projektov, ktoré vo vývojovej množine nie sú. Testing:
-  približne 50 prípadov z Methods2Test EVAL rovnakým výberovým postupom (`methods2test_selection`,
-  rovnaké filtre, vylúčené všetky doterajšie ID aj projekty). Refactoring: približne 50 prípadov
-  MaRV a ML4Ref z repozitárov mimo doterajšieho poolu, s rovnakými kvótami typov operácií. Pred
-  výberom treba overiť, že kandidátov je dosť (hlavne pri refaktoringu). Na tejto množine sa
-  nič neladí a primárny test H1 ide práve na nej.
+  C a D spustia na nových prípadoch z projektov, ktoré vo vývojovej množine nie sú. Cieľ je
+  **100 prípadov na úlohu**, rovnako ako vo vývojovej množine. Testing: Methods2Test EVAL rovnakým
+  výberovým postupom (`methods2test_selection`, rovnaké filtre, vylúčené všetky doterajšie ID aj
+  projekty). Refactoring: MaRV a ML4Ref z repozitárov mimo doterajšieho poolu, s rovnakými kvótami
+  typov operácií. Pred výberom treba overiť, že kandidátov je dosť (hlavne pri refaktoringu).
+  Ak ich bude menej, minimum je 50 na úlohu a záver sa formuluje podľa skutočného počtu a jeho
+  MDE (časť 11.4). Na tejto množine sa nič neladí a primárny test H1 ide práve na nej.
 
 Pravidlo z `AGENTS.md` „jeden pokus na bunku, žiadne opravy“ platí pre obe matice a ostáva. Slučka je
 **samostatný protokol** (`repair_loop_cd_v1`) s vlastným runnerom a run ID. Pri implementácii treba
@@ -169,8 +172,14 @@ opakuj:
     spätná_väzba_k = formátuj(kontrola_k [, shacl_k ak D])
     prompt_{k+1} = prompt_1 + predošlá odpoveď_k + spätná_väzba_k
     k = k + 1
-konečné hodnotenie = existujúci scorer na odpovedi posledného pokusu
+konečné hodnotenie (po skončení behu, bez ďalších volaní modelu):
+    pre limit L = 1, 2, 3: odpoveď_L = odpoveď z pokusu min(L, posledný pokus bunky)
+    S@L = existujúci scorer(odpoveď_L)       # ten istý hodnotiteľ pre všetky limity aj vetvy A/B
 ```
+
+Kontrola v slučke (časť 4.2) iba rozhoduje, či pokračovať. Všetky porovnávané čísla (S@1, S@2, S@3,
+vetvy A/B) dáva ten istý konečný hodnotiteľ. Ak slučka skončila skôr, pre ďalší limit pokusov sa
+použije jej posledná odpoveď. Každá odlišná odpoveď sa hodnotí raz a výsledok sa uloží podľa hashu.
 
 Rozhodnutia:
 
@@ -228,8 +237,10 @@ opravný pokus v dvoch samostatných vetvách:
 | B | pôvodný prompt C + chybná odpoveď + výstup nástroja + porušenia SHACL | 1 volanie na takú odpoveď |
 
 Obe vetvy majú rovnaký pôvodný prompt bez ontologického bloku a rovnaký výstup nástroja, líšia sa
-iba sekciou `Ontology checks`. Porovnáva sa teda oprava tej istej chyby. Metrika: úspech po jednom
-opravnom pokuse a miera odstránenia konkrétneho porušenia, párový exaktný McNemar (H5). Odpovede bez
+iba sekciou `Ontology checks`. Porovnáva sa teda oprava tej istej chyby. Obe vetvy vyhodnotí ten
+istý konečný hodnotiteľ. Primárna metrika H5 je úspech úlohy po jednom opravnom pokuse (párový
+exaktný McNemar). Odstránenie konkrétneho porušenia je iba sekundárna metrika, lebo samotné
+zmiznutie hlásenia ešte nemusí znamenať úspešnú opravu. Odpovede bez
 porušenia sa do testu nezaradia, lebo v nich by boli obe vetvy identické. Odhad: ~40 takých odpovedí
 pri testingu a ~25 pri refaktoringu na vývojovej množine, teda okolo 65 volaní.
 
@@ -474,7 +485,8 @@ Pre každé pravidlo sa použije ten istý postup. Pri opakovanej chybe sa polo�
 platiť, aby bol výsledok správny, a z čoho to viem overiť?*
 
 1. **Akú chybu chceme zachytiť?** Kategória z taxonómie chýb (časť 8.1), ktorá sa opakuje
-   (aspoň 3 bunky v aspoň 2 projektoch) a ktorej opravu samotný výstup nástroja nenaznačí.
+   (aspoň 3 bunky v aspoň 2 projektoch). Pri každom pravidle uvedieme, čo už oznámi nástroj a akú
+   dodatočnú informáciu môže poskytnúť ontológia (časť 8.2).
 2. **Ktorý vzťah potrebujeme zachytiť?** Pojmy a vzťahy, bez ktorých sa podmienka nedá vyjadriť,
    sa doplnia do slovníka v OWL 2, napríklad *metóda má parameter* alebo *použitie premennej
    odkazuje na deklaráciu*. Analyzátor musí vedieť tieto fakty do grafu dodať.
@@ -537,29 +549,59 @@ overujú, a Turtle ako čitateľný zápis oboch (časť 7.2).
 Rename, Rename Class a Remove Parameter vlastné pravidlo nemajú. Base ich zvláda v 63–100 % prípadov
 a R1 ich čiastočne pokrýva.
 
-### 8.2 Pravidlá a kompilátor
+### 8.2 Čo pridá pravidlo oproti nástroju
 
-Väčšinu chýb T1, T2 a T4 nájde aj javac, takže C ich dostane tiež. Prínos D je v tom, že **ontológia
-pridá opravnú informáciu, ktorú kompilátor nemá**, napríklad „deklarované: `Foo()`“, „je to privátne
-pole typu int“ alebo „napíš `java.util.ArrayList`“. T3 a R1–R4 nájdu chyby, ktoré kompilátor nenájde
-vôbec (výnimka až za behu, zlá alebo žiadna operácia v platnej Jave). Práve rozdiel medzi „čo je
-zle“ (C) a „čo je zle a čo je správne podľa projektu“ (D) experiment meria.
+Pri každom pravidle uvádzame, čo už oznámi nástroj (C to dostane tiež) a akú dodatočnú informáciu
+môže poskytnúť ontológia. Podľa očakávaného prínosu sa vyberajú pravidlá do pilota a do prvej ručnej
+kontroly.
+
+| ID | Čo oznámi nástroj | Čo pridá ontológia | Očakávaný prínos | Pilot |
+|---|---|---|---|---|
+| T1 | `javac`: `cannot find symbol` alebo pri konštruktore či preťažení `required: … found: …` | všetky prístupné signatúry vrátane zdedených a ich viditeľnosť | malý, `javac` často vypíše požadované aj skutočné argumenty | nie |
+| T2 | `javac`: `cannot find symbol: variable count` | že ide o pole testovanej triedy, jeho typ a viditeľnosť | malý až stredný | nie |
+| T3 | JUnit: `UnsupportedOperationException` so stackom, až po spustení | ktorá metóda mení ktorý parameter a akou operáciou, meniteľná náhrada | stredný: nástroj ukáže výnimku, nie príčinu v príprave dát | **áno** |
+| T4 | `javac`: `cannot find symbol: class Lists` | plne kvalifikované meno alebo že typ na classpath nie je; že importy sa pridať nedajú | stredný | nie |
+| R1 | RefactoringMiner: požadovaná operácia sa nenašla, zoznam iných operácií (napr. `Change Class Access Modifier`) | konkrétna deklarácia, pôvodný modifikátor, chýbajúce členy mimo cieľa | stredný; najčastejšia vedľajšia zmena v dátach | **áno** |
+| R2 | RefactoringMiner: Parameterize Variable sa nenašla, prípadne `Rename Variable` / `Add Parameter` | konkrétne použitie, ktoré stále odkazuje na pôvodnú lokálnu premennú, a jeho riadok | **veľký**: nástroj povie iba „nenašlo sa“ | **áno** |
+| R3 | RefactoringMiner: Extract Method sa nenašla alebo na inom rozsahu | či nová metóda existuje, či ju zdrojová volá, či sa príkazy presunuli | stredný | nie |
+| R4 | RefactoringMiner: operácia sa nenašla | že deklarácia ostala, alebo že inicializátor nesedí s výrazom z požiadavky | stredný | nie |
+
+T3 a R1–R4 nachádzajú chyby, ktoré kompilátor nenájde vôbec (výnimka až za behu, zlá alebo žiadna
+operácia v platnej Jave). Pri T1, T2 a T4 je prínos iba v presnejšom návode na opravu. Do pilota a
+prvej ručnej kontroly idú R2, R1 a T3, ostatné pravidlá bežia tiež a ich prínos sa posúdi po
+kalibrácii.
 
 ### 8.3 Kalibrácia bez nových volaní modelu
 
 Pred pilotom sa tvary spustia na všetkých uložených single-shot výstupoch (8 ramien × 100 prípadov ×
-2 úlohy). Pre každé pravidlo sa vypočíta:
+2 úlohy). Kalibrácia overuje, či pravidlo **správne pomenovalo konkrétnu chybu**, nie či celé
+riešenie zlyhalo. Test môže zlyhať na nesprávnej asercii, aj keď hlásenie o nevhodnom zozname bolo
+chybné. Detektor zas môže uznať požadovaný refaktoring a pravidlo pritom správne odhaliť vedľajšiu
+zmenu modifikátora. Úspech úlohy preto nie je meradlom správnosti hlásenia.
 
-- **falošné poplachy:** podiel buniek, ktoré nástroj uznal (`class_pass` / `structural_success`),
-  no pravidlo ich hlási. Cieľ ≤ 5 %. Pravidlo, ktoré to nesplní, sa sprísni alebo vypustí.
-- **presnosť** P(neúspech | porušenie) ≥ 0,7 a **pokrytie** (koľko neúspechov aspoň jedno pravidlo
-  hlási).
+**Úroveň hlásenia (rozhoduje o pravidle).** Pre každé pravidlo sa skontroluje vzorka hlásení
+priamo v kóde (pôvodná a upravená metóda, resp. telo testu a testovaná trieda): všetky, ak ich je
+menej ako 30, inak 30 náhodne vybraných (seed 42). Každé hlásenie dostane jeden štítok:
+
+| Štítok | Význam |
+|---|---|
+| vecne správne | v kóde naozaj je chyba, ktorú hlásenie opisuje, na mieste, ktoré uvádza |
+| vecne nesprávne | chyba tam nie je alebo je inde (falošné hlásenie) |
+| chýbali fakty | analyzátor nemal fakty na rozhodnutie; správne by bolo *nevieme posúdiť* |
+
+Rovnako sa skontroluje vzorka výsledkov *nevieme posúdiť* (do 15 na pravidlo), či naozaj chýbali
+fakty. Pre každé pravidlo sa reportuje počet hlásení, podiel vecne správnych (s Wilsonovým 95 % CI)
+a podiel prípadov s chýbajúcimi faktami. Kritérium: vecne správne ≥ 80 % a chýbali fakty ≤ 20 %;
+pravidlo, ktoré ho nesplní, sa sprísni alebo vypustí. Štítkovanie robí autor podľa tohto protokolu,
+10 hlásení na pravidlo sa po týždni označí znova kvôli konzistencii.
+
+**Úroveň úlohy (iba opisne).** Zvlášť sa uvádza, v koľkých neúspešných a úspešných bunkách
+pravidlo niečo hlási. Hlásenie v úspešnej bunke nie je automaticky falošné (napr. vedľajšia zmena
+modifikátora pri uznanom refaktoringu).
 
 Tvary sa potom zmrazia (SHA-256 v `loop_plan.json`) a počas hlavného behu sa nemenia. Pravidlá sú
 odvodené z kategórií chýb na tých istých 100 prípadoch, preto je to vývojová množina. Prenositeľnosť
-sa overí na testovacej množine z nových projektov (časť 2.1). Pri kalibrácii sa pre každé pravidlo
-reportuje aj podiel výsledkov *nevieme posúdiť*. Ak je vysoký (napr. nad 30 %), analyzátor nedodáva
-potrebné fakty a pravidlo treba doplniť alebo vypustiť.
+sa overí na testovacej množine z nových projektov (časť 2.1).
 
 ---
 
@@ -657,7 +699,7 @@ ostáva férové. Meria sa to sekundárnou metrikou „prevzatá hodnota z feedb
 
 | Metrika | Definícia | Test alebo zobrazenie |
 |---|---|---|
-| S@1, S@2 | úspech po 1 a 2 pokusoch | McNemar D vs C; S@1 izoluje efekt bloku (H4) |
+| S@1, S@2 | úspech po 1 a 2 pokusoch, rovnakým konečným hodnotiteľom ako S@3 (časť 4.1) | McNemar D vs C; S@1 izoluje efekt bloku (H4) |
 | krivka úspechu | S@k pre k = 1, 2, 3 a rameno | graf a tabuľka |
 | volania na prípad | 1–3, neúspech = 3 | Wilcoxon signed-rank D vs C (`wilcoxon_signed_rank`), priemer a rozdelenie |
 | pokusy do úspechu | neúspech = 4 (cenzúra) | citlivostná analýza, rovnaký test |
@@ -690,15 +732,25 @@ s počtom volaní a časom.
 
 ### 11.4 Sila testu
 
-Doterajšie primárne páry mali 9–17 % nesúhlasných párov a MDE ±9 až ±14 p.b. (80 % sila, α = 0,05).
-Pri Holmovi cez 2 páry je najprísnejšia hladina 0,025, takže MDE vychádza okolo 11–15 p.b. Slučka
-pravdepodobne zvýši podiel nesúhlasných párov. Pilot ho odhadne a MDE sa prepočíta pred hlavným
-behom. Výsledok pod MDE sa formuluje ako „bez preukázateľného efektu“, nie ako „žiadny efekt“.
+Doterajšie primárne páry mali 9–17 % nesúhlasných párov. Minimálny odhaliteľný rozdiel (MDE) pre
+exaktný McNemar s Holmom cez 2 páry (najprísnejšia hladina 0,025) a silu 80 %, vypočítaný presne
+z binomického rozdelenia:
+
+| Podiel nesúhlasných párov | n = 50 | n = 100 |
+|---|---:|---:|
+| 15 % | nezachytí ani 30 p.b. | ~12 p.b. |
+| 25 % | ~22 p.b. | ~16 p.b. |
+| 35 % | ~26 p.b. | ~19 p.b. |
+
+Pri 50 prípadoch na úlohu by konfirmačný test zachytil iba veľmi veľký efekt, preto je cieľ
+testovacej množiny 100 prípadov (časť 2.1). Slučka pravdepodobne zvýši podiel nesúhlasných párov.
+Pilot ho odhadne a MDE sa pre skutočný počet prípadov prepočíta pred hlavným behom. Výsledok pod
+MDE sa formuluje ako „bez preukázateľného efektu“, nie ako „žiadny efekt“.
 
 ### 11.5 Vývojová množina a pilot
 
-Pilotných 20 prípadov sa podieľa na ladení formátu správ. Na vývojovej množine sa preto reportuje
-výsledok na všetkých 100 aj na 80 prípadoch mimo pilota. Ani jedno nie je nezávislé overenie,
+Pilotné prípady (20 pri testingu, 22 pri refaktoringu) sa podieľajú na ladení formátu správ. Na
+vývojovej množine sa preto reportuje výsledok na všetkých 100 aj na prípadoch mimo pilota (80, resp. 78). Ani jedno nie je nezávislé overenie,
 na to slúži testovacia množina (časť 2.1).
 
 ---
@@ -717,7 +769,7 @@ Očakávanie vychádza zo single-shot úspešnosti p₁ a predpokladu, že každ
 | refactoring | base | 0,60 | 1,70 | 340 |
 | **spolu** | | | | **≈ 814** (strop 1 200) |
 
-Pilot (20 prípadov na úlohu): ≈ 165 volaní, strop 240.
+Pilot (20 prípadov testing, 22 refactoring): ≈ 170 volaní, strop 252.
 
 ### 12.2 Čas
 
@@ -725,15 +777,16 @@ Uložené behy majú časy v `completion.json` (`generation_pipeline_seconds`, `
 iba v lokálnych artefaktoch, nie v gite. Nasledujúce čísla sú **predpoklady**, pilot ich nahradí
 nameranými. Generovanie: Ollama ≈ 8 s (testing, ~300 výstupných tokenov) a ≈ 25 s (refactoring,
 ~1 000 tokenov). Nástroj v slučke: javac + JUnit ≈ 5 s, RefactoringMiner
-≈ 8 s, SHACL ≈ 1 s. Konečné skóre testingu (2 × JaCoCo) ≈ 20 s na bunku.
+≈ 8 s, SHACL ≈ 1 s. Konečné skóre testingu (2 × JaCoCo) ≈ 20 s na každú odlišnú odpoveď, lebo sa
+hodnotí odpoveď po každom pokuse (časť 4.1).
 
 | Úloha × rameno | volania | s na volanie (gen. + nástroj) | hodiny |
 |---|---:|---:|---:|
 | testing base | 474 | 14 | 1,8 |
 | refactoring base | 340 | 34 | 3,2 |
-| konečné skóre testingu | 200 buniek | 20 | 1,1 |
+| konečné skóre testingu (každá odpoveď) | 474 odpovedí | 20 | 2,6 |
 | extrakcia ontológie (≈ 100 repozitárov, git archive + tree-sitter) | | | 1–2 |
-| **spolu** | | | **≈ 7–8 h** |
+| **spolu** | | | **≈ 9 h** |
 
 Beh sa dá rozdeliť po úlohách a ramenách a je
 prerušiteľný rovnako ako matice (`dispatch.json` / `completion.json`).
@@ -747,14 +800,14 @@ refactoring prejde kontrolami.
 | Poradie | Beh | Prípady | Ramená | Strop volaní | Odhad volaní | Čas | Podmienka |
 |---|---|---:|---|---:|---:|---:|---|
 | 0 | offline príprava: extrakcia ontológie, verejný checker, kalibrácia pravidiel, audit leaku | 100 + 100 | – | 0 | 0 | 1–2 h | – |
-| 1 | pilot refactoring | 20 | C, D | 120 | ~68 | ~40 min | P2–P4 prešli |
-| 2 | pilot testing | 20 | C, D | 120 | ~95 | ~35 min (s JaCoCo) | P2–P4 prešli |
+| 1 | pilot refactoring | 22 | C, D | 132 | ~75 | ~45 min | P2–P4 prešli |
+| 2 | pilot testing | 20 | C, D | 120 | ~95 | ~55 min (s JaCoCo) | P2–P4 prešli |
 | 3 | hlavný beh refactoring | 100 | C, D | 600 | ~340 | ~3,2 h | pilot prešiel P1–P9, pravidlá zmrazené |
-| 4 | hlavný beh testing | 100 | C, D | 600 | ~474 | ~3 h (s JaCoCo) | to isté |
+| 4 | hlavný beh testing | 100 | C, D | 600 | ~474 | ~4,4 h (s JaCoCo na každej odpovedi) | to isté |
 | 5 | vetvená oprava (časť 4.3), obe úlohy | ~65 odpovedí | vetva B | ~65 | ~65 | ~30 min | po behoch 3 a 4 |
-| 6 | testovacia množina refactoring (nové projekty) | ~50 | C, D | 300 | ~170 | ~1,6 h | pravidlá zmrazené, kandidáti overení |
-| 7 | testovacia množina testing (nové projekty) | ~50 | C, D | 300 | ~237 | ~1,5 h (s JaCoCo) | to isté |
-| | **spolu (bez pilota)** | | | **~1 865** | **~1 290** | **~11 h** | |
+| 6 | testovacia množina refactoring (nové projekty) | 100 (min. 50) | C, D | 600 | ~340 | ~3,2 h | pravidlá zmrazené, kandidáti overení |
+| 7 | testovacia množina testing (nové projekty) | 100 (min. 50) | C, D | 600 | ~474 | ~4,4 h (s JaCoCo) | to isté |
+| | **spolu (bez pilota)** | | | **~2 465** | **~1 693** | **~16 h** | |
 
 Navrhované run ID: `repair-loop-refactoring-pilot-<dátum>`, `repair-loop-testing-pilot-<dátum>`,
 `repair-loop-refactoring-<dátum>`, `repair-loop-testing-<dátum>`. Každý odkazuje cez `source_run`
@@ -763,11 +816,14 @@ preberá prípady.
 
 ---
 
-## 13. Pilot na 20 prípadoch
+## 13. Pilot na 20 (testing) a 22 (refactoring) prípadoch
 
-**Výber (deterministický, pred behom):** v každej úlohe 20 zo 100 prípadov, stratifikovane podľa
-výsledku `qwen_base` z finálneho behu (testing: pass / assertion / kompilácia / nevalidný výstup;
-refactoring: 2 na každý typ operácie, z toho 1 SWE). V rámci vrstvy sa zoradí podľa
+**Výber (deterministický, pred behom):** testing 20 zo 100 prípadov, stratifikovane podľa výsledku
+`qwen_base` z finálneho behu (pass / assertion / kompilácia / nevalidný výstup). Refactoring 22 zo
+100: typov operácií je 11, takže 2 na typ s presnými kvótami: MaRV Extract Method, Remove
+Parameter, Rename Method, Rename Variable po 2 (8); ML4Ref Extract Variable, Inline Variable,
+Parameterize Variable, Rename Class, Rename Parameter, Replace Variable With Attribute po 2 (12);
+SWE 1 Extract Method a 1 Inline Method (2). Extract Method má tak spolu 3 prípady (2 MaRV + 1 SWE). V rámci vrstvy sa zoradí podľa
 `sha256("pilot-v1" + id)` a vezme prvých k. Výsledok `qwen_base` nie je gold, ide len o rozloženie.
 
 **Kontroly a kritériá „ide sa ďalej“:**
@@ -776,7 +832,7 @@ refactoring: 2 na každý typ operácie, z toho 1 SWE). V rámci vrstvy sa zorad
 |---|---|---|
 | P1 | determinizmus pokusu 1 | ≥ 95 % výstupov C pokusu 1 bajtovo zhodných s `qwen_base` finálneho behu; inak zdokumentovať a pokračovať s novými |
 | P2 | verejný checker (L5) | 100 % zhoda na 800 uložených výstupoch a 100/100 gold |
-| P3 | kalibrácia pravidiel (8.3) | každé pravidlo ≤ 5 % falošných poplachov |
+| P3 | kalibrácia pravidiel (8.3) | každé pravidlo: vecne správne ≥ 80 % hlásení a chýbali fakty ≤ 20 % |
 | P4 | audit leaku (L1–L4) | 0 nálezov |
 | P5 | dĺžka promptu | pokus 3 ≤ 8 000 tokenov a žiadne `output_truncated` |
 | P6 | reakcia na opravný prompt | model vráti identickú odpoveď v ≤ 50 % opráv, inak upraviť šablónu spätnej väzby |
@@ -801,7 +857,7 @@ dostane nové run ID a pilotné výsledky sa k nemu nepripočítavajú.
 | Ollama nie je bajtovo deterministická | pokus 1 sa líši od referencie | P1, reportovať; porovnanie D vs C ostáva párové v rámci nového behu |
 | repo pre refactoring nedostupné | menej projektových faktov | fallback `unit_only`, reportované pokrytie |
 | slučka spustí viac Java kódu modelu | bezpečnosť | ten istý `review` a `run_process` ako matice, nie je to OS sandbox (rovnaké priznanie) |
-| dlhší čas behu | ≈ 7–8 h | prerušiteľnosť, pilot najprv |
+| dlhší čas behu | ≈ 16 h spolu | prerušiteľnosť, pilot najprv |
 | SWE n = 5 | žiadne závery | iba opisne, ako doteraz |
 
 ---
@@ -815,8 +871,9 @@ a refactoring. Experiment C/D je **nadväzujúci experiment** za vyhodnotením m
 základnom modeli bez dotrénovania, preto sa nesmie prezentovať ako výsledok o dotrénovaní. Logika
 textu:
 
-1. *Zistenie z experimentu 1:* ontológia zostavená z kódu, ktorý model vidí, je nadbytočná
-   (`onto_project` vs `qwen_base`: 6/6 nesúhlasných párov v testingu, 5/10 v refactoringu).
+1. *Pozorovanie z experimentu 1:* pri pôvodnom ontologickom bloku sme nepozorovali zlepšenie
+   úspešnosti (`onto_project` vs `qwen_base`: 6/6 nesúhlasných párov v testingu, 5/10
+   v refactoringu). Jedným z možných vysvetlení je, že opakoval informácie už dostupné v prompte.
 2. *Hypotéza:* ontológia pomôže, ak (a) obsahuje fakty mimo kontextu (classpath, celý projekt) a
    (b) slúži na **kontrolu** výstupu, nie iba ako ďalší text v prompte.
 3. *Postup tvorby pravidiel:* chyba → vzťah → podmienka → kedy sa dá vyhodnotiť → skúška na
@@ -836,11 +893,18 @@ nezahŕňa referenčné testy ani očakávaný výstup.“
 
 **Formulácia výsledku:**
 
-- významný rozdiel: „V tomto nastavení (Qwen2.5-Coder-7B, N = 100, ≤ 3 pokusy) zvýšilo rameno D
-  konečnú úspešnosť o X p.b. (95 % CI …, p_Holm = …).“ Nehovoriť o ontológiách všeobecne.
-- nevýznamný rozdiel: „Bez preukázateľného efektu pri N = 100; MDE ≈ Y p.b.“ Doplniť sekundárne
-  metriky (volania, porušenia), ktoré môžu ukázať mechanizmus aj bez významnosti S@3.
-- vždy oddeliť efekt bloku (S@1) a efekt SHACL spätnej väzby (miera opravy porušení).
+- N je skutočný počet prípadov testovacej množiny na úlohu (cieľ 100, minimum 50) a MDE sa berie
+  z prepočtu v časti 11.4 pre toto N a nameraný podiel nesúhlasných párov.
+- významný rozdiel: „V tomto nastavení (Qwen2.5-Coder-7B, N = …, ≤ 3 pokusy, nové projekty)
+  zvýšilo rameno D konečnú úspešnosť o X p.b. (95 % CI …, p_Holm = …).“ Nehovoriť o ontológiách
+  všeobecne.
+- nevýznamný rozdiel: „Bez preukázateľného efektu pri N = …; pri tomto počte prípadov by sa
+  spoľahlivo zachytil až rozdiel približne Y p.b.“ Pri N = 50 treba výslovne uviesť, že test
+  zachytí iba veľký efekt. Doplniť sekundárne metriky (volania, porušenia, A/B), ktoré môžu ukázať
+  mechanizmus aj bez významnosti S@3.
+- vždy oddeliť efekt bloku (S@1) a efekt pridania SHACL správy. Ten sa pripisuje iba porovnaniu
+  vetiev A/B na tej istej chybnej odpovedi (časť 4.3), nie rozdielu D vs C ani tomu, že hlásenie
+  zmizlo.
 
 **Súvisiaca literatúra (bibliografické údaje treba overiť):** slučky so spätnou väzbou z vykonávania
 (Self-Debugging, Chen a kol. 2023; Reflexion, Shinn a kol. 2023), generovanie testov s opravou podľa
@@ -864,16 +928,38 @@ jeden model (bez FT), viac volaní modelu v C a D než v single-shot ramenách, 
 
 | Krok | Obsah | Model | Odhad práce |
 |---|---|---|---|
+| 0 | **kontrola R2 na uložených výstupoch** (časť 16.1) | nie | 1–2 dni |
 | 1 | TBox v2, `project_facts.py` (javap, tree-sitter nad projektom), testy | nie | 3–4 dni |
 | 2 | `output_facts.py`, `validate.py`, tvary z tohto návrhu, testy na `priklady/` | nie | 2–3 dni |
 | 3 | verejný checker a kalibrácia pravidiel na uložených výstupoch (P2, P3) | nie | 1 deň |
 | 4 | `repair_loop.py`, `repair_feedback.py`, runner, config, mock testy | nie (mock) | 3 dni |
 | 5 | audit leaku (L1–L4) | nie | 1 deň |
-| 6 | pilot: najprv refactoring, potom testing (20 + 20 prípadov) | áno, ≈ 165 volaní | ≈ 1,5 h behu |
-| 7 | zmrazenie, hlavný beh na vývojovej množine: najprv refactoring, potom testing | áno, ≈ 814 volaní | ≈ 7–8 h behu |
+| 6 | pilot: najprv refactoring (22), potom testing (20) | áno, ≈ 170 volaní | ≈ 1,7 h behu |
+| 7 | zmrazenie, hlavný beh na vývojovej množine: najprv refactoring, potom testing | áno, ≈ 814 volaní | ≈ 9 h behu |
 | 7b | vetvená oprava (4.3) | áno, ≈ 65 volaní | ≈ 30 min |
-| 7c | výber testovacej množiny z nových projektov a beh C, D | áno, ≈ 410 volaní | ≈ 3 h behu |
+| 7c | výber testovacej množiny z nových projektov (100 + 100) a beh C, D | áno, ≈ 814 volaní | ≈ 7,6 h behu |
 | 8 | report (`--report-only`), analýza, export do `thesis_materials/<dátum>_vysledky_slucky/` | nie | 1–2 dni |
 
-Kroky 1–5 nepotrebujú GPU a dajú sa overiť testami v čistom klone. Kroky 3 a 5 sú zároveň pilotné
+Kroky 0–5 nepotrebujú GPU a dajú sa overiť testami v čistom klone. Kroky 3 a 5 sú zároveň pilotné
 kontroly P2–P4.
+
+### 16.1 Prvý krok: kontrola R2 na uložených výstupoch
+
+Ešte pred stavbou celej slučky sa overí, či ontológia dokáže modelu povedať niečo presnejšie než
+„požadovaná operácia sa nenašla“. Použijú sa uložené výstupy Parameterize Variable z behu
+`refactoring-matrix-20261121`: 10 prípadov × 8 ramien = 80 výstupov (run adresár je na Zenode,
+DOI 10.5281/zenodo.24446129, alebo lokálne v `artifacts/evaluation/runs/`).
+
+1. Prototyp párovania použití premennej pred úpravou a po nej (tree-sitter, iba cieľová metóda) a
+   tvar R2 z `shapes_refactoring.ttl`.
+2. Pre každý výstup: výsledok R2 (porušenie / v poriadku / nevieme posúdiť) vedľa verdiktu
+   RefactoringMinera a jeho správy.
+3. Pri každom hlásení sa pozrie do pôvodnej a upravenej metódy a označí sa podľa protokolu 8.3
+   (vecne správne / vecne nesprávne / chýbali fakty).
+4. Pre neúspešné výstupy sa porovná, čo povie RefactoringMiner a čo R2 (napr. „nenašlo sa“ vs
+   „použitie na riadku 14 stále odkazuje na lokálnu premennú `limit`“).
+
+Pokračuje sa, ak R2 v aspoň 80 % svojich hlásení vecne správne pomenuje nesprávnu väzbu a ak pri
+väčšine neúspešných výstupov pridá konkrétne miesto, ktoré RefactoringMiner neuvádza. Inak sa najprv
+upraví analyzátor alebo pravidlo, prípadne sa prehodnotí, či má slučka D zmysel. Výsledok sa uloží
+ako samostatný report do `thesis_materials/<dátum>_kontrola_r2/`.
