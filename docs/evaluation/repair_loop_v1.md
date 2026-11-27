@@ -23,9 +23,16 @@ seed 42); nothing is trained. Code: `src/llm_ontology/repair/`, config
   RefactoringMiner reports an event whose description equals the request text. `target_event` is
   used only by the final evaluator (`refactoring_structural.evaluate`), which scores the answer
   after 1, 2 and 3 attempts once the loop is over.
-- **D2 proposals.** The model picks a template from a closed list (`rules.TEMPLATES`), its
-  parameters, an exception and a message; `rules.render` turns it into SHACL deterministically. No
-  free-form SHACL runs. `verify.verify` checks: loads, vocabulary, flags the triggering answer, no
+- **D2 proposals** (`proposal.py`, prompt version `d2-rule-template-v2`). The analysis prompt
+  contains a rule template generated from the active base and the extracted vocabulary: conditions
+  (`must_hold`), the relations each reads, exceptions (`except_when`), operations (`applies_when`)
+  and active rule IDs. The JSON schema is generated from the same catalogue, so the model sees
+  exactly the values the validator accepts. Three answers: `add` (evidence, applies_when,
+  must_hold, except_when, message), `revise` (the same plus `target_rule`) and `none` (`reason`;
+  `missing_facts` defers the case). `evidence.snippet` must occur in the current answer, and a
+  logging condition must quote a logging call. `required_facts` and the SHACL shape are derived in
+  code; no free-form SHACL runs. Every variant's analysis prompt also shows the parsed answer with
+  line numbers. `verify.verify` checks: loads, vocabulary, flags the triggering answer, no
   new false positive on correct examples, no regression of the modified rule, and at least one
   held-out defective example that the current base does not catch. Examples of the triggering
   task's group are never used. Not enough examples → `pending`; unknown facts → `deferred`.
@@ -53,9 +60,15 @@ $P $R --run-id $ID --dry-run                         # plan: order, hashes
 $P $R --run-id $ID                                   # pilot with Qwen (10 Parameterize Variable tasks)
 $P $R --run-id $ID --report-only                     # loop_summary.json, loop_report.md
 $P $R --run-id $ID --freeze-d2                       # before any evaluation on new projects
+$P $R --run-id repair-d2-replay-YYYYMMDD --replay-d2-from $ID   # only the D2 analysis, on $ID's first answers
 ```
 
 Checks: `python -m pytest -q tests/repair` (scripted model; needs the `repair` extra).
+
+The replay writes `replay_report.md`, `replay_summary.json`, `manual_review.json` and per case
+`cases/<id>/{prompt.txt,raw.txt,result.json,review.md}`; the source run is not changed. Fill
+`manual_review.json` (`diagnosis_fits`, `condition_fits_error`) and run the same command again:
+stored responses are reused and the table counts the reviewed cases.
 
 ## Run directory
 

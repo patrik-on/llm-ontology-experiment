@@ -11,6 +11,7 @@
   "context_window_tokens": 32768,
   "max_new_tokens": {"refactoring": 8192},
   "analysis_max_new_tokens": 1024,
+  "analysis_prompt_version": "d2-rule-template-v2",
   "order_seed": "repair-pilot-v1",
   "source_runs": {"refactoring": "refactoring-matrix-20261121", "testing": "testing-matrix-20261122-rag2"},
   "pilot": {"refactoring": {"operation": "Parameterize Variable"}},

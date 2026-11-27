@@ -91,6 +91,10 @@ class RefactoringTask:
             messages.append("RefactoringMiner detected no refactoring in your output.")
         return Check("OPERATION_MISSING", False, True, "RefactoringMiner", messages, source, perf_counter() - start)
 
+    def source(self, case: dict, raw: str) -> str:
+        from llm_ontology.benchmarks import refactoring_execution as ex
+        return ex.parse_answer(raw, case["file_path"])
+
     def facts(self, case: dict, source: str):
         return java_facts.refactoring_graph(case["before"], source, case["request"], int(case["target"]["start"]))
 

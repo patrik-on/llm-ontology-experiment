@@ -6,6 +6,7 @@
     run_repair_loop.py --run-id X [--cases N|all]             # pilot with Qwen (Ollama)
     run_repair_loop.py --run-id X --freeze-d2                 # freeze the D2 base
     run_repair_loop.py --run-id X --report-only
+    run_repair_loop.py --run-id Y --replay-d2-from X       # repeat only the D2 analysis on X's first answers
 """
 from __future__ import annotations
 
@@ -43,6 +44,7 @@ def main(argv=None) -> int:
     parser.add_argument("--freeze-d2", action="store_true")
     parser.add_argument("--report-only", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--replay-d2-from", metavar="RUN_ID")
     parser.add_argument("--extrapolate-to", type=int, default=100)
     args = parser.parse_args(argv)
 
@@ -61,6 +63,20 @@ def main(argv=None) -> int:
         task = RefactoringTask(source, config["pilot"][args.task]["operation"])
         pool_path = root / "dev_pool.json"
         provider, pool = None, []
+
+    if args.replay_d2_from:
+        from llm_ontology.repair.replay import replay
+        if args.mock:
+            from llm_ontology.repair.mock import ScriptedProvider, SCENARIO, scripted
+            provider = ScriptedProvider(scripted(task.cases(), SCENARIO))
+        else:
+            provider = OllamaLoopProvider(context_window_tokens=config["context_window_tokens"], seed=config["seed"])
+        if root.exists() and (root / "loop_plan.json").exists():
+            raise SystemExit("Run ID belongs to a loop run; use a new run ID for the replay")
+        rows = replay(RUNS / args.replay_d2_from, root, task, provider, analysis_tokens=config["analysis_max_new_tokens"])
+        print(f"{sum(r.get('format', {}).get('valid', False) for r in rows)} formally valid of "
+              f"{sum('skipped' not in r for r in rows)} -> {root / 'replay_report.md'}")
+        return 0
 
     if args.build_pool or args.check_public_checker:
         root.mkdir(parents=True, exist_ok=True)

@@ -72,6 +72,9 @@ class SyntheticRefactoringTask:
         return Check("OPERATION_MISSING", False, True, "mock-detector",
                      ["Requested: " + _norm(case["request"]), "Detected instead: Add Parameter"], source)
 
+    def source(self, case, raw):
+        return self._source(case, raw)
+
     def facts(self, case, source):
         return java_facts.refactoring_graph(case["before"], source, case["request"], int(case["target_start"]))
 
@@ -82,13 +85,13 @@ class SyntheticRefactoringTask:
 
 # ----- the hand-prepared mechanism scenario (tests and ``--mock``) ------------------------
 MESSAGE = "{?m} uses the new parameter '{?new}' only for {?role}; the computation must use it."
-REFINE = {"decision": "modify", "target_rule": "R2", "template": "new_parameter_used_only_in_role",
-          "params": {"role": "logging"}, "exception": "method_is_logging_helper",
-          "applies_when": "Parameterize Variable whose target method computes a value",
-          "exception_example": "an extracted method that only logs its argument",
-          "required_facts": ["lo:hasParameter", "lo:hasUse", "lo:usageRole", "lo:isLoggingHelper"],
-          "message": MESSAGE}
-NO_EXCEPTION = {**REFINE, "decision": "add", "target_rule": None, "exception": "none"}
+REFINE = {"decision": "revise", "target_rule": "R2",
+          "evidence": {"line": 4, "snippet": 'log.info("rate " + rate);'},
+          "applies_when": "Parameterize Variable", "must_hold": "new_parameter_used_only_in_role:logging",
+          "except_when": "method_is_logging_helper", "message": MESSAGE}
+NO_EXCEPTION = {"decision": "add", "evidence": {"line": 4, "snippet": 'log.debug("limit=" + limit);'},
+                "applies_when": "Parameterize Variable", "must_hold": "new_parameter_used_only_in_role:logging",
+                "except_when": "none", "message": MESSAGE}
 SCENARIO = {"loop-1": NO_EXCEPTION, "loop-2": REFINE}
 
 
@@ -102,7 +105,7 @@ def scripted(cases: list[dict], proposals: dict[str, dict]) -> Callable[[str, di
         if prompt.startswith("You are analysing a failed answer"):
             payload = {"location": "target method", "cause": "the new parameter is not used in the computation"}
             if "rule_proposal" in schema.get("properties", {}):
-                payload["rule_proposal"] = proposals.get(case["id"], {"decision": "none"})
+                payload["rule_proposal"] = proposals.get(case["id"], {"decision": "none", "reason": "covered"})
             return json.dumps(payload)
         good = "only for logging; the computation must use it" in prompt
         return json.dumps({"file_path": case["file_path"], "refactored_code": case["expected" if good else "bad"]})
