@@ -28,6 +28,7 @@ from typing import Any, Protocol
 
 from pydantic import BaseModel
 
+from llm_ontology.repair import proposal as P
 from llm_ontology.repair import rules as R
 from llm_ontology.repair.state import RuleState
 from llm_ontology.repair.verify import Example
@@ -98,18 +99,18 @@ class Diagnosis(BaseModel):
     cause: str
 
 
-class DiagnosisWithRule(Diagnosis):
-    rule_proposal: R.RuleProposal | None = None
+def d2_schema(base: dict) -> dict:
+    """Diagnosis schema plus ``rule_proposal`` generated from the same catalogue as the prompt."""
+    plain = Diagnosis.model_json_schema()
+    return {"type": "object", "additionalProperties": False, "required": ["location", "cause", "rule_proposal"],
+            "properties": {**plain["properties"], "rule_proposal": P.schema(base)}}
 
 
 AUTHOR_INSTRUCTION = (
     "Compare the task, your answer and the diagnostics. Name the concrete place and explain the cause "
-    "that the available facts support. If a rule that applies to a later task can be derived from this "
-    "cause, propose exactly one addition or modification. State when the rule applies, an example of a "
-    "legitimate exception, the facts it needs, the condition (as one of the templates below) and a short "
-    "message for the model. Use only the available vocabulary. If facts are missing, name them in "
-    "missing_facts. If the rule already exists or the cause is not sufficiently supported, return "
-    "decision \"none\".")
+    "that the available facts support. If a rule that applies to a later task follows from this cause, "
+    "fill in the rule template below once (add or revise). If the rule already exists or the cause is not "
+    "sufficiently supported, answer none.")
 
 
 def _clip(items: list[str], limit: int) -> tuple[list[str], int]:
@@ -140,22 +141,27 @@ def feedback_text(k: int, raw: str, check: Check, reports: list[str] | None, dia
     return "\n".join(lines)
 
 
+def numbered(source: str | None) -> str:
+    if source is None:
+        return "(your answer could not be parsed)"
+    return "\n".join(f"{i:4d} | {row}" for i, row in enumerate(source.splitlines(), 1))
+
+
 def analysis_prompt(variant: str, prompt1: str, raw: str, check: Check, reports: list[str] | None,
                     base: dict | None, task_kind: str) -> str:
+    """Same structure for every variant; only D2 adds the rule template (the token limit is shared)."""
     tool, total = _clip(check.messages, MAX_TOOL_MESSAGES)
     lines = ["You are analysing a failed answer. Do not write a new answer.", "", "### Task", prompt1, "",
-             "### Your answer", raw, "", "### Diagnostics", f"Status: {check.status}",
+             "### Your answer", raw, "", "### Your answer as code (numbered lines)", numbered(check.source), "",
+             "### Diagnostics", f"Status: {check.status}",
              f"Tool output ({check.tool}), {len(tool)} of {total} messages:", *["- " + m for m in tool]]
     if reports is not None:
         rule, rtotal = _clip(reports, MAX_RULE_MESSAGES)
         lines += [f"Rule checks, {len(rule)} of {rtotal} violations:", *(["- " + m for m in rule] or ["- (none)"])]
     lines += ["", "### Instructions"]
     if variant == "D2":
-        lines += [AUTHOR_INSTRUCTION, "", "Current rules:", R.describe_base(base), "",
-                  "Templates (closed list):", R.template_catalogue(task_kind), "",
-                  "Return JSON with: location, cause, rule_proposal (decision add|modify|none, target_rule for "
-                  "modify, template, params, exception, applies_when, exception_example, required_facts, "
-                  "missing_facts, message)."]
+        lines += [AUTHOR_INSTRUCTION, "", P.prompt_section(base), "",
+                  "Return JSON with: location, cause, rule_proposal."]
     else:
         lines += ["Compare the task, your answer and the diagnostics. Name the concrete place and explain the "
                   "cause that the available facts support.", "", "Return JSON with: location, cause."]
@@ -257,9 +263,9 @@ class Loop:
                                                    "base_sha256": R.base_hash(base) if base else None})
 
     def _analyse(self, variant, case, group, prompt1, raw, check, reports, base, vroot) -> dict:
-        model = DiagnosisWithRule if variant == "D2" else Diagnosis
+        schema = d2_schema(base) if variant == "D2" else Diagnosis.model_json_schema()
         prompt = analysis_prompt(variant, prompt1, raw, check, reports, base, self.task.kind)
-        text = self._call(vroot / "analysis", prompt, model.model_json_schema(), self.analysis_tokens,
+        text = self._call(vroot / "analysis", prompt, schema, self.analysis_tokens,
                           kind="analysis", case=case["id"], variant=variant, attempt=1)
         try:
             payload = json.loads(text)
@@ -281,7 +287,8 @@ class Loop:
                         "diagnosis": diagnosis}
             entry = self.state.propose(task=case["id"], group=group,
                                        proposal=proposal if proposal else {"decision": "none"},
-                                       evidence=evidence, trigger=trigger, pool=self.pool)
+                                       evidence=evidence, trigger=trigger, pool=self.pool,
+                                       answer=check.source)
             write_json(vroot / "analysis" / "proposal.json", entry)
         return diagnosis
 

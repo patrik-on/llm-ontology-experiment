@@ -21,6 +21,7 @@ from pathlib import Path
 
 from rdflib import Graph
 
+from llm_ontology.repair import proposal as P
 from llm_ontology.repair import rules as R
 from llm_ontology.repair.verify import Example, verify
 
@@ -95,7 +96,7 @@ class RuleState:
         return number, self.load_version(number)
 
     def propose(self, *, task: str, group: str, proposal: dict | None, evidence: dict,
-                trigger: Graph | None, pool: list[Example]) -> dict:
+                trigger: Graph | None, pool: list[Example], answer: str | None = None) -> dict:
         """Record (and verify) the proposal of one task; returns the ledger entry."""
         if task in self.proposals:
             return self.proposals[task]
@@ -110,23 +111,27 @@ class RuleState:
             entry.update(decision="rejected", reason="unparseable")
         else:
             try:
-                parsed = R.RuleProposal.model_validate(proposal)
+                parsed = P.RuleProposal.model_validate(proposal)
                 if parsed.decision == "none":
-                    entry.update(decision="none", reason="")
+                    entry.update(decision="deferred" if parsed.missing_facts else "none",
+                                 reason="missing_extraction" if parsed.missing_facts else "")
                 else:
                     current = self.load_version(self.latest)
-                    candidate, rule = R.apply(current, parsed, task)
-                    operation = R.TEMPLATES[parsed.template]["operation"]
-                    result = verify(decision=parsed.decision, candidate=candidate, current=current, rule=rule,
-                                    operation=operation, trigger=trigger, trigger_group=group, pool=pool)
-                    entry.update(rule=rule, **result)
+                    candidate, rule, found = P.apply(current, parsed, task, answer)
+                    result = verify(decision="modify" if parsed.decision == "revise" else "add",
+                                    candidate=candidate, current=current, rule=rule,
+                                    operation=P.operation_of(parsed, current), trigger=trigger,
+                                    trigger_group=group, pool=pool)
+                    entry.update(rule=rule, evidence_check=found,
+                                 required_facts=next(c["required_facts"] for r in candidate["rules"]
+                                                     if r["id"] == rule for c in r["constraints"]
+                                                     if c.get("kind") == "template"), **result)
                     if result["decision"] == "accepted":
                         number = self.latest + 1
                         _write_json(self.versions / f"v{number:04d}.json", candidate)
                         entry.update(version=number, sha256=R.base_hash(candidate))
             except R.ProposalError as exc:
-                entry.update(decision="deferred" if exc.code == "missing_extraction" else "rejected",
-                             reason=exc.code, detail=exc.detail)
+                entry.update(decision="rejected", reason=exc.code, detail=exc.detail)
             except ValueError as exc:  # pydantic validation of the model's JSON
                 entry.update(decision="rejected", reason="invalid_proposal", detail=str(exc)[:500])
         _append(self.ledger_path, entry)
