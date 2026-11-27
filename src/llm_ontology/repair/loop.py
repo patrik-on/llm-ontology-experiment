@@ -287,7 +287,8 @@ class Loop:
                         "tool_messages": check.messages[:MAX_TOOL_MESSAGES], "rule_reports": reports,
                         "diagnosis": diagnosis}
             entry = self.state.propose(task=case["id"], group=group,
-                                       proposal=proposal if proposal else {"decision": "none"},
+                                       proposal=proposal if proposal else {"decision": "none", "covered_by": {"rule": "none", "report": ""},
+                                                                           "reason": "no rule proposal in the analysis"},
                                        evidence=evidence, trigger=trigger, pool=self.pool,
                                        answer=check.source, reports=reports, catalogue=self.catalogue)
             write_json(vroot / "analysis" / "proposal.json", entry)

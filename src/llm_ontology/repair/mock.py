@@ -105,7 +105,8 @@ def scripted(cases: list[dict], proposals: dict[str, dict]) -> Callable[[str, di
         if prompt.startswith("You are analysing a failed answer"):
             payload = {"location": "target method", "cause": "the new parameter is not used in the computation"}
             if "rule_proposal" in schema.get("properties", {}):
-                payload["rule_proposal"] = proposals.get(case["id"], {"decision": "none", "reason": "covered"})
+                payload["rule_proposal"] = proposals.get(case["id"], {"decision": "none", "covered_by": {"rule": "none", "report": ""},
+                                                                         "reason": "no listed condition fits"})
             return json.dumps(payload)
         good = "only for logging; the computation must use it" in prompt
         return json.dumps({"file_path": case["file_path"], "refactored_code": case["expected" if good else "bad"]})

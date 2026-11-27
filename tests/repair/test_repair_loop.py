@@ -120,10 +120,11 @@ def test_invalid_and_deferred_proposals(tmp_path):
     cases = {
         "u1": ({**REFINE, "must_hold": "free_sparql"}, "rejected", "unknown_condition"),
         "u2": ({**REFINE, "message": "uses {?secret}"}, "rejected", "bad_message"),
-        "u3": ({"decision": "none", "reason": "needs a call graph", "missing_facts": ["lo:callGraph"]},
+        "u3": ({"decision": "none", "covered_by": {"rule": "none", "report": ""}, "reason": "needs a call graph", "missing_facts": ["lo:callGraph"]},
                "deferred", "missing_extraction"),
-        "u4": ({"decision": "none", "reason": "R1 already reports it"}, "rejected", "uncited_rule_claim"),
-        "u4b": ({"decision": "none", "reason": "no listed condition expresses this error"}, "none", ""),
+        "u4": ({"decision": "none", "covered_by": {"rule": "none", "report": ""}, "reason": "R1 already reports it"}, "rejected", "uncited_rule_claim"),
+        "u4b": ({"decision": "none", "covered_by": {"rule": "none", "report": ""}, "reason": "no listed condition expresses this error"}, "none", ""),
+        "u4c": ({"decision": "none", "reason": "no listed condition expresses this error"}, "rejected", "missing_covered_by"),
         "u5": ({"decision": "modify", "reason": "x"}, "rejected", "invalid_proposal"),
         "u6": ({**REFINE, "target_rule": "R2_ParameterizeVariable"}, "rejected", "unknown_target_rule"),
         "u7": ({**REFINE, "evidence": {"line": 4, "snippet": 'log.warn("rate is " + rate);'}},
@@ -169,7 +170,8 @@ def test_prompt_and_schema_list_exactly_the_accepted_values():
     add, revise, none = schema["anyOf"]
     assert sorted(add["properties"]["must_hold"]["enum"]) == sorted(cat["conditions"])
     assert revise["properties"]["target_rule"]["enum"] == ["R1", "R2"]
-    assert none["required"] == ["decision", "reason"]
+    assert none["required"] == ["decision", "covered_by", "reason"]
+    assert none["properties"]["covered_by"]["properties"]["rule"]["enum"] == ["R1", "R2", "none"]
     text = P.prompt_section(d1)
     for value in [*cat["conditions"], *cat["exceptions"], *cat["rules"], *cat["relations"]]:
         assert value in text
@@ -235,7 +237,7 @@ def test_replay_keeps_the_source_run(setup, tmp_path):
     task, _, _, provider, loop = setup
     loop.run(task.cases())
     before = {p: p.read_bytes() for p in loop.root.rglob("*") if p.is_file()}
-    proposals = {"loop-1": {"decision": "none", "reason": "R2 cannot see it"},
+    proposals = {"loop-1": {"decision": "none", "covered_by": {"rule": "none", "report": ""}, "reason": "R2 cannot see it"},
                  "loop-2": REFINE,
                  "loop-3": {**NO_EXCEPTION, "evidence": {"snippet": "not in the answer"}}}
     replayer = ScriptedProvider(scripted(task.cases(), proposals))

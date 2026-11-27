@@ -17,7 +17,9 @@ on the requested method and the method that held the variable (java_facts v2) an
 rule combine at most two conditions (all must hold).
 
 A ``none`` that claims an active rule already reports the error must name that report in
-``covered_by`` (rule ID and the report text); the validator checks that this rule produced
+``covered_by`` (rule ID and the report text; ``{"rule": "none", "report": ""}`` when no active
+rule reports it; the field is required from prompt v4 on, because with constrained decoding
+the model never filled the optional field); the validator checks that this rule produced
 exactly that report for the current answer. It cannot check whether the reason restates the
 report's meaning correctly.
 """
@@ -32,7 +34,7 @@ from pydantic import BaseModel, Field
 from llm_ontology.repair import rules as R
 from llm_ontology.repair.java_facts import LOG_METHODS
 
-PROMPT_VERSION = "d2-rule-template-v3"  # v3: covered_by for none, catalogue versions
+PROMPT_VERSION = "d2-rule-template-v4"  # v3: covered_by for none, catalogue versions; v4: covered_by required
 CATALOGUES = {
     "c1": ["new_parameter_used_only_in_role", "old_local_still_declared", "mutated_argument_from_factory"],
     "c2": ["new_parameter_used_only_in_role", "old_local_still_declared", "mutated_argument_from_factory",
@@ -144,14 +146,14 @@ def schema(base: dict, catalogue_version: str = DEFAULT_CATALOGUE) -> dict:
                                                "target_rule": {"type": "string", "enum": sorted(cat["rules"])}},
               "required": keys + ["target_rule"], "additionalProperties": False}
     none = {"type": "object", "properties": {"decision": {"type": "string", "enum": ["none"]},
-                                             "reason": {"type": "string"},
                                              "covered_by": {"type": "object", "additionalProperties": False,
                                                             "required": ["rule", "report"],
                                                             "properties": {"rule": {"type": "string",
-                                                                                    "enum": sorted(cat["rules"])},
+                                                                                    "enum": sorted(cat["rules"]) + ["none"]},
                                                                            "report": {"type": "string"}}},
+                                             "reason": {"type": "string"},
                                              "missing_facts": {"type": "array", "items": {"type": "string"}}},
-            "required": ["decision", "reason"], "additionalProperties": False}
+            "required": ["decision", "covered_by", "reason"], "additionalProperties": False}
     return {"anyOf": [add, revise, none]}
 
 
@@ -180,12 +182,13 @@ def prompt_section(base: dict, catalogue_version: str = DEFAULT_CATALOGUE) -> st
               '"except_when": "<exception>", "message": "<short message for the model, <= 300 characters>"}',
               '2. revise: the same fields plus "target_rule": "<active rule ID>"; use it when an active rule '
               'should also catch this error.',
-              '3. none: {"decision": "none", "reason": "<why no change>"}; add "missing_facts": [...] only if '
-              'the error needs a relation that is not listed.',
-              '   If the reason is that an active rule already reports this error, add "covered_by": {"rule": '
-              '"<rule ID>", "report": "<that report copied exactly from Rule checks>"}. It is checked: the rule must '
-              'have produced exactly this report for your answer. Without covered_by, do not claim that a rule '
-              'reports the error.', "",
+              '3. none: {"decision": "none", "covered_by": {"rule": "<rule ID or none>", "report": "<report or empty>"}, '
+              '"reason": "<why no change>"}; add "missing_facts": [...] only if the error needs a relation that is '
+              'not listed.',
+              '   covered_by is required. If an active rule already reports this error, give its ID and copy that '
+              'report exactly from Rule checks; it is checked: the rule must have produced exactly this report for '
+              'your answer. Otherwise write {"rule": "none", "report": ""} and do not claim in the reason that a '
+              'rule reports the error.', "",
               "Rules for the answer:",
               "- evidence.snippet must be copied character for character from your answer above; it is checked.",
               "- Choose a logging condition only if the snippet is the concrete logging call that uses the new "
@@ -194,11 +197,11 @@ def prompt_section(base: dict, catalogue_version: str = DEFAULT_CATALOGUE) -> st
               "- If no listed condition describes the observed error, answer none.", "",
               "Example of a correct none: your answer removed `public` from the class and R1 already reports "
               "\"R1 modifiers of class Example changed from 'public' to '(none)'\". The error is already covered, so:",
-              '{"decision": "none", "reason": "R1 already reports the changed class modifier; only the code needs '
-              'fixing.", "covered_by": {"rule": "R1", "report": "R1 modifiers of class Example changed from '
-              '\'public\' to \'(none)\'. The requested operation does not change modifiers; restore them."}}',
-              "A none without covered_by is also correct when no listed condition can express the observed error; "
-              "then say so in the reason."]
+              '{"decision": "none", "covered_by": {"rule": "R1", "report": "R1 modifiers of class Example changed from '
+              '\'public\' to \'(none)\'. The requested operation does not change modifiers; restore them."}, '
+              '"reason": "R1 already reports the changed class modifier; only the code needs fixing."}',
+              'A none with {"rule": "none", "report": ""} is also correct when no listed condition can express the '
+              "observed error; then say so in the reason."]
     return "\n".join(lines)
 
 
@@ -311,7 +314,9 @@ def check_none(p: RuleProposal, base: dict, reports: list[str] | None) -> dict:
     """A none that relies on an active rule must cite the exact report that rule produced now."""
     active = set(rule_ids(base))
     claimed = sorted({m.group(1) for m in RULE_CLAIM.finditer(p.reason) if not NEGATION.search(m.group(2))} & active)
-    if p.covered_by is None:
+    if p.covered_by is None:  # required in the schema (prompt v4), so the validator requires it too
+        raise R.ProposalError("missing_covered_by", "none without covered_by")
+    if p.covered_by.rule == "none":
         if claimed:
             raise R.ProposalError("uncited_rule_claim", f"reason names {claimed} without covered_by")
         return {"covered_by": None}

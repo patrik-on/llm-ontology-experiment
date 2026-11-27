@@ -119,7 +119,8 @@ def test_prompt_and_schema_per_catalogue():
     assert c1["anyOf"][0]["properties"]["must_hold"]["type"] == "string"
     assert c2["anyOf"][0]["properties"]["must_hold"]["maxItems"] == 2
     assert sorted(c2["anyOf"][0]["properties"]["must_hold"]["items"]["enum"]) == sorted(P.catalogue(d1, "c2")["conditions"])
-    assert c1["anyOf"][2]["properties"]["covered_by"]["properties"]["rule"]["enum"] == ["R1", "R2"]
+    assert c1["anyOf"][2]["properties"]["covered_by"]["properties"]["rule"]["enum"] == ["R1", "R2", "none"]
+    assert list(c1["anyOf"][2]["properties"])[:2] == ["decision", "covered_by"]  # cite first, then reason
     t1, t2 = P.prompt_section(d1, "c1"), P.prompt_section(d1, "c2")
     assert "target_method_missing_in_input" in t2 and "target_method_missing_in_input" not in t1
     assert "covered_by" in t1 and "a list of 1 or 2" in t2
@@ -136,17 +137,18 @@ REPORT_R2 = "R2 Parameterize Variable: method run(int) must declare a new parame
     ({"reason": "R1 already reports it", "covered_by": {"rule": "R1", "report": REPORT_R2}}, "covered_rule_mismatch"),
     ({"reason": "R2 already reports it", "covered_by": {"rule": "R2", "report": "R2 something else entirely here"}},
      "covered_report_not_found"),
-    ({"reason": "R2 already reports this error"}, "uncited_rule_claim"),
+    ({"reason": "R2 already reports this error", "covered_by": {"rule": "none", "report": ""}}, "uncited_rule_claim"),
+    ({"reason": "no listed condition fits"}, "missing_covered_by"),
     ({"reason": "R2 reports it", "covered_by": {"rule": "R1", "report": REPORT_R1}}, "uncited_rule_claim"),
-    ({"reason": "R2 does not report this; no listed condition expresses it"}, ""),
-    ({"reason": "no listed condition expresses the missing method"}, ""),
+    ({"reason": "R2 does not report this; no listed condition expresses it", "covered_by": {"rule": "none", "report": ""}}, ""),
+    ({"reason": "no listed condition expresses the missing method", "covered_by": {"rule": "none", "report": ""}}, ""),
     ({"reason": "covered", "covered_by": {"rule": "R7", "report": REPORT_R1}}, "unknown_target_rule"),
 ])
 def test_none_must_cite_the_report_it_relies_on(proposal, outcome):
     d1 = R.load_d1("refactoring", D1_V2)
     result = validate({"decision": "none", **proposal}, d1, BEFORE, [REPORT_R1, REPORT_R2])
     assert (result["valid"], result["reason"]) == (not outcome, outcome), result
-    if proposal.get("covered_by") and not outcome:
+    if proposal.get("covered_by", {}).get("rule") == "R1" and not outcome:
         assert result["covered_by"]["report"] == REPORT_R1
 
 

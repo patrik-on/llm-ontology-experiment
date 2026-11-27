@@ -83,7 +83,7 @@ it applies to C (shadow), D1 and D2 alike; select it with `--rules-d1`.
 `--catalogue c2` (prepared by a person) adds general conditions (`target_method_missing_in_input`,
 `requested_signature_missing_in_output`, `variable_kept_local_in_source_method`); a rule may combine at
 most two of them (all must hold). `c1` is the first pilot's catalogue. Prompt `d2-rule-template-v3`: a
-`none` that claims an active rule already reports the error must cite that report in `covered_by`
+`none` that claims an active rule already reports the error must cite that report in `covered_by` (required from prompt `d2-rule-template-v4`; `{"rule": "none", "report": ""}` when no rule reports it)
 (rule ID and text); the validator checks that this rule produced that report for the answer. It cannot
 check whether the reason restates the report correctly.
 
