@@ -99,6 +99,21 @@ $P $R --run-id repair-d2-replay-r1v2-c2-YYYYMMDD --replay-d2-from $ID \
 With `--rules-d1` the replay recomputes the rule reports on the stored answers (`cases/<id>/rules.json`).
 The 10 pilot tasks shaped these changes and are marked as development cases.
 
+### Development set of further Parameterize Variable tasks
+
+```bash
+$P $R --run-id repair-pv-devset-YYYYMMDD --build-devset 10        # 2 strata x 10, reference QA, no model calls
+$P $R --run-id repair-pv-devset-YYYYMMDD --source-run repair-pv-devset-YYYYMMDD --first-answers \
+      --rules-d1 configs/repair/rules_d1/refactoring.ttl          # one first answer per task, checked, scored
+$P $R --run-id repair-pv-devset-d2-YYYYMMDD --source-run repair-pv-devset-YYYYMMDD \
+      --replay-d2-from repair-pv-devset-YYYYMMDD --catalogue c2 --development-cases
+```
+
+Tasks come from `configs/repair/devset_pv.json` (reference-screened candidates, fixed seed); the pilot's
+task IDs and commits are excluded; strata: the requested method is / is not declared in the input.
+`dev_pool.json` labels the first answers with the final evaluator and adds the references as correct
+examples: gold information, development use only.
+
 ## Run directory
 
 ```

@@ -48,6 +48,11 @@ def main(argv=None) -> int:
     parser.add_argument("--rules-d1", metavar="TTL", help="D1 base for the replay (default: the source run's v0); e.g. "
                         "configs/repair/rules_d1/refactoring.ttl")
     parser.add_argument("--catalogue", default="c1", choices=["c1", "c2"], help="D2 condition catalogue")
+    parser.add_argument("--source-run", metavar="RUN_ID", help="selection.json of this run instead of the "
+                        "configured matrix run (e.g. a development set)")
+    parser.add_argument("--build-devset", type=int, metavar="N", help="development set: N tasks per stratum")
+    parser.add_argument("--first-answers", action="store_true",
+                        help="one first answer per task of --source-run, checked and scored, pilot run layout")
     parser.add_argument("--development-cases", action="store_true",
                         help="mark the replayed cases as development cases (they shaped the change)")
     parser.add_argument("--extrapolate-to", type=int, default=100)
@@ -65,8 +70,28 @@ def main(argv=None) -> int:
         source = None
     else:
         from llm_ontology.repair.refactoring_task import OllamaLoopProvider, RefactoringTask
-        source = RUNS / config["source_runs"][args.task]
+        if args.build_devset:
+            from llm_ontology.repair import devset
+            dev = read_json(REPO / "configs/repair/devset_pv.json")
+            info = devset.build(REPO, root, candidates_path=REPO / dev["candidates"],
+                                pilot_selection=RUNS / config["source_runs"][args.task] / "selection.json",
+                                matrix_root=RUNS / config["source_runs"][args.task],
+                                per_stratum=args.build_devset, seed=dev["seed"])
+            print(json.dumps({k: v for k, v in info.items() if k != "rejected"}), f"rejected={len(info['rejected'])}")
+            return 0
+        source = RUNS / (args.source_run or config["source_runs"][args.task])
         task = RefactoringTask(source, config["pilot"][args.task]["operation"])
+        if args.first_answers:
+            from llm_ontology.repair import devset
+            if root.resolve() != source.resolve():
+                raise SystemExit("--first-answers writes into the development-set run: use --run-id = --source-run")
+            provider = OllamaLoopProvider(context_window_tokens=config["context_window_tokens"], seed=config["seed"])
+            rows = devset.first_answers(root, task, provider, repo=REPO, d1=d1,
+                                        max_new_tokens=config["max_new_tokens"][args.task],
+                                        analysis_tokens=config["analysis_max_new_tokens"])
+            print(f"{len(rows)} first answers, {sum(r['public'] == 'PASSED' for r in rows)} pass the public checker, "
+                  f"{sum(r['final_success'] for r in rows)} the final evaluator -> {root / 'first_answers.json'}")
+            return 0
         pool_path = root / "dev_pool.json"
         provider, pool = None, []
 
