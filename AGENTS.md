@@ -5,12 +5,13 @@ refactoring, comparing eight arms per task: baseline, a per-case project
 ontology block, a process skill (with and without the block), Single-RAG, a v3
 LoRA adapter (with and without the block) and an adapter trained with the block. Read this file first; it lists the only active versions.
 
-## Active entry points (the only two eval runners)
+## Active entry points (two matrix runners and the repair-loop pilot)
 
 | Task | Runner | Orchestration | Config |
 |---|---|---|---|
 | Testing (Methods2Test) | `scripts/benchmarks/run_testing_matrix.py` | `src/llm_ontology/benchmarks/testing_matrix.py` | `configs/benchmarks/testing_matrix_v1.json` |
 | Refactoring (SWE + MaRV + ML4Ref) | `scripts/benchmarks/run_refactoring_matrix.py` | `src/llm_ontology/benchmarks/refactoring_matrix.py` | `configs/benchmarks/refactoring_matrix_v1.json` |
+| Repair loop C/D1/D2 (pilot, refactoring) | `scripts/benchmarks/run_repair_loop.py` | `src/llm_ontology/repair/` | `configs/benchmarks/repair_loop_v1.json`, D1 rules `configs/repair/rules_d1/` |
 
 Shared helpers: `benchmarks/matrix_support.py`; statistics:
 `benchmarks/methods2test_statistics.py`, `benchmarks/paired_tests.py`.
@@ -44,7 +45,12 @@ A version suffix in a name is an identity, not an alternative. Use these:
 - Runtime is WSL with `.venv_wsl`; machine paths come from `${LLM_ONTOLOGY_*}`
   placeholders (`src/llm_ontology/core/paths.py`, `.env.example`).
 - Never change a frozen run, prompt bytes or `SKILL.md`; a changed experiment
-  needs a new run ID. One attempt per cell, no retries or repairs.
+  needs a new run ID. Matrices: one attempt per cell, no retries or repairs. Only the
+  repair-loop protocol (`repair_loop_c_d1_d2_v1`) allows up to 3 attempts and 1 analysis
+  call per task and variant; it reads finished matrix runs and never changes them.
+- Repair loop: never edit `configs/repair/rules_d1/*.ttl` during a run (D1 is hash-checked);
+  D2 changes live only in `<run>/rulebase_d2/`. Results from `--mock` are mechanism checks,
+  not model results. Runbook: `docs/evaluation/repair_loop_v1.md`.
 - Do not add new version files next to old ones. Change the active file, and if
   the old behaviour must stay reproducible, rely on Git history and the frozen run.
 - Checks: `python -m pytest -q -rs` and `ruff check src scripts tests`. Tests

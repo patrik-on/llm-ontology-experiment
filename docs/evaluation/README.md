@@ -1,11 +1,12 @@
 # Current evaluation
 
-Only two protocols are supported:
+Two matrix protocols and one follow-up pilot are supported:
 
 | Task | Entry point | Runbook |
 |---|---|---|
 | Methods2Test testing | `scripts/benchmarks/run_testing_matrix.py` | [Testing](testing_matrix_v1.md) |
 | Mixed SWE + MaRV + ML4Ref refactoring | `scripts/benchmarks/run_refactoring_matrix.py` | [Refactoring](refactoring_matrix_v1.md) |
+| Repair loop C/D1/D2 (pilot on finished refactoring run) | `scripts/benchmarks/run_repair_loop.py` | [Repair loop](repair_loop_v1.md) |
 
 Both compare eight arms (`qwen_base`, `onto_project`, `skills`, `skills_onto`,
 `rag_single`, `ft_testing`/`ft_refactoring`, `ft_v3_onto`, `ft_onto`), with one attempt

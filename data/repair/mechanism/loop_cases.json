@@ -1,0 +1,35 @@
+[
+  {
+    "id": "loop-1",
+    "group": "g1",
+    "operation": "Parameterize Variable",
+    "file_path": "a/Calc.java",
+    "request": "Parameterize Variable\tlimit : int to limit : int in method public run(x int, limit int) : int from class a.Calc",
+    "target_start": 4,
+    "before": "class Calc {\n    private Logger log;\n    public int run(int x) {\n        int limit = 10;\n        if (x > limit) {\n            return limit;\n        }\n        return x;\n    }\n\n    public int other() {\n        return 1;\n    }\n}\n",
+    "expected": "class Calc {\n    private Logger log;\n    public int run(int x, int limit) {\n        if (x > limit) {\n            return limit;\n        }\n        return x;\n    }\n\n    public int other() {\n        return 1;\n    }\n}\n",
+    "bad": "class Calc {\n    private Logger log;\n    public int run(int x, int limit) {\n        log.debug(\"limit=\" + limit);\n        return Math.min(x, 10);\n    }\n\n    public int other() {\n        return 1;\n    }\n}\n"
+  },
+  {
+    "id": "loop-2",
+    "group": "g2",
+    "operation": "Parameterize Variable",
+    "file_path": "a/Pricer.java",
+    "request": "Parameterize Variable\trate : int to rate : int in method public price(amount int, rate int) : int from class a.Pricer",
+    "target_start": 4,
+    "before": "class Pricer {\n    private Logger log;\n    public int price(int amount) {\n        int rate = 20;\n        int tax = amount * rate / 100;\n        return amount + tax;\n    }\n\n    public int other() {\n        return 1;\n    }\n}\n",
+    "expected": "class Pricer {\n    private Logger log;\n    public int price(int amount, int rate) {\n        int tax = amount * rate / 100;\n        return amount + tax;\n    }\n\n    public int other() {\n        return 1;\n    }\n}\n",
+    "bad": "class Pricer {\n    private Logger log;\n    public int price(int amount, int rate) {\n        log.info(\"rate \" + rate);\n        return amount + amount / 5;\n    }\n\n    public int other() {\n        return 1;\n    }\n}\n"
+  },
+  {
+    "id": "loop-3",
+    "group": "g3",
+    "operation": "Parameterize Variable",
+    "file_path": "a/Timer.java",
+    "request": "Parameterize Variable\tdelay : int to delay : int in method public pause(tries int, delay int) : int from class a.Timer",
+    "target_start": 4,
+    "before": "class Timer {\n    private Logger log;\n    public int pause(int tries) {\n        int delay = 100;\n        int total = delay * tries;\n        return total;\n    }\n\n    public int other() {\n        return 1;\n    }\n}\n",
+    "expected": "class Timer {\n    private Logger log;\n    public int pause(int tries, int delay) {\n        int total = delay * tries;\n        return total;\n    }\n\n    public int other() {\n        return 1;\n    }\n}\n",
+    "bad": "class Timer {\n    private Logger log;\n    public int pause(int tries, int delay) {\n        System.out.println(\"delay \" + delay);\n        return tries * 100;\n    }\n\n    public int other() {\n        return 1;\n    }\n}\n"
+  }
+]
