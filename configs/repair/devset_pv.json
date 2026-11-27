@@ -1,0 +1,5 @@
+{
+  "_comment": "Development set of further Parameterize Variable tasks for the D2 analysis (not the pilot's 10). Separate file so the pilot config hash stays unchanged.",
+  "candidates": "artifacts/evaluation/runs/refactoring-context-data-v4-20261113/structural-candidates.json",
+  "seed": "repair-devset-pv-v1"
+}
