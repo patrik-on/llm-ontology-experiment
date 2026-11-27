@@ -99,11 +99,11 @@ class Diagnosis(BaseModel):
     cause: str
 
 
-def d2_schema(base: dict) -> dict:
+def d2_schema(base: dict, catalogue: str = P.DEFAULT_CATALOGUE) -> dict:
     """Diagnosis schema plus ``rule_proposal`` generated from the same catalogue as the prompt."""
     plain = Diagnosis.model_json_schema()
     return {"type": "object", "additionalProperties": False, "required": ["location", "cause", "rule_proposal"],
-            "properties": {**plain["properties"], "rule_proposal": P.schema(base)}}
+            "properties": {**plain["properties"], "rule_proposal": P.schema(base, catalogue)}}
 
 
 AUTHOR_INSTRUCTION = (
@@ -148,7 +148,7 @@ def numbered(source: str | None) -> str:
 
 
 def analysis_prompt(variant: str, prompt1: str, raw: str, check: Check, reports: list[str] | None,
-                    base: dict | None, task_kind: str) -> str:
+                    base: dict | None, task_kind: str, catalogue: str = P.DEFAULT_CATALOGUE) -> str:
     """Same structure for every variant; only D2 adds the rule template (the token limit is shared)."""
     tool, total = _clip(check.messages, MAX_TOOL_MESSAGES)
     lines = ["You are analysing a failed answer. Do not write a new answer.", "", "### Task", prompt1, "",
@@ -160,7 +160,7 @@ def analysis_prompt(variant: str, prompt1: str, raw: str, check: Check, reports:
         lines += [f"Rule checks, {len(rule)} of {rtotal} violations:", *(["- " + m for m in rule] or ["- (none)"])]
     lines += ["", "### Instructions"]
     if variant == "D2":
-        lines += [AUTHOR_INSTRUCTION, "", P.prompt_section(base), "",
+        lines += [AUTHOR_INSTRUCTION, "", P.prompt_section(base, catalogue), "",
                   "Return JSON with: location, cause, rule_proposal."]
     else:
         lines += ["Compare the task, your answer and the diagnostics. Name the concrete place and explain the "
@@ -170,8 +170,9 @@ def analysis_prompt(variant: str, prompt1: str, raw: str, check: Check, reports:
 
 class Loop:
     def __init__(self, root: Path, task: Task, provider: Provider, *, d1: dict, pool: list[Example],
-                 max_new_tokens: int, analysis_tokens: int, variants=VARIANTS):
+                 max_new_tokens: int, analysis_tokens: int, variants=VARIANTS, catalogue: str = P.DEFAULT_CATALOGUE):
         self.root, self.task, self.provider = Path(root), task, provider
+        self.catalogue = catalogue
         self.d1, self.pool = d1, pool
         self.max_new_tokens, self.analysis_tokens = max_new_tokens, analysis_tokens
         self.variants = tuple(variants)
@@ -263,8 +264,8 @@ class Loop:
                                                    "base_sha256": R.base_hash(base) if base else None})
 
     def _analyse(self, variant, case, group, prompt1, raw, check, reports, base, vroot) -> dict:
-        schema = d2_schema(base) if variant == "D2" else Diagnosis.model_json_schema()
-        prompt = analysis_prompt(variant, prompt1, raw, check, reports, base, self.task.kind)
+        schema = d2_schema(base, self.catalogue) if variant == "D2" else Diagnosis.model_json_schema()
+        prompt = analysis_prompt(variant, prompt1, raw, check, reports, base, self.task.kind, self.catalogue)
         text = self._call(vroot / "analysis", prompt, schema, self.analysis_tokens,
                           kind="analysis", case=case["id"], variant=variant, attempt=1)
         try:
@@ -286,9 +287,10 @@ class Loop:
                         "tool_messages": check.messages[:MAX_TOOL_MESSAGES], "rule_reports": reports,
                         "diagnosis": diagnosis}
             entry = self.state.propose(task=case["id"], group=group,
-                                       proposal=proposal if proposal else {"decision": "none"},
+                                       proposal=proposal if proposal else {"decision": "none", "covered_by": {"rule": "none", "report": ""},
+                                                                           "reason": "no rule proposal in the analysis"},
                                        evidence=evidence, trigger=trigger, pool=self.pool,
-                                       answer=check.source)
+                                       answer=check.source, reports=reports, catalogue=self.catalogue)
             write_json(vroot / "analysis" / "proposal.json", entry)
         return diagnosis
 

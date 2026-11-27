@@ -25,8 +25,10 @@ def _source(task, case, raw):
         return None
 
 
-def validate(payload, base: dict, answer: str | None) -> dict:
-    """Format validation only: schema model, catalogue values, evidence in the answer."""
+def validate(payload, base: dict, answer: str | None, reports: list[str] | None = None,
+             catalogue: str = P.DEFAULT_CATALOGUE) -> dict:
+    """Format validation only: schema model, catalogue values, evidence in the answer, and for
+    ``none`` the cited report (``covered_by``) against the reports of this answer."""
     if not isinstance(payload, dict):
         return {"valid": False, "reason": "missing_rule_proposal"}
     try:
@@ -34,17 +36,26 @@ def validate(payload, base: dict, answer: str | None) -> dict:
     except ValueError as exc:
         return {"valid": False, "reason": "invalid_proposal", "detail": str(exc)[:300]}
     if parsed.decision == "none":
-        return {"valid": bool(parsed.reason.strip()), "reason": "" if parsed.reason.strip() else "missing_reason",
-                "decision": "none"}
+        if not parsed.reason.strip():
+            return {"valid": False, "reason": "missing_reason", "decision": "none"}
+        try:
+            covered = P.check_none(parsed, base, reports)
+        except R.ProposalError as exc:
+            return {"valid": False, "reason": exc.code, "detail": exc.detail, "decision": "none"}
+        return {"valid": True, "reason": "", "decision": "none", **covered}
     try:
-        constraint, evidence = P.to_constraint(parsed, base, answer)
+        constraint, evidence = P.to_constraint(parsed, base, answer, catalogue)
     except R.ProposalError as exc:
         return {"valid": False, "reason": exc.code, "detail": exc.detail, "decision": parsed.decision}
     return {"valid": True, "reason": "", "decision": parsed.decision, "evidence_check": evidence,
             "required_facts": constraint["required_facts"]}
 
 
-def replay(source_root: Path, out_root: Path, task, provider, *, analysis_tokens: int) -> list[dict]:
+def replay(source_root: Path, out_root: Path, task, provider, *, analysis_tokens: int,
+           catalogue: str = P.DEFAULT_CATALOGUE, d1: dict | None = None, d1_name: str | None = None,
+           development: bool = False) -> list[dict]:
+    """``d1`` replaces the base each task started with (its v0 in the pilot) and recomputes the rule
+    reports on the stored answers; without it the stored base and reports are used unchanged."""
     source_root, out_root = Path(source_root), Path(out_root)
     ledger = [json.loads(x) for x in (source_root / "rulebase_d2/ledger.jsonl").read_text().splitlines() if x]
     starts = {e["task"]: e["version"] for e in ledger if e["type"] == "task_start"}
@@ -53,9 +64,14 @@ def replay(source_root: Path, out_root: Path, task, provider, *, analysis_tokens
     pool = load_pool(pool_path) if pool_path.exists() else []
     cases = {c["id"]: c for c in task.cases()}
     plan = read_json(source_root / "loop_plan.json")
-    write_json(out_root / "replay_plan.json", {"source_run": source_root.name, "prompt_version": P.PROMPT_VERSION,
-                                               "cases": plan["cases"], "analysis_tokens": analysis_tokens,
-                                               "provider": getattr(provider, "name", "?")})
+    meta = {"source_run": source_root.name, "prompt_version": P.PROMPT_VERSION, "cases": plan["cases"],
+            "analysis_tokens": analysis_tokens, "provider": getattr(provider, "name", "?")}
+    if catalogue != P.DEFAULT_CATALOGUE or d1 is not None or development:  # absent = the first replay's plan
+        meta.update(catalogue=catalogue, catalogue_sha256=R.sha(P.catalogue(d1 or read_json(
+                        source_root / "rulebase_d2/versions/v0000.json"), catalogue)),
+                    rules_d1=d1_name, rules_d1_sha256=R.base_hash(d1) if d1 is not None else None,
+                    development_cases=development)
+    write_json(out_root / "replay_plan.json", meta)
     review_path = out_root / "manual_review.json"
     review = read_json(review_path) if review_path.exists() else {}
     rows = []
@@ -75,13 +91,21 @@ def replay(source_root: Path, out_root: Path, task, provider, *, analysis_tokens
         base = read_json(source_root / f"rulebase_d2/versions/v{starts.get(cid, 0):04d}.json")
         if R.base_hash(base) != rules_json["base_sha256"]:
             raise ValueError("Stored rule reports were not made with the recorded D2 version: " + cid)
-        prompt = analysis_prompt("D2", prompt1, raw, check, reports, base, task.kind)
+        if d1 is not None:
+            if starts.get(cid, 0) != 0:
+                raise ValueError("A replacement D1 base only replaces v0; task started on a later version: " + cid)
+            base = d1
+            rows_now = R.findings(task.facts(case, source), base) if source is not None else []
+            reports = [r["message"] for r in R.violations(rows_now)]
+            out.mkdir(parents=True, exist_ok=True)
+            write_json(out / "rules.json", {"findings": rows_now, "base_sha256": R.base_hash(base)})
+        prompt = analysis_prompt("D2", prompt1, raw, check, reports, base, task.kind, catalogue)
         out.mkdir(parents=True, exist_ok=True)
         if (out / "raw.txt").exists() and (out / "prompt.txt").read_text(encoding="utf-8") == prompt:
             text = (out / "raw.txt").read_text(encoding="utf-8")
         else:
             (out / "prompt.txt").write_text(prompt, encoding="utf-8")
-            gen = provider.generate(prompt, d2_schema(base), analysis_tokens)
+            gen = provider.generate(prompt, d2_schema(base, catalogue), analysis_tokens)
             text = gen.text
             (out / "raw.txt").write_text(text, encoding="utf-8")
             write_json(out / "generation.json", {"prompt_sha256": sha(prompt), "prompt_tokens": gen.prompt_tokens,
@@ -93,14 +117,14 @@ def replay(source_root: Path, out_root: Path, task, provider, *, analysis_tokens
         new = payload.get("rule_proposal") if isinstance(payload, dict) else None
         old_raw = sroot / "D2/analysis/raw.txt"
         old = json.loads(old_raw.read_text()).get("rule_proposal") if old_raw.exists() else None
-        result = validate(new, base, source)
+        result = validate(new, base, source, reports, catalogue)
         info = None
         if result["valid"] and result["decision"] != "none":
             parsed = P.RuleProposal.model_validate(new)
-            candidate, rule, _ = P.apply(base, parsed, "replay:" + cid, source)
+            candidate, rule, _ = P.apply(base, parsed, "replay:" + cid, source, catalogue)
             trigger = task.facts(case, source) if source else None
             info = verify(decision="modify" if parsed.decision == "revise" else "add", candidate=candidate,
-                          current=base, rule=rule, operation=P.operation_of(parsed, base), trigger=trigger,
+                          current=base, rule=rule, operation=P.operation_of(parsed, base, catalogue), trigger=trigger,
                           trigger_group=task.group(case), pool=pool)
             info = {"decision": info["decision"], "reason": info["reason"],
                     "added_coverage": info["checks"].get("added_coverage"),
@@ -116,7 +140,7 @@ def replay(source_root: Path, out_root: Path, task, provider, *, analysis_tokens
         rows.append(row)
     if not review_path.exists():
         write_json(review_path, {r["case"]: dict(REVIEW_FIELDS) for r in rows if "skipped" not in r})
-    (out_root / "replay_report.md").write_text(report_md(rows, source_root.name), encoding="utf-8")
+    (out_root / "replay_report.md").write_text(report_md(rows, source_root.name, meta), encoding="utf-8")
     write_json(out_root / "replay_summary.json", rows)
     return rows
 
@@ -136,11 +160,39 @@ def _review_md(case, check, reports, row) -> str:
         "Manual review: fill `manual_review.json` (diagnosis_fits, condition_fits_error: true/false, note)."])
 
 
-def report_md(rows: list[dict], source: str) -> str:
+def review_metrics(done: list[dict]) -> list[str]:
+    """Counts over the answered cases; a manual label that is null counts as unverified."""
+    valid = sum(r["format"]["valid"] for r in done)
+    rev = [r["review"] for r in done]
+    diag = [x["diagnosis_fits"] for x in rev if x.get("diagnosis_fits") is not None]
+    cond = [x["condition_fits_error"] for x in rev if x.get("condition_fits_error") is not None]
+    nones = [r for r in done if r["format"].get("decision") == "none" and r["format"]["valid"]]
+    both = [r for r in nones if r["review"].get("diagnosis_fits") and r["review"].get("condition_fits_error")]
+    unchecked = sum(x.get("diagnosis_fits") is None or x.get("condition_fits_error") is None for x in rev)
+    out = ["| Metrika | Výsledok |", "|---|---:|",
+           f"| Formálne platný výstup | {valid}/{len(done)} |",
+           f"| Diagnóza vystihla hlavnú chybu (ručne) | {sum(diag)}/{len(diag)} |",
+           f"| Rozhodnutie o zmene bázy správne vzhľadom na katalóg (ručne) | {sum(cond)}/{len(cond)} |",
+           f"| `none` so správnym rozhodnutím aj správnou diagnózou (ručne) | {len(both)}/{len(nones)} |", ""]
+    if unchecked:
+        out.append(f"Bez ručného posúdenia: {unchecked} prípadov (vecná správnosť neoverená).")
+    return out
+
+
+def report_md(rows: list[dict], source: str, meta: dict | None = None) -> str:
+    meta = meta or {}
     done = [r for r in rows if "skipped" not in r]
+    base_text = (f"D1 `{meta['rules_d1']}` (sha {meta['rules_d1_sha256'][:12]}) namiesto v0 pilotu; hlásenia "
+                 "pravidiel prepočítané na uložených odpovediach" if meta.get("rules_d1")
+                 else "verzia, s ktorou úloha v pilote začala (nezmenená)")
     lines = [f"# Skúška rozboru D2 na uložených prvých odpovediach ({source})", "",
-             f"Verzia promptu: `{P.PROMPT_VERSION}`. Báza: verzia, s ktorou úloha v pilote začala (nezmenená).", "",
-             "| Prípad | pôvodne | nový návrh | podmienka / pravidlo | úryvok nájdený | formát | overenie (info) | vecne |",
+             f"Verzia promptu: `{meta.get('prompt_version', P.PROMPT_VERSION)}`. Katalóg: "
+             f"`{meta.get('catalogue', P.DEFAULT_CATALOGUE)}`. Báza: {base_text}.", ""]
+    if meta.get("development_cases"):
+        lines += ["Prípady sú **vývojové**: ovplyvnili úpravu R1 a katalógu, preto ich výsledok nie je nezávislé "
+                  "overenie.", ""]
+    lines += [
+             "| Prípad | pôvodne | nový návrh | podmienka / pravidlo | úryvok nájdený | formát | overenie (info) | vecne (ručne) |",
              "|---|---|---|---|---|---|---|---|"]
     for r in rows:
         if "skipped" in r:
@@ -150,17 +202,14 @@ def report_md(rows: list[dict], source: str) -> str:
         fmt = r["format"]
         ev = fmt.get("evidence_check")
         vec = r["review"].get("condition_fits_error")
+        dg = r["review"].get("diagnosis_fits")
         lines.append(" | ".join([
             f"| `{r['case'][-8:]}`", f"{r['original']['decision']} ({r['original']['reason'] or '–'})",
             str(new.get("decision")), f"{new.get('must_hold') or '–'} / {new.get('target_rule') or '–'}",
             "áno" if ev else ("nie" if fmt.get("reason", "").startswith("evidence") else "–"),
             "platný" if fmt["valid"] else f"neplatný ({fmt['reason']})",
             (r["verification_info"] or {}).get("decision", "–") if r["verification_info"] else "–",
-            "neoverené" if vec is None else ("áno" if vec else "nie")]) + " |")
-    valid = sum(r["format"]["valid"] for r in done)
-    fits = [r for r in done if r["review"].get("condition_fits_error") is not None]
-    lines += ["", f"Formálne platných návrhov: {valid} z {len(done)}. "
-              f"Vecne posúdených: {len(fits)}, z toho vystihlo skutočnú chybu: "
-              f"{sum(bool(r['review']['condition_fits_error']) for r in fits)}"
-              + (" (bez ručného posúdenia je vecná správnosť neoverená)." if not fits else "."), ""]
+            "neoverené" if vec is None or dg is None else
+            f"diagnóza {'áno' if dg else 'nie'}, rozhodnutie {'áno' if vec else 'nie'}"]) + " |")
+    lines += [""] + review_metrics(done)
     return "\n".join(lines)

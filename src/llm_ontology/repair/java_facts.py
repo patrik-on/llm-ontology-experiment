@@ -18,7 +18,7 @@ import re
 from rdflib import Graph, Literal, Namespace, RDF, URIRef
 
 LO = Namespace("https://w3id.org/llm-ontology/project#")
-FACTS_VERSION = "repair-facts-v1"
+FACTS_VERSION = "repair-facts-v2"  # v2: presence of the requested method in input and output
 
 # Fact names a rule may rely on. A proposal that needs anything else is deferred.
 VOCABULARY = frozenset({
@@ -32,6 +32,12 @@ VOCABULARY = frozenset({
     "lo:factoryName", "lo:resultMutability", "lo:mutableAlternative", "lo:resolvesTo",
     "lo:mutatesParameter", "lo:mutatedBy", "lo:mutationOnSuccessPath", "lo:inBody",
 })
+VOCABULARY_V1 = VOCABULARY
+# v2: is the requested method declared in the input, is its requested signature in the output,
+# and the method that held the old variable in the input as found in the output
+VOCABULARY_V2_ADDED = frozenset({"lo:requestedSignature", "lo:targetMethodInInput", "lo:targetSignatureInOutput",
+                                 "lo:sourceMethodAfter"})
+VOCABULARY = VOCABULARY_V1 | VOCABULARY_V2_ADDED
 
 LOG_METHODS = frozenset({"debug", "info", "warn", "warning", "error", "trace", "fine", "finer", "finest",
                          "log", "verbose", "println", "print", "printf"})
@@ -54,6 +60,11 @@ class PVRequest:
     method: str
     arity: int
     class_name: str
+    param_types: tuple[str, ...] = ()
+
+    @property
+    def signature(self) -> str:
+        return f"{self.method}({', '.join(self.param_types)})"
 
 
 def parse_request(text: str) -> PVRequest:
@@ -63,9 +74,15 @@ def parse_request(text: str) -> PVRequest:
     sig = match["sig"]
     name = sig.split("(", 1)[0].split()[-1]
     inner = sig[sig.index("(") + 1:sig.rindex(")")].strip()
-    arity = 0 if not inner else _split_top(inner).__len__()
+    params = _split_top(inner) if inner else []
+    types = tuple(_norm_type(p.strip().split(None, 1)[1]) if len(p.strip().split(None, 1)) == 2 else p.strip()
+                  for p in params)
     return PVRequest(match["old"], match["old_type"].strip(), match["new"], match["new_type"].strip(),
-                     name, arity, match["cls"].rsplit(".", 1)[-1])
+                     name, len(params), match["cls"].rsplit(".", 1)[-1], types)
+
+
+def _norm_type(text: str) -> str:
+    return re.sub(r"\s+", "", text.replace("final ", ""))
 
 
 def _split_top(text: str) -> list[str]:
@@ -271,9 +288,25 @@ def refactoring_graph(before: str, after: str, request: str, target_start: int) 
     g.add((req_uri, LO.newName, lit(req.new)))
     g.add((req_uri, LO.newType, lit(req.new_type)))
     g.add((req_uri, LO.targetMethodBefore, mb))
-
     candidates = [m for m in a.methods() if a.name(m) == req.method]
     target = min(candidates, key=lambda m: abs(len(a.params(m)) - req.arity), default=None)
+    g.add((req_uri, LO.requestedSignature, lit(req.signature)))
+    g.add((req_uri, LO.targetMethodInInput, lit(any(b.name(m) == req.method for m in b.methods()))))
+    g.add((req_uri, LO.targetSignatureInOutput, lit(any(
+        a.name(m) == req.method and tuple(_norm_type(t) for _, t in a.params(m)) == req.param_types
+        for m in a.methods()))))
+    source_after = after_members.get(b.key(source)) or next(
+        (m for m in a.methods() if a.name(m) == b.name(source) and m.type == source.type), None)
+    if source_after is not None:
+        sa = after_nodes[_k(source_after)]
+        g.add((req_uri, LO.sourceMethodAfter, sa))
+        same_as_target = target is not None and _k(source_after) == _k(target)
+        for i, (lname, line, init, _) in enumerate([] if same_as_target else a.locals(source_after)):
+            loc = URIRef(f"{sa}_sl{i}")
+            g.add((sa, LO.declaresLocal, loc))
+            g.add((loc, LO.name, lit(lname)))
+            g.add((loc, LO.line, lit(line)))
+
     if target is None:
         return g
     ma = after_nodes[_k(target)]

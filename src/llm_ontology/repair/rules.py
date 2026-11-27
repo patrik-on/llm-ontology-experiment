@@ -17,7 +17,7 @@ from typing import Any
 from rdflib import Graph
 from rdflib.namespace import SH
 
-from llm_ontology.repair.java_facts import VOCABULARY
+from llm_ontology.repair.java_facts import VOCABULARY, VOCABULARY_V1
 
 LOS = "https://w3id.org/llm-ontology/shapes#"
 PREFIXES = """@prefix sh:   <http://www.w3.org/ns/shacl#> .
@@ -42,6 +42,12 @@ TEMPLATES: dict[str, dict[str, Any]] = {
                   "lo:hasUse", "lo:resolvesKind", "lo:usageRole"],
         "describe": "the new parameter exists, but every use of it in the target method has the given role "
                     "(e.g. only logging), so the computation does not use it",
+        "vars": "?m ?new ?role",
+        "where": """$this lo:newName ?new ; lo:targetMethodAfter ?ma .
+        ?ma lo:display ?m ; lo:hasParameter ?p . ?p lo:name ?new .
+        BIND ("{role}" AS ?role)
+        FILTER NOT EXISTS {{ ?ma lo:hasUse ?u . ?u lo:name ?new ; lo:resolvesKind "parameter" ; lo:usageRole ?r .
+                            FILTER (?r != ?role) }}""",
         "select": """SELECT $this ?m ?new ?role WHERE {{
         $this lo:newName ?new ; lo:targetMethodAfter ?ma .
         ?ma lo:display ?m ; lo:hasParameter ?p . ?p lo:name ?new .
@@ -57,11 +63,42 @@ TEMPLATES: dict[str, dict[str, Any]] = {
         "exceptions": ["none"], "placeholders": ["m", "old", "line"],
         "facts": ["lo:oldName", "lo:targetMethodAfter", "lo:display", "lo:declaresLocal", "lo:name", "lo:line"],
         "describe": "the target method still declares a local variable with the old name",
+        "vars": "?m ?old ?line",
+        "where": """$this lo:oldName ?old ; lo:targetMethodAfter ?ma .
+        ?ma lo:display ?m ; lo:declaresLocal ?l . ?l lo:name ?old ; lo:line ?line .""",
         "select": """SELECT $this ?m ?old ?line WHERE {{
         $this lo:oldName ?old ; lo:targetMethodAfter ?ma .
         ?ma lo:display ?m ; lo:declaresLocal ?l . ?l lo:name ?old ; lo:line ?line .
         {exception}
       }}""",
+    },
+    # catalogue c2 (java_facts v2): general conditions a proposal may combine (at most two)
+    "target_method_missing_in_input": {
+        "task": "refactoring", "operation": "Parameterize Variable",
+        "target": "lo:ParameterizeVariableRequest", "params": {}, "exceptions": ["none"], "placeholders": ["sig"],
+        "facts": ["lo:requestedSignature", "lo:targetMethodInInput"],
+        "describe": "the method named in the request is not declared in the supplied input",
+        "vars": "?sig", "where": """$this lo:requestedSignature ?sig ; lo:targetMethodInInput false .""",
+    },
+    "requested_signature_missing_in_output": {
+        "task": "refactoring", "operation": "Parameterize Variable",
+        "target": "lo:ParameterizeVariableRequest", "params": {}, "exceptions": ["none"], "placeholders": ["sig"],
+        "facts": ["lo:requestedSignature", "lo:targetSignatureInOutput"],
+        "describe": "your output does not declare a method with the requested name and parameter types",
+        "vars": "?sig", "where": """$this lo:requestedSignature ?sig ; lo:targetSignatureInOutput false .""",
+    },
+    "variable_kept_local_in_source_method": {
+        "task": "refactoring", "operation": "Parameterize Variable",
+        "target": "lo:ParameterizeVariableRequest", "params": {}, "exceptions": ["none"],
+        "placeholders": ["src", "local", "sline"],
+        "facts": ["lo:sourceMethodAfter", "lo:display", "lo:declaresLocal", "lo:name", "lo:line", "lo:oldName",
+                  "lo:newName"],
+        "describe": "the method that held the old variable in the input still declares a local variable with the "
+                    "old or the new name in your output",
+        "vars": "?src ?local ?sline",
+        "where": """$this lo:sourceMethodAfter ?sa . ?sa lo:display ?src ; lo:declaresLocal ?sl .
+        ?sl lo:name ?local ; lo:line ?sline .
+        {{ $this lo:oldName ?local }} UNION {{ $this lo:newName ?local }}""",
     },
     "mutated_argument_from_factory": {
         "task": "testing", "operation": "testing", "target": "lo:Argument",
@@ -83,6 +120,11 @@ TEMPLATES: dict[str, dict[str, Any]] = {
       }}""",
     },
 }
+for _spec in TEMPLATES.values():  # templates defined only by a pattern get the single-use select from it
+    if "select" not in _spec:
+        _spec["select"] = "SELECT $this " + _spec["vars"] + " WHERE {{\n        " + _spec["where"] + \
+                          "\n        {exception}\n      }}"
+
 RULE_DOCS = {
     "R1": "nothing outside the requested change is lost, modifiers (e.g. public) stay unchanged, "
           "and the target method exists in the output",
@@ -127,19 +169,40 @@ def load_d1(task: str, ttl_path: Path) -> dict:
     rules: dict[str, list[str]] = {}
     for shape in shapes:
         rules.setdefault(shape.split("_", 1)[0], []).append(shape)
-    return {"task": task, "facts_vocabulary": sorted(VOCABULARY), "handwritten_ttl": text,
+    vocabulary = VOCABULARY if "# facts: repair-facts-v2" in text else VOCABULARY_V1  # v1 base hash unchanged
+    base = {"task": task, "facts_vocabulary": sorted(vocabulary), "handwritten_ttl": text,
             "handwritten_sha256": sha(text),
             "rules": [{"id": rid, "origin": "D1", "constraints": [{"kind": "handwritten", "shapes": s}]}
                       for rid, s in sorted(rules.items())]}
+    docs = dict(re.findall(r"^# doc (\w+): (.+)$", text, flags=re.M))
+    if docs:  # absent in v1, so the v1 base (and its hash) is unchanged
+        base["rule_docs"] = docs
+    return base
 
 
 def base_hash(base: dict) -> str:
     return sha(base)
 
 
+def _select(constraint: dict) -> str:
+    """One condition: the template's select. Several (``parts``): their patterns joined, all must hold."""
+    parts = constraint.get("parts")
+    if not parts:
+        return TEMPLATES[constraint["template"]]["select"].format(exception=EXCEPTIONS[constraint["exception"]],
+                                                                  **constraint["params"])
+    names = []
+    for part in parts:
+        for v in TEMPLATES[part["template"]]["vars"].split():
+            if v not in names:
+                names.append(v)
+    body = "\n        ".join(TEMPLATES[p["template"]]["where"].format(**p["params"]) for p in parts)
+    return (f"SELECT $this {' '.join(names)} WHERE {{\n        {body}\n        "
+            f"{EXCEPTIONS[constraint['exception']]}\n      }}")
+
+
 def _template_ttl(shape: str, constraint: dict) -> str:
     spec = TEMPLATES[constraint["template"]]
-    select = spec["select"].format(exception=EXCEPTIONS[constraint["exception"]], **constraint["params"])
+    select = _select(constraint)
     message = (shape.rsplit("_t", 1)[0] + " " + constraint["message"]).replace("\\", "\\\\").replace('"', '\\"')
     return (f"los:{shape} a sh:NodeShape ;\n  sh:targetClass {spec['target']} ;\n  sh:sparql [\n"
             f"    a sh:SPARQLConstraint ; sh:prefixes los: ; sh:severity sh:Violation ;\n"

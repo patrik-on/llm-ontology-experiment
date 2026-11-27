@@ -70,6 +70,35 @@ The replay writes `replay_report.md`, `replay_summary.json`, `manual_review.json
 `manual_review.json` (`diagnosis_fits`, `condition_fits_error`) and run the same command again:
 stored responses are reused and the table counts the reviewed cases.
 
+### R1 v2 and catalogue c2 (2026-11-27)
+
+The first replay showed that in 8 of 10 pilot tasks the method named in the request is not in the
+supplied input, while R1 v1 said "it must keep its name". `configs/repair/rules_d1/refactoring.ttl` now
+replaces `R1_TargetMethodPresent` with two constraints on new facts (`java_facts` v2:
+`lo:targetMethodInInput`, `lo:targetSignatureInOutput`, `lo:requestedSignature`): "declared in the input
+but not found in your output" and "not found in the supplied input, and your output does not declare a
+method with this signature either". R1 v1 is in Git history only (commit `228feb1`, base sha `c5940d04…`) and in the
+pilot run's `rulebase_d2/versions/v0000.json`; a replay of that pilot without `--rules-d1` uses that stored v0.
+A new loop run takes R1 v2 by default. It is a D1 change, so
+it applies to C (shadow), D1 and D2 alike; select it with `--rules-d1`.
+
+`--catalogue c2` (prepared by a person) adds general conditions (`target_method_missing_in_input`,
+`requested_signature_missing_in_output`, `variable_kept_local_in_source_method`); a rule may combine at
+most two of them (all must hold). `c1` is the first pilot's catalogue. Prompt `d2-rule-template-v3`: a
+`none` that claims an active rule already reports the error must cite that report in `covered_by` (required from prompt `d2-rule-template-v4`; `{"rule": "none", "report": ""}` when no rule reports it)
+(rule ID and text); the validator checks that this rule produced that report for the answer. It cannot
+check whether the reason restates the report correctly.
+
+```bash
+$P $R --run-id repair-d2-replay-r1v2-c1-YYYYMMDD --replay-d2-from $ID \
+      --rules-d1 configs/repair/rules_d1/refactoring.ttl --catalogue c1 --development-cases
+$P $R --run-id repair-d2-replay-r1v2-c2-YYYYMMDD --replay-d2-from $ID \
+      --rules-d1 configs/repair/rules_d1/refactoring.ttl --catalogue c2 --development-cases
+```
+
+With `--rules-d1` the replay recomputes the rule reports on the stored answers (`cases/<id>/rules.json`).
+The 10 pilot tasks shaped these changes and are marked as development cases.
+
 ## Run directory
 
 ```

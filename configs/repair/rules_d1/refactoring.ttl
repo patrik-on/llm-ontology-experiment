@@ -1,5 +1,10 @@
-# D1 base for the repair-loop pilot: R1 and R2 copied unchanged from
-# thesis_materials/2026-11-23_navrh_slucka_c_d/shapes_refactoring.ttl (R3, R4 are not in the pilot).
+# D1 base v2 for the repair loop: refactoring.ttl (v1) with R1_TargetMethodPresent replaced by two
+# constraints that state whether the requested method was in the supplied input (facts
+# lo:targetMethodInInput, lo:targetSignatureInOutput, lo:requestedSignature; java_facts v2).
+# facts: repair-facts-v2
+# R2 is unchanged. Shared by D1 and D2 (and the shadow reports of C).
+# doc R1: nothing outside the requested change is lost, modifiers (e.g. public) stay unchanged, and the requested method is declared in the output with the requested signature (if the input does not contain it, the output has to declare it)
+# doc R2: Parameterize Variable: the target method declares the new parameter, the old local variable is gone, and each paired use of the old variable refers to the new parameter
 @prefix sh:   <http://www.w3.org/ns/shacl#> .
 @prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
 @prefix owl:  <http://www.w3.org/2002/07/owl#> .
@@ -34,11 +39,27 @@ los:R1_ScopePreserved a sh:NodeShape ;
       }""" ;
   ] .
 
+# R1 (v2) – požadovaná metóda: správa rozlišuje, či metóda bola v dodanom vstupe.
+#      v1 hlásila vždy "must keep its name", aj keď metóda vo vstupe vôbec nebola (8 z 10
+#      prípadov pilotu repair-pv-pilot-20261127): model potom hľadal metódu, ktorú vraj odstránil.
 los:R1_TargetMethodPresent a sh:NodeShape ;
   sh:targetClass lo:RefactoringRequest ;
-  sh:property [
-    sh:path lo:targetMethodAfter ; sh:minCount 1 ; sh:severity sh:Violation ;
-    sh:message "R1 the target method of the requested operation was not found in your output (it must keep its name unless the request renames it)." ;
+  sh:sparql [
+    a sh:SPARQLConstraint ; sh:prefixes los: ; sh:severity sh:Violation ;
+    sh:message "R1 the requested method {?sig} is declared in the input but was not found in your output (it must keep its name unless the request renames it)." ;
+    sh:select """
+      SELECT $this ?sig WHERE {
+        $this lo:requestedSignature ?sig ; lo:targetMethodInInput true .
+        FILTER NOT EXISTS { $this lo:targetMethodAfter ?any }
+      }""" ;
+  ] ;
+  sh:sparql [
+    a sh:SPARQLConstraint ; sh:prefixes los: ; sh:severity sh:Violation ;
+    sh:message "R1 the requested method {?sig} was not found in the supplied input, and your output does not declare a method with this signature either." ;
+    sh:select """
+      SELECT $this ?sig WHERE {
+        $this lo:requestedSignature ?sig ; lo:targetMethodInInput false ; lo:targetSignatureInOutput false .
+      }""" ;
   ] .
 
 # R2 – Chyba: model pridá parameter, ale výpočet ďalej používa pôvodnú lokálnu premennú.
