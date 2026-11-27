@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -19,9 +20,20 @@ from llm_ontology.repair.verify import load_pool  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[2]
 FIX = REPO / "data/repair/mechanism"
-D1_V1 = REPO / "configs/repair/rules_d1/refactoring.ttl"
-D1_V2 = REPO / "configs/repair/rules_d1/refactoring_v2.ttl"
-V1_SHA = "c5940d0459a8c30a791a9753c6a70f8f7057f2a670595ba5c3de03f3e02a8f0f"  # pilot repair-pv-pilot-20261127
+D1_V2 = REPO / "configs/repair/rules_d1/refactoring.ttl"  # R1 v2 (active)
+V1_COMMIT = "228feb1"  # R1 v1, used by pilot repair-pv-pilot-20261127; kept in Git history only
+V1_SHA = "c5940d0459a8c30a791a9753c6a70f8f7057f2a670595ba5c3de03f3e02a8f0f"
+
+
+def load_v1(tmp_path: Path) -> dict:
+    try:
+        text = subprocess.run(["git", "-C", str(REPO), "show", f"{V1_COMMIT}:configs/repair/rules_d1/refactoring.ttl"],
+                              capture_output=True, check=True, text=True).stdout
+    except (OSError, subprocess.CalledProcessError):
+        pytest.skip(f"R1 v1 needs Git history ({V1_COMMIT})")
+    path = tmp_path / "refactoring_v1.ttl"
+    path.write_text(text, encoding="utf-8")
+    return R.load_d1("refactoring", path)
 
 BEFORE = """class Calc {
     public int run(int x) {
@@ -60,20 +72,21 @@ def r1(after: str, base: dict, request: str = REQUEST) -> list[str]:
     return [r["message"] for r in R.violations(R.findings(graph(after, request), base), "R1")]
 
 
-def test_v1_base_is_unchanged_and_v2_has_docs():
-    assert R.base_hash(R.load_d1("refactoring", D1_V1)) == V1_SHA
+def test_v1_base_is_reproducible_and_v2_has_docs(tmp_path):
+    v1 = load_v1(tmp_path)
+    assert R.base_hash(v1) == V1_SHA
+    assert any("must keep its name" in m for m in r1(NOT_EXTRACTED, v1))  # the misleading v1 message
     d2 = R.load_d1("refactoring", D1_V2)
     assert set(d2["rule_docs"]) == {"R1", "R2"} and "lo:targetMethodInInput" in d2["facts_vocabulary"]
     assert "requested signature" in P.catalogue(d2)["rules"]["R1"]
 
 
-def test_facts_and_r1_v2_messages():
+def test_facts_and_r1_v2_messages(tmp_path):
     g = graph(NOT_EXTRACTED)
     req = J.LO.request
     assert (req, J.LO.targetMethodInInput, None) in g and not g.value(req, J.LO.targetMethodInInput).toPython()
     assert g.value(req, J.LO.requestedSignature).toPython() == "clamp(int, int)"
-    v1, v2 = R.load_d1("refactoring", D1_V1), R.load_d1("refactoring", D1_V2)
-    assert any("must keep its name" in m for m in r1(NOT_EXTRACTED, v1))  # the misleading v1 message
+    v2 = R.load_d1("refactoring", D1_V2)
     assert r1(NOT_EXTRACTED, v2) == ["R1 the requested method clamp(int, int) was not found in the supplied input, "
                                         "and your output does not declare a method with this signature either."]
     assert r1(EXTRACTED, v2) == []
@@ -154,7 +167,7 @@ def test_none_must_cite_the_report_it_relies_on(proposal, outcome):
 
 def test_replay_with_new_d1_and_catalogue(tmp_path):
     task = SyntheticRefactoringTask.from_file(FIX / "loop_cases.json")
-    v1 = R.load_d1("refactoring", D1_V1)
+    v1 = load_v1(tmp_path)
     pool = load_pool(FIX / "dev_pool.json")
     source = tmp_path / "pilot"
     Loop(source, task, ScriptedProvider(scripted(task.cases(), {})), d1=v1, pool=pool,  # every task on v0
@@ -165,7 +178,7 @@ def test_replay_with_new_d1_and_catalogue(tmp_path):
     v2 = R.load_d1("refactoring", D1_V2)
     provider = ScriptedProvider(scripted(task.cases(), {}))
     rows = replay(source, tmp_path / "b", task, provider, analysis_tokens=256, catalogue="c2", d1=v2,
-                  d1_name="configs/repair/rules_d1/refactoring_v2.ttl", development=True)
+                  d1_name="configs/repair/rules_d1/refactoring.ttl", development=True)
     assert {p: p.read_bytes() for p in source.rglob("*") if p.is_file()} == before  # pilot untouched
     plan = json.loads((tmp_path / "b/replay_plan.json").read_text())
     assert plan["catalogue"] == "c2" and plan["rules_d1_sha256"] == R.base_hash(v2) and plan["development_cases"]

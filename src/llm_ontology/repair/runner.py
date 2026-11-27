@@ -45,8 +45,8 @@ def main(argv=None) -> int:
     parser.add_argument("--report-only", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--replay-d2-from", metavar="RUN_ID")
-    parser.add_argument("--rules-d1", metavar="TTL", help="D1 base (default: configs rules_d1); e.g. "
-                        "configs/repair/rules_d1/refactoring_v2.ttl")
+    parser.add_argument("--rules-d1", metavar="TTL", help="D1 base for the replay (default: the source run's v0); e.g. "
+                        "configs/repair/rules_d1/refactoring.ttl")
     parser.add_argument("--catalogue", default="c1", choices=["c1", "c2"], help="D2 condition catalogue")
     parser.add_argument("--development-cases", action="store_true",
                         help="mark the replayed cases as development cases (they shaped the change)")
