@@ -30,6 +30,12 @@ rag = [
 ontology = [
   "rdflib>=7,<8",
 ]
+repair = [
+  "rdflib>=7,<8",
+  "pyshacl>=0.30,<0.41",
+  "tree-sitter>=0.25,<0.27",
+  "tree-sitter-java==0.23.5",
+]
 analysis = [
   "numpy>=2",
   "scipy>=1.13",

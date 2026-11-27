@@ -1,0 +1,74 @@
+[
+  {
+    "id": "pool-scale-logonly",
+    "group": "pool-scale-a",
+    "task": "refactoring",
+    "operation": "Parameterize Variable",
+    "before": "class Scaler {\n    private Logger log;\n    public int scale(int v) {\n        int factor = 3;\n        int scaled = v * factor;\n        return scaled;\n    }\n\n    public int other() {\n        return 1;\n    }\n}\n",
+    "after": "class Scaler {\n    private Logger log;\n    public int scale(int v, int factor) {\n        System.out.println(\"factor \" + factor);\n        return v + v + v;\n    }\n\n    public int other() {\n        return 1;\n    }\n}\n",
+    "request": "Parameterize Variable\tfactor : int to factor : int in method public scale(v int, factor int) : int from class a.Scaler",
+    "target_start": 4,
+    "defective": true,
+    "label_source": "manual-synthetic",
+    "note": "parameter only logged; computation rewritten, so R2 cannot pair the use"
+  },
+  {
+    "id": "pool-limit-local-kept",
+    "group": "pool-limit",
+    "task": "refactoring",
+    "operation": "Parameterize Variable",
+    "before": "class Calc {\n    private Logger log;\n    public int run(int x) {\n        int limit = 10;\n        if (x > limit) {\n            return limit;\n        }\n        return x;\n    }\n\n    public int other() {\n        return 1;\n    }\n}\n",
+    "after": "class Calc {\n    private Logger log;\n    public int run(int x, int limit2) {\n        int limit = 10;\n        if (x > limit) {\n            return limit;\n        }\n        return x;\n    }\n\n    public int other() {\n        return 1;\n    }\n}\n",
+    "request": "Parameterize Variable\tlimit : int to limit : int in method public run(x int, limit int) : int from class a.Calc",
+    "target_start": 4,
+    "defective": true,
+    "label_source": "manual-synthetic",
+    "note": "local kept, parameter misnamed; handwritten R2 catches it"
+  },
+  {
+    "id": "pool-scale-correct",
+    "group": "pool-scale-b",
+    "task": "refactoring",
+    "operation": "Parameterize Variable",
+    "before": "class Scaler {\n    private Logger log;\n    public int scale(int v) {\n        int factor = 3;\n        int scaled = v * factor;\n        return scaled;\n    }\n\n    public int other() {\n        return 1;\n    }\n}\n",
+    "after": "class Scaler {\n    private Logger log;\n    public int scale(int v, int factor) {\n        int scaled = v * factor;\n        return scaled;\n    }\n\n    public int other() {\n        return 1;\n    }\n}\n",
+    "request": "Parameterize Variable\tfactor : int to factor : int in method public scale(v int, factor int) : int from class a.Scaler",
+    "target_start": 4,
+    "defective": false,
+    "label_source": "manual-synthetic",
+    "note": "correct"
+  },
+  {
+    "id": "pool-logging-helper",
+    "group": "pool-helper",
+    "task": "refactoring",
+    "operation": "Parameterize Variable",
+    "before": "class Task {\n    private Logger log;\n    public void read(Reader reader) {\n        String msg = reader.readLine();\n        log.debug(msg);\n        handle(msg);\n    }\n    void handle(String s) {\n    }\n}\n",
+    "after": "class Task {\n    private Logger log;\n    public void read(Reader reader) {\n        String msg = reader.readLine();\n        stdout(msg);\n        handle(msg);\n    }\n    private void stdout(String line) {\n        log.debug(line);\n    }\n    void handle(String s) {\n    }\n}\n",
+    "request": "Parameterize Variable\tmsg : String to line : String in method private stdout(line String) : void from class a.Task",
+    "target_start": 4,
+    "defective": false,
+    "label_source": "manual-synthetic",
+    "note": "legitimate: the extracted method is a logging helper (like ml4refactoring-004d47930c7d0adbff07a577)"
+  },
+  {
+    "id": "testing-defective",
+    "group": "pool-t1",
+    "task": "testing",
+    "operation": "testing",
+    "facts_ttl": "testing/defective.ttl",
+    "defective": true,
+    "label_source": "manual-synthetic",
+    "note": "List.of passed to merge(), which calls add()"
+  },
+  {
+    "id": "testing-correct",
+    "group": "pool-t2",
+    "task": "testing",
+    "operation": "testing",
+    "facts_ttl": "testing/correct.ttl",
+    "defective": false,
+    "label_source": "manual-synthetic",
+    "note": "mutable list; assertThrows with List.of is intended"
+  }
+]

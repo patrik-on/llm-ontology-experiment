@@ -1,0 +1,4 @@
+{
+  "_comment": "Manual labels for about 10 dev examples: does the rule report describe a real error in the code? Key: <case-id>/<arm>. Example: {\"ml4refactoring-...\": {\"defective\": true, \"note\": \"parameter only logged\"}}",
+  "labels": {}
+}
