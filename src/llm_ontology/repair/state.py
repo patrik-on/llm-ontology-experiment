@@ -96,7 +96,8 @@ class RuleState:
         return number, self.load_version(number)
 
     def propose(self, *, task: str, group: str, proposal: dict | None, evidence: dict,
-                trigger: Graph | None, pool: list[Example], answer: str | None = None) -> dict:
+                trigger: Graph | None, pool: list[Example], answer: str | None = None,
+                reports: list[str] | None = None, catalogue: str = P.DEFAULT_CATALOGUE) -> dict:
         """Record (and verify) the proposal of one task; returns the ledger entry."""
         if task in self.proposals:
             return self.proposals[task]
@@ -113,14 +114,15 @@ class RuleState:
             try:
                 parsed = P.RuleProposal.model_validate(proposal)
                 if parsed.decision == "none":
+                    entry.update(P.check_none(parsed, self.load_version(started), reports))
                     entry.update(decision="deferred" if parsed.missing_facts else "none",
                                  reason="missing_extraction" if parsed.missing_facts else "")
                 else:
                     current = self.load_version(self.latest)
-                    candidate, rule, found = P.apply(current, parsed, task, answer)
+                    candidate, rule, found = P.apply(current, parsed, task, answer, catalogue)
                     result = verify(decision="modify" if parsed.decision == "revise" else "add",
                                     candidate=candidate, current=current, rule=rule,
-                                    operation=P.operation_of(parsed, current), trigger=trigger,
+                                    operation=P.operation_of(parsed, current, catalogue), trigger=trigger,
                                     trigger_group=group, pool=pool)
                     entry.update(rule=rule, evidence_check=found,
                                  required_facts=next(c["required_facts"] for r in candidate["rules"]

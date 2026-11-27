@@ -122,7 +122,8 @@ def test_invalid_and_deferred_proposals(tmp_path):
         "u2": ({**REFINE, "message": "uses {?secret}"}, "rejected", "bad_message"),
         "u3": ({"decision": "none", "reason": "needs a call graph", "missing_facts": ["lo:callGraph"]},
                "deferred", "missing_extraction"),
-        "u4": ({"decision": "none", "reason": "R1 already reports it"}, "none", ""),
+        "u4": ({"decision": "none", "reason": "R1 already reports it"}, "rejected", "uncited_rule_claim"),
+        "u4b": ({"decision": "none", "reason": "no listed condition expresses this error"}, "none", ""),
         "u5": ({"decision": "modify", "reason": "x"}, "rejected", "invalid_proposal"),
         "u6": ({**REFINE, "target_rule": "R2_ParameterizeVariable"}, "rejected", "unknown_target_rule"),
         "u7": ({**REFINE, "evidence": {"line": 4, "snippet": 'log.warn("rate is " + rate);'}},
@@ -245,10 +246,10 @@ def test_replay_keeps_the_source_run(setup, tmp_path):
     rows = replay(loop.root, tmp_path / "replay", task, replayer, analysis_tokens=256)
     assert {p: p.read_bytes() for p in loop.root.rglob("*") if p.is_file()} == before
     by = {r["case"]: r for r in rows}
-    assert by["loop-1"]["format"] == {"valid": True, "reason": "", "decision": "none"}
+    assert by["loop-1"]["format"] == {"valid": True, "reason": "", "decision": "none", "covered_by": None}
     assert by["loop-2"]["format"]["valid"] and by["loop-2"]["verification_info"]["decision"] == "accepted"
     assert by["loop-3"]["format"]["reason"] == "evidence_not_found"
     assert by["loop-2"]["original"]["decision"] == "accepted"
     report = (tmp_path / "replay" / "replay_report.md").read_text()
-    assert "Formálne platných návrhov: 2 z 3" in report and "neoverené" in report
+    assert "| Formálne platný výstup | 2/3 |" in report and "neoverené" in report
     assert len(replayer.prompts) == 3

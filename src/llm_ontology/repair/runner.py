@@ -45,12 +45,18 @@ def main(argv=None) -> int:
     parser.add_argument("--report-only", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--replay-d2-from", metavar="RUN_ID")
+    parser.add_argument("--rules-d1", metavar="TTL", help="D1 base (default: configs rules_d1); e.g. "
+                        "configs/repair/rules_d1/refactoring_v2.ttl")
+    parser.add_argument("--catalogue", default="c1", choices=["c1", "c2"], help="D2 condition catalogue")
+    parser.add_argument("--development-cases", action="store_true",
+                        help="mark the replayed cases as development cases (they shaped the change)")
     parser.add_argument("--extrapolate-to", type=int, default=100)
     args = parser.parse_args(argv)
 
     config = read_json(CONFIG)
     root = RUNS / args.run_id
-    d1 = R.load_d1(args.task, REPO / config["rules_d1"][args.task])
+    d1_path = REPO / (args.rules_d1 or config["rules_d1"][args.task])
+    d1 = R.load_d1(args.task, d1_path)
     if args.mock:
         from llm_ontology.repair.mock import mechanism
         fixtures = config["mechanism_fixtures"]
@@ -73,7 +79,9 @@ def main(argv=None) -> int:
             provider = OllamaLoopProvider(context_window_tokens=config["context_window_tokens"], seed=config["seed"])
         if root.exists() and (root / "loop_plan.json").exists():
             raise SystemExit("Run ID belongs to a loop run; use a new run ID for the replay")
-        rows = replay(RUNS / args.replay_d2_from, root, task, provider, analysis_tokens=config["analysis_max_new_tokens"])
+        rows = replay(RUNS / args.replay_d2_from, root, task, provider, analysis_tokens=config["analysis_max_new_tokens"],
+                      catalogue=args.catalogue, d1=d1 if args.rules_d1 else None,
+                      d1_name=args.rules_d1, development=args.development_cases)
         print(f"{sum(r.get('format', {}).get('valid', False) for r in rows)} formally valid of "
               f"{sum('skipped' not in r for r in rows)} -> {root / 'replay_report.md'}")
         return 0
@@ -102,6 +110,8 @@ def main(argv=None) -> int:
             "d1_sha256": R.base_hash(d1), "pool_sha256": sha(pool_path.read_text()) if pool_path.exists() else None,
             "provider": "scripted-mock" if args.mock else "ollama:" + config["model"],
             "max_attempts": config["max_attempts"]}
+    if args.rules_d1 or args.catalogue != "c1":  # absent for the defaults, so earlier plans stay comparable
+        plan.update(rules_d1=args.rules_d1 or config["rules_d1"][args.task], catalogue=args.catalogue)
     if args.dry_run:
         print(json.dumps(plan, indent=2))
         return 0
@@ -118,7 +128,7 @@ def main(argv=None) -> int:
         pool = load_pool(pool_path)
         provider = OllamaLoopProvider(context_window_tokens=config["context_window_tokens"], seed=config["seed"])
     loop = Loop(root, task, provider, d1=d1, pool=pool, max_new_tokens=config["max_new_tokens"][args.task],
-                analysis_tokens=config["analysis_max_new_tokens"])
+                analysis_tokens=config["analysis_max_new_tokens"], catalogue=args.catalogue)
     if args.freeze_d2:
         print(json.dumps(loop.state.freeze()))
         return 0
