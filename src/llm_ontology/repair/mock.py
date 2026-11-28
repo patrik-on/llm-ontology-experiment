@@ -24,7 +24,7 @@ class ScriptedProvider:
     def __init__(self, respond: Callable[[str, dict], str]):
         self.respond, self.prompts = respond, []
 
-    def generate(self, prompt: str, schema: dict, max_tokens: int) -> Generation:
+    def generate(self, prompt: str, schema: dict, max_tokens: int, temperature: float = 0.0) -> Generation:
         self.prompts.append(prompt)
         text = self.respond(prompt, schema)
         return Generation(text, prompt_tokens=len(prompt.split()), output_tokens=len(text.split()), seconds=0.0,

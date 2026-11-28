@@ -83,11 +83,29 @@ def summarise(root: Path, table: dict, cases: list[dict], *, extrapolate_to: int
     per_task_calls = (len(calls) / n) if n else 0
     per_task_seconds = (sum(c["seconds"] for c in calls) / n) if n else 0
     frozen = next((e for e in entries if e["type"] == "freeze"), None)
+    ops = sorted({c.get("operation", "?") for c in cases if c["id"] in table})
+    by_operation = {op: {"n": sum(c.get("operation") == op for c in cases if c["id"] in table),
+                         **{v: sum(table[c["id"]][v][f"S@{MAX_ATTEMPTS}"] for c in cases
+                                   if c["id"] in table and c.get("operation") == op and v in table[c["id"]])
+                            for v in variants}} for op in ops}
+    repeats = {}
+    for v in variants:
+        rows = [read_json(p) for p in root.glob(f"cases/*/{v}/completion.json")]
+        att = [a for r in rows for a in r["attempts"] if a["attempt"] > 1]
+        repeats[v] = {"repair_attempts": len(att), "repeated": sum(a.get("repeats_attempt") is not None for a in att)}
+    plan = read_json(root / "loop_plan.json")
+    matrix_check = None
+    if plan.get("first_attempt") and plan.get("source_run"):
+        mroot = root.parent / plan["source_run"] / "cases"
+        diff = [cid for cid in order if (mroot / cid / "predictions/onto_project/evaluation/evaluation.json").exists()
+                and bool(read_json(mroot / cid / "predictions/onto_project/evaluation/evaluation.json")
+                         .get("structural_success")) != bool(table[cid][variants[0]]["S@1"])]
+        matrix_check = {"compared": len(order), "differs": diff}
     summary = {"cases": n, "success": success, "status": {v: _status(table, v) for v in variants},
                "pairs": [pair(table, "D1", "C"), pair(table, "D2", "D1")] if {"C", "D1", "D2"} <= set(variants) else [],
                "costs": costs, "proposals": decisions, "accepted": accepted, "example": example,
                "d2_final_version": max([0] + [e.get("version", 0) for e in proposals if e["decision"] == "accepted"]),
-               "d2_frozen": frozen,
+               "d2_frozen": frozen, "by_operation": by_operation, "repeats": repeats, "matrix_check": matrix_check,
                "extrapolation": {"tasks": extrapolate_to, "calls": round(per_task_calls * extrapolate_to),
                                  "generation_hours": round(per_task_seconds * extrapolate_to / 3600, 2),
                                  "note": "model calls only; checker, scorer and rule time are listed per variant"}}
@@ -111,6 +129,19 @@ def markdown(s: dict, plan: dict) -> str:
              "## Úspešnosť (konečný hodnotiteľ)", "", "| Variant | S@1 | S@2 | S@3 | stavy |", "|---|---:|---:|---:|---|"]
     for v, row in s["success"].items():
         lines.append(f"| {v} | {row['S@1']} | {row['S@2']} | {row['S@3']} | {json.dumps(s['status'][v])} |")
+    if s.get("matrix_check"):
+        m = s["matrix_check"]
+        lines += ["", f"S@1 oproti matici (`onto_project`, rovnaká odpoveď): zhoda {m['compared'] - len(m['differs'])} z "
+                  f"{m['compared']}" + (f"; odlišné: {', '.join(m['differs'])}" if m["differs"] else "") + "."]
+    if s.get("by_operation") and len(s["by_operation"]) > 1:
+        vs = list(s["success"])
+        lines += ["", "## Podľa operácie (S@3)", "", "| Operácia | n | " + " | ".join(vs) + " |",
+                  "|---|---:|" + "---:|" * len(vs)]
+        for op, row in s["by_operation"].items():
+            lines.append(f"| {op} | {row['n']} | " + " | ".join(str(row[v]) for v in vs) + " |")
+    if s.get("repeats"):
+        lines += ["", "Opravné pokusy zhodné s predchádzajúcou odpoveďou: " + ", ".join(
+            f"{v} {r['repeated']}/{r['repair_attempts']}" for v, r in s["repeats"].items()) + "."]
     lines += ["", "## Párové porovnania pri S@3 (opisne)", "", "| Pár | n | oba | iba prvý | iba druhý | ani jeden | Δ p.b. | McNemar p |",
               "|---|---:|---:|---:|---:|---:|---:|---:|"]
     for p in s["pairs"]:

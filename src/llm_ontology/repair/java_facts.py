@@ -243,8 +243,69 @@ def _resolve(unit: _Unit, method, node) -> str:
     return "field" if name in fields else "unknown"
 
 
+@dataclass(frozen=True)
+class GenericRequest:
+    """Any RefactoringMiner request of the matrix, reduced to what R1 needs."""
+    operation: str
+    method: str | None                 # the method the request is about (after the change), if any
+    param_types: tuple[str, ...] = ()
+    signature_after: bool = True       # False: the request shows the signature before the change
+    names: frozenset = frozenset()     # declarations the request changes (outside the scope check)
+
+    @property
+    def signature(self) -> str | None:
+        return None if self.method is None else f"{self.method}({', '.join(self.param_types)})"
+
+
+_SIG = re.compile(r"(?P<name>[\w$]+)\((?P<params>.*)\)(?:\s*:\s*.+)?$")
+_IN_METHOD = re.compile(r"^(?P<op>[A-Z][A-Za-z ]+?)\t.*? in method (?P<sig>.+?) from class (?P<cls>[\w.$]+)\s*$")
+
+
+def _sig(text: str) -> tuple[str, tuple[str, ...]]:
+    match = _SIG.search(text.strip().split(" throws ")[0])
+    if not match:
+        raise ValueError("No method signature in: " + text[:80])
+    params = _split_top(match["params"]) if match["params"].strip() else []
+    types = tuple(_norm_type(p.strip().split(None, 1)[1]) if len(p.strip().split(None, 1)) == 2 else p.strip()
+                  for p in params)
+    return match["name"], types
+
+
+def parse_any_request(text: str) -> GenericRequest:
+    first = text.strip().splitlines()[0]
+    op = first.split("\t", 1)[0].strip()
+    body = first.split("\t", 1)[1] if "\t" in first else ""
+    if op == "Rename Class":
+        old, new = [x.strip() for x in body.split(" renamed to ")]
+        return GenericRequest(op, None, names=frozenset({old.rsplit(".", 1)[-1], new.rsplit(".", 1)[-1]}))
+    if op == "Rename Method":
+        left, right = body.split(" renamed to ")
+        old, _ = _sig(left)
+        new, types = _sig(right.rsplit(" in class ", 1)[0])
+        return GenericRequest(op, new, types, names=frozenset({old, new}))
+    if op == "Extract Method":
+        left, right = body.split(" extracted from ")
+        new, types = _sig(left)
+        src, _ = _sig(right.rsplit(" in class ", 1)[0])
+        return GenericRequest(op, new, types, names=frozenset({new, src}))
+    if op == "Inline Method":
+        left, right = body.split(" inlined to ")
+        old, _ = _sig(left)
+        dst, types = _sig(right.rsplit(" in class ", 1)[0])
+        return GenericRequest(op, dst, types, names=frozenset({old, dst}))
+    match = _IN_METHOD.match(first)
+    if not match:
+        raise ValueError("Unsupported request: " + first[:80])
+    name, types = _sig(match["sig"])
+    # Remove Parameter shows the signature before the change; the others show it after
+    return GenericRequest(op, name, types, signature_after=op != "Remove Parameter", names=frozenset({name}))
+
+
 def refactoring_graph(before: str, after: str, request: str, target_start: int) -> Graph:
-    """Facts for R1 and R2 (and template rules) on one Parameterize Variable answer."""
+    """Facts for R1 and R2 (and template rules) on one answer. Parameterize Variable gets the full
+    facts (R2); every other operation gets the R1 facts (``generic_graph``)."""
+    if not request.startswith("Parameterize Variable"):
+        return generic_graph(before, after, request, target_start)
     req = parse_request(request)
     b, a = _Unit(before), _Unit(after)
     g = Graph()
@@ -379,4 +440,55 @@ def refactoring_graph(before: str, after: str, request: str, target_start: int) 
             g.add((ua, LO.resolvesKind, lit(_resolve(a, target, mapped))))
             g.add((ua, LO.usageRole, lit(a.role(mapped))))
         g.add((ub, LO.hasCounterpart, ua))
+    return g
+
+
+def generic_graph(before: str, after: str, request: str, target_start: int) -> Graph:
+    """R1 facts for any operation: members and their counterparts (the method around the target
+    line and the declarations the request names are outside the scope check), modifiers, and
+    whether the requested method is in the input and declared in the output."""
+    req = parse_any_request(request)
+    b, a = _Unit(before), _Unit(after)
+    g = Graph()
+    g.bind("lo", LO)
+    ns = lambda side, i: URIRef(f"{LO}{side}_{i}")  # noqa: E731
+    lit = Literal
+    source = next((m for m in b.methods() if m.start_point.row + 1 <= target_start <= m.end_point.row + 1), None)
+    excluded = ({b.key(source)} if source is not None else set()) | \
+        {b.key(n) for n in b.members() if b.name(n) in req.names}
+    after_members = {a.key(n): n for n in a.members()}
+    after_nodes = {}
+    for i, node in enumerate(a.members()):
+        after_nodes[_k(node)] = ns("a", i)
+        g.add((ns("a", i), RDF.type, LO.Decl))
+        g.add((ns("a", i), LO.side, lit("after")))
+        g.add((ns("a", i), LO.display, lit(a.display(node))))
+        g.add((ns("a", i), LO.modifiers, lit(a.modifiers(node))))
+    for i, node in enumerate(b.members()):
+        uri = ns("b", i)
+        g.add((uri, RDF.type, LO.Decl))
+        g.add((uri, LO.side, lit("before")))
+        g.add((uri, LO.display, lit(b.display(node))))
+        g.add((uri, LO.line, lit(node.start_point.row + 1)))
+        g.add((uri, LO.modifiers, lit(b.modifiers(node))))
+        if b.key(node) not in excluded:
+            g.add((uri, LO.checkScope, lit(True)))
+        twin = after_members.get(b.key(node))
+        if twin is not None:
+            g.add((uri, LO.hasCounterpart, after_nodes[_k(twin)]))
+    req_uri = URIRef(f"{LO}request")
+    g.add((req_uri, RDF.type, LO.RefactoringRequest))
+    if req.method is not None:
+        g.add((req_uri, LO.requestedSignature, lit(req.signature)))
+        g.add((req_uri, LO.targetMethodInInput, lit(any(b.name(m) == req.method for m in b.methods()))))
+        named = [m for m in a.methods() if a.name(m) == req.method]
+        g.add((req_uri, LO.targetSignatureInOutput, lit(any(
+            not req.signature_after or tuple(_norm_type(t) for _, t in a.params(m)) == req.param_types
+            for m in named))))
+        if named:
+            target = min(named, key=lambda m: abs(len(a.params(m)) - len(req.param_types)))
+            ma = after_nodes[_k(target)]
+            g.add((req_uri, LO.targetMethodAfter, ma))
+            g.add((ma, RDF.type, LO.Method))
+            g.add((ma, LO.name, lit(req.method)))
     return g

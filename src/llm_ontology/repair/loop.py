@@ -67,7 +67,7 @@ class Generation:
 class Provider(Protocol):
     name: str
 
-    def generate(self, prompt: str, schema: dict, max_tokens: int) -> Generation: ...
+    def generate(self, prompt: str, schema: dict, max_tokens: int, temperature: float = 0.0) -> Generation: ...
 
 
 @dataclass
@@ -123,11 +123,41 @@ def _clip(items: list[str], limit: int) -> tuple[list[str], int]:
     return out[:limit], len(out)
 
 
+FEEDBACK_VERSIONS = ("repair-feedback-v1", "repair-feedback-v2")
+FEEDBACK_VERSION = "repair-feedback-v1"  # default; v2: rejection first, previous answer last
+
+
+def answer_key(raw: str, source: str | None) -> str:
+    """Whitespace-insensitive identity of an answer (its code if it parses, else the raw text)."""
+    return sha(" ".join((source if source is not None else raw).split()))
+
+
 def feedback_text(k: int, raw: str, check: Check, reports: list[str] | None, diagnosis: dict | None,
-                  version: str | None) -> str:
+                  version: str | None, repeated_of: int | None = None, style: str = FEEDBACK_VERSION) -> str:
+    """Same structure for C, D1 and D2; only the rule checks and the diagnosis differ by variant.
+    v1 is the pilots' text (plus the repeat line); v2 puts the rejection first and the answer last."""
     tool, total = _clip(check.messages, MAX_TOOL_MESSAGES)
-    lines = [f"### Previous answer (attempt {k} of {MAX_ATTEMPTS})", raw, "", f"### Feedback on attempt {k}",
-             f"Status: {check.status}", f"Tool output ({check.tool}), {len(tool)} of {total} messages:"]
+    if style == "repair-feedback-v1":
+        lines = [f"### Previous answer (attempt {k} of {MAX_ATTEMPTS})", raw, "", f"### Feedback on attempt {k}"]
+        if repeated_of is not None:
+            lines.append(f"Attempt {k} is identical to attempt {repeated_of} and was rejected again; change the code.")
+        lines += [f"Status: {check.status}", f"Tool output ({check.tool}), {len(tool)} of {total} messages:"]
+        lines += ["- " + m for m in tool] or ["- (none)"]
+        if reports is not None:
+            rule, rtotal = _clip(reports, MAX_RULE_MESSAGES)
+            lines.append(f"Rule checks ({version}), {len(rule)} of {rtotal} violations:")
+            lines += ["- " + m for m in rule] or ["- (none)"]
+        if diagnosis:
+            lines += ["Diagnosis of the first failure:", "Location: " + diagnosis["location"],
+                      "Cause: " + diagnosis["cause"]]
+        lines += ["Fix the reported problems. Keep everything else unchanged.",
+                  "Return the complete answer in the same JSON format as before."]
+        return "\n".join(lines)
+    lines = [f"### Feedback on attempt {k} of {MAX_ATTEMPTS}", f"Your attempt {k} was rejected."]
+    if repeated_of is not None:
+        lines.append(f"Attempt {k} is identical to attempt {repeated_of} and was rejected again. An unchanged "
+                     "answer cannot pass: change the code where the feedback points.")
+    lines += [f"Status: {check.status}", f"Tool output ({check.tool}), {len(tool)} of {total} messages:"]
     lines += ["- " + m for m in tool] or ["- (none)"]
     if reports is not None:
         rule, rtotal = _clip(reports, MAX_RULE_MESSAGES)
@@ -136,7 +166,9 @@ def feedback_text(k: int, raw: str, check: Check, reports: list[str] | None, dia
     if diagnosis:
         lines += ["Diagnosis of the first failure:", "Location: " + diagnosis["location"],
                   "Cause: " + diagnosis["cause"]]
-    lines += ["Fix the reported problems. Keep everything else unchanged.",
+    lines += ["What to do: perform exactly the requested operation on the input above and fix every reported "
+              "problem. Do not change members that the request does not concern. Do not return the same code again.",
+              "", f"### Your rejected attempt {k} (for reference only; do not copy it unchanged)", raw, "",
               "Return the complete answer in the same JSON format as before."]
     return "\n".join(lines)
 
@@ -170,8 +202,16 @@ def analysis_prompt(variant: str, prompt1: str, raw: str, check: Check, reports:
 
 class Loop:
     def __init__(self, root: Path, task: Task, provider: Provider, *, d1: dict, pool: list[Example],
-                 max_new_tokens: int, analysis_tokens: int, variants=VARIANTS, catalogue: str = P.DEFAULT_CATALOGUE):
+                 max_new_tokens: int, analysis_tokens: int, variants=VARIANTS, catalogue: str = P.DEFAULT_CATALOGUE,
+                 first_attempt_from: Path | None = None, repair_temperature: float = 0.0,
+                 feedback_style: str = FEEDBACK_VERSION):
         self.root, self.task, self.provider = Path(root), task, provider
+        # matrix run whose onto_project answers are reused as the shared first attempt (S@1 = that arm)
+        self.first_attempt_from = Path(first_attempt_from) if first_attempt_from else None
+        self.repair_temperature = repair_temperature  # repair attempts only; same for C, D1 and D2
+        if feedback_style not in FEEDBACK_VERSIONS:
+            raise ValueError("unknown feedback style " + feedback_style)
+        self.feedback_style = feedback_style
         self.catalogue = catalogue
         self.d1, self.pool = d1, pool
         self.max_new_tokens, self.analysis_tokens = max_new_tokens, analysis_tokens
@@ -182,7 +222,7 @@ class Loop:
 
     # ----- model calls -----------------------------------------------------------------
     def _call(self, out: Path, prompt: str, schema: dict, max_tokens: int, *, kind: str, case: str,
-              variant: str, attempt: int) -> str:
+              variant: str, attempt: int, temperature: float = 0.0) -> str:
         """Generate once; a stored response is reused on resume and never charged twice."""
         if (out / "raw.txt").exists() and (out / "prompt.txt").exists():
             if (out / "prompt.txt").read_text(encoding="utf-8") != prompt:
@@ -190,7 +230,8 @@ class Loop:
             return (out / "raw.txt").read_text(encoding="utf-8")
         out.mkdir(parents=True, exist_ok=True)
         (out / "prompt.txt").write_text(prompt, encoding="utf-8")
-        gen = self.provider.generate(prompt, schema, max_tokens)
+        gen = self.provider.generate(prompt, schema, max_tokens, temperature) if temperature else \
+            self.provider.generate(prompt, schema, max_tokens)
         (out / "raw.txt").write_text(gen.text, encoding="utf-8")
         write_json(out / "generation.json", {"prompt_sha256": sha(prompt), "response_sha256": sha(gen.text),
                                              "prompt_tokens": gen.prompt_tokens, "output_tokens": gen.output_tokens,
@@ -200,6 +241,25 @@ class Loop:
                                       "prompt_tokens": gen.prompt_tokens, "output_tokens": gen.output_tokens,
                                       "seconds": gen.seconds}) + "\n")
         return gen.text
+
+    def _reuse_first(self, out: Path, prompt: str, case: str) -> str:
+        """The matrix's onto_project answer as attempt 1: same prompt (checked), no new call."""
+        src = self.first_attempt_from / "cases" / case / "predictions" / "onto_project"
+        dispatch = read_json(src / "dispatch.json")["request"]
+        if dispatch["prompt"] != prompt:
+            raise ValueError("First-attempt prompt differs from the matrix onto_project prompt: " + case)
+        raw = (src / "raw.txt").read_text(encoding="utf-8")
+        if not (out / "raw.txt").exists():
+            out.mkdir(parents=True, exist_ok=True)
+            (out / "prompt.txt").write_text(prompt, encoding="utf-8")
+            (out / "raw.txt").write_text(raw, encoding="utf-8")
+            gen = read_json(src / "generation.json") if (src / "generation.json").exists() else {}
+            write_json(out / "generation.json", {"prompt_sha256": sha(prompt), "response_sha256": sha(raw),
+                                                 "reused_from": str(src), "options": dispatch.get("options"),
+                                                 "matrix_generation": gen})
+        elif (out / "raw.txt").read_text(encoding="utf-8") != raw:
+            raise ValueError("Stored first attempt differs from the matrix answer: " + case)
+        return raw
 
     # ----- rules -----------------------------------------------------------------------
     def _reports(self, case: dict, check: Check, base: dict, out: Path) -> list[str]:
@@ -219,8 +279,11 @@ class Loop:
         cid, group = case["id"], self.task.group(case)
         croot = self.root / "cases" / cid
         prompt1 = self.task.prompt(case)
-        raw1 = self._call(croot / "shared" / "attempt-1", prompt1, self.task.schema(), self.max_new_tokens,
-                          kind="generate", case=cid, variant="shared", attempt=1)
+        if self.first_attempt_from is not None:
+            raw1 = self._reuse_first(croot / "shared" / "attempt-1", prompt1, cid)
+        else:
+            raw1 = self._call(croot / "shared" / "attempt-1", prompt1, self.task.schema(), self.max_new_tokens,
+                              kind="generate", case=cid, variant="shared", attempt=1)
         for variant in self.variants:
             vroot = croot / variant
             if (vroot / "completion.json").exists():
@@ -235,6 +298,7 @@ class Loop:
                 version = f"D2 v{number}"
             shadow = self.d1 if variant == "C" else base
             attempts, raw, diagnosis, status, feedback = [], raw1, None, "failed", ""
+            keys: list[str] = []  # answer_key of each attempt, to mark repeated answers
             for k in range(1, MAX_ATTEMPTS + 1):
                 adir = vroot / f"attempt-{k}"
                 if k > 1:
@@ -242,11 +306,16 @@ class Loop:
                     (adir).mkdir(parents=True, exist_ok=True)
                     (adir / "feedback.txt").write_text(feedback, encoding="utf-8")
                     raw = self._call(adir, prompt, self.task.schema(), self.max_new_tokens,
-                                     kind="generate", case=cid, variant=variant, attempt=k)
+                                     kind="generate", case=cid, variant=variant, attempt=k,
+                                     temperature=self.repair_temperature)
                 adir.mkdir(parents=True, exist_ok=True)
                 check = self.task.check(case, raw, adir / "check")
                 write_json(adir / "check.json", {**check.__dict__, "source": None})
-                attempts.append({"attempt": k, "response_sha256": sha(raw), "status": check.status})
+                key = answer_key(raw, check.source)
+                repeated_of = next((j + 1 for j, other in enumerate(keys) if other == key), None)
+                keys.append(key)
+                attempts.append({"attempt": k, "response_sha256": sha(raw), "status": check.status,
+                                 "repeats_attempt": repeated_of})
                 messages = self._reports(case, check, shadow, adir)
                 reports = None if variant == "C" else messages
                 if check.success:
@@ -259,7 +328,7 @@ class Loop:
                     break
                 if diagnosis is None:
                     diagnosis = self._analyse(variant, case, group, prompt1, raw, check, reports, base, vroot)
-                feedback = feedback_text(k, raw, check, reports, diagnosis, version)
+                feedback = feedback_text(k, raw, check, reports, diagnosis, version, repeated_of, self.feedback_style)
             write_json(vroot / "completion.json", {"status": status, "attempts": attempts, "base": version,
                                                    "base_sha256": R.base_hash(base) if base else None})
 

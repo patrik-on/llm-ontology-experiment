@@ -16,7 +16,7 @@ from pathlib import Path
 import subprocess
 
 from llm_ontology.repair import rules as R
-from llm_ontology.repair.loop import Loop, read_json, sha, write_json
+from llm_ontology.repair.loop import FEEDBACK_VERSION, Loop, read_json, sha, write_json
 from llm_ontology.repair.report import summarise
 from llm_ontology.repair.verify import load_pool
 
@@ -50,6 +50,14 @@ def main(argv=None) -> int:
     parser.add_argument("--catalogue", default="c1", choices=["c1", "c2"], help="D2 condition catalogue")
     parser.add_argument("--source-run", metavar="RUN_ID", help="selection.json of this run instead of the "
                         "configured matrix run (e.g. a development set)")
+    parser.add_argument("--operation", help="operation of the matrix tasks (default: the configured pilot "
+                        "operation); all-structural = every file-level task of the matrix")
+    parser.add_argument("--reuse-first-attempt", action="store_true",
+                        help="use the matrix onto_project answers as the shared first attempt (S@1 = that arm)")
+    parser.add_argument("--feedback", default="repair-feedback-v1", choices=["repair-feedback-v1", "repair-feedback-v2"],
+                        help="repair prompt text (same for C, D1 and D2)")
+    parser.add_argument("--repair-temperature", type=float, default=0.0,
+                        help="sampling temperature of repair attempts 2-3 (attempt 1 and analyses stay at 0)")
     parser.add_argument("--build-devset", type=int, metavar="N", help="development set: N tasks per stratum")
     parser.add_argument("--first-answers", action="store_true",
                         help="one first answer per task of --source-run, checked and scored, pilot run layout")
@@ -80,7 +88,7 @@ def main(argv=None) -> int:
             print(json.dumps({k: v for k, v in info.items() if k != "rejected"}), f"rejected={len(info['rejected'])}")
             return 0
         source = RUNS / (args.source_run or config["source_runs"][args.task])
-        task = RefactoringTask(source, config["pilot"][args.task]["operation"])
+        task = RefactoringTask(source, args.operation or config["pilot"][args.task]["operation"])
         if args.first_answers:
             from llm_ontology.repair import devset
             if root.resolve() != source.resolve():
@@ -135,6 +143,14 @@ def main(argv=None) -> int:
             "d1_sha256": R.base_hash(d1), "pool_sha256": sha(pool_path.read_text()) if pool_path.exists() else None,
             "provider": "scripted-mock" if args.mock else "ollama:" + config["model"],
             "max_attempts": config["max_attempts"]}
+    if args.operation:
+        plan["operation"] = args.operation
+    if args.repair_temperature:
+        plan["repair_temperature"] = args.repair_temperature
+    if args.reuse_first_attempt:
+        plan["first_attempt"] = "matrix onto_project answers of " + source.name
+    if args.feedback != FEEDBACK_VERSION:
+        plan["feedback_version"] = args.feedback
     if args.rules_d1 or args.catalogue != "c1":  # absent for the defaults, so earlier plans stay comparable
         plan.update(rules_d1=args.rules_d1 or config["rules_d1"][args.task], catalogue=args.catalogue)
     if args.dry_run:
@@ -153,7 +169,9 @@ def main(argv=None) -> int:
         pool = load_pool(pool_path)
         provider = OllamaLoopProvider(context_window_tokens=config["context_window_tokens"], seed=config["seed"])
     loop = Loop(root, task, provider, d1=d1, pool=pool, max_new_tokens=config["max_new_tokens"][args.task],
-                analysis_tokens=config["analysis_max_new_tokens"], catalogue=args.catalogue)
+                analysis_tokens=config["analysis_max_new_tokens"], catalogue=args.catalogue,
+                first_attempt_from=source if args.reuse_first_attempt else None,
+                repair_temperature=args.repair_temperature, feedback_style=args.feedback)
     if args.freeze_d2:
         print(json.dumps(loop.state.freeze()))
         return 0
