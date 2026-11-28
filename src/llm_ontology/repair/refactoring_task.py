@@ -39,7 +39,10 @@ class RefactoringTask:
         self.source_run = Path(source_run)
         selected = shared.read(self.source_run / "selection.json")
         self.tool = selected["tool"]
-        self._cases = [c for c in selected["cases"] if c["operation"] == operation]
+        if operation == "all-structural":  # every file-level task of the matrix (the SWE project tasks need a build)
+            self._cases = [c for c in selected["cases"] if c.get("evaluation_level") == "structural"]
+        else:
+            self._cases = [c for c in selected["cases"] if c["operation"] == operation]
         if not self._cases:
             raise ValueError("No cases for operation " + operation)
 
@@ -83,7 +86,20 @@ class RefactoringTask:
             return Check("DETECTOR_ERROR", False, False, "RefactoringMiner", ["detector error"], source,
                          perf_counter() - start)
         events = detected.get("events", [])
-        if any(_norm(e.get("description", "")) == _norm(case["request"]) for e in events):
+        # the RefactoringMiner description is the request's first line (Extract Variable adds a second
+        # line with the expression to extract, which no detected event contains)
+        wanted = _norm(case["request"].splitlines()[0])
+        matching = [e for e in events if _norm(e.get("description", "")) == wanted]
+        expression = case.get("extraction_expression")  # Extract Variable: stated in the request itself
+        if matching and expression:
+            found = [structural.extracted_initializer(source, e) for e in matching]
+            if not any(ex.normalize_java_for_hash(f or "") == ex.normalize_java_for_hash(expression) for f in found):
+                got = next((f for f in found if f), None)
+                return Check("WRONG_EXPRESSION", False, True, "RefactoringMiner",
+                             ["Requested: " + _norm(case["request"]),
+                              f"The extracted variable is initialised with '{_norm(got or '(unknown)')}', but the "
+                              f"request asks to extract exactly '{_norm(expression)}'."], source, perf_counter() - start)
+        if matching:
             return Check("PASSED", True, True, "RefactoringMiner", [], source, perf_counter() - start)
         others = [_norm(e.get("description", "")) for e in events][:5]
         messages = ["Requested: " + _norm(case["request"])] + ["Detected instead: " + o for o in others]
@@ -159,9 +175,9 @@ class OllamaLoopProvider:
         self.shared, self.config = shared, shared.runtime()
         self.context, self.seed = context_window_tokens, seed
 
-    def generate(self, prompt: str, schema: dict, max_tokens: int) -> Generation:
+    def generate(self, prompt: str, schema: dict, max_tokens: int, temperature: float = 0.0) -> Generation:
         provider = self.shared.OllamaProvider(model_name="qwen2.5-coder:7b", max_tokens=max_tokens,
-                                              context_window_tokens=self.context, temperature=0, top_p=.9,
+                                              context_window_tokens=self.context, temperature=temperature, top_p=.9,
                                               seed=self.seed, timeout_seconds=self.config.generation_timeout_seconds)
         if provider.resolve_model_digest() != self.config.generation_model_digest:
             raise RuntimeError("Model digest changed")
@@ -170,4 +186,5 @@ class OllamaLoopProvider:
         if result.model_digest != self.config.generation_model_digest or result.done is not True:
             raise RuntimeError("Incomplete response or model digest mismatch")
         return Generation(result.response, result.prompt_eval_count, result.eval_count, perf_counter() - start,
-                          {"done_reason": result.done_reason, "model_digest": result.model_digest})
+                          {"done_reason": result.done_reason, "model_digest": result.model_digest,
+                           "temperature": temperature})
