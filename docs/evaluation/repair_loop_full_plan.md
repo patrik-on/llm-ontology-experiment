@@ -78,3 +78,19 @@ P3 – run and comparison
   Variable requests carry a second line ("Extract exactly this original expression: ..."), so 34 correct
   Extract Variable outputs were rejected. It now compares with the first line.
 - **SWE project tasks** (5) are not in the run: their evaluator is the project build and tests.
+
+## Command (WSL, repository root; Ollama with qwen2.5-coder:7b running)
+
+```bash
+P=.venv_wsl/bin/python; R=scripts/benchmarks/run_repair_loop.py; ID=repair-full-c-d1-d2-20261128
+A="--operation all-structural --reuse-first-attempt --catalogue c2"
+$P $R --run-id $ID $A --build-pool            # already done for this ID (dev_pool.json)
+$P $R --run-id $ID $A --check-public-checker  # already done for this ID (public_checker.json)
+$P $R --run-id $ID $A --dry-run               # plan: 95 tasks, hashes
+nohup $P $R --run-id $ID $A > artifacts/evaluation/runs/$ID/run.log 2>&1 &   # the run; same command resumes
+$P $R --run-id $ID $A --freeze-d2             # after the run
+$P $R --run-id $ID $A --report-only           # loop_report.md, loop_summary.json
+```
+
+Trial on 4 tasks (`repair-full-trial-20261128`): runs end to end over four operations, S@1 equals the
+matrix in 4 of 4.
